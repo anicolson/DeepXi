@@ -1,5 +1,5 @@
 # DeepXi: Residual Network A Priori SNR estimator
-DeepXi is a Residual Network (ResNet) A Priori SNR estimator implemented in [TensorFlow](https://www.tensorflow.org/). It can be used for Speech Enhancement (SE) and robust Automatic Speech Recognition (ASR). 
+DeepXi is a Residual Network-based (ResNet) A Priori SNR estimator implemented in [TensorFlow](https://www.tensorflow.org/).
 
 ## Prerequisites
 * [TensorFlow](https://www.tensorflow.org/)
@@ -14,4 +14,4 @@ inf.py | Inference, outputs .mat MATLAB a priori SNR estimates.
 run.py | Used to pass variables to inf.py. must give paths to the model, and the clean speech and noise testing files.
 
 ## References
-[1] .
+[1] A. Nicolson and K. K. Paliwal, "A Priori Signal-to-Noise Ratio Estimation Using a Deep Residual Long Short-Term Memory Network", to be submitted.
