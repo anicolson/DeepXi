@@ -1,4 +1,7 @@
 # DeepXi: Residual Network-based A Priori SNR estimator
+
+[embed]http://example.com/file.pdf[/embed]
+
 DeepXi is a Residual Network-based (ResNet) A Priori SNR estimator that was proposed in [1]. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/). 
 
 ## Prerequisites
