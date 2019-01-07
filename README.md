@@ -10,7 +10,10 @@ DeepXi is a residual bidirectional long short-term memory (ResBLSTM) network *a 
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
 
 ## Download the Model
-A trained model can be downloaded from [here](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0). The model was trained with a sampling rate of 16 kHz.
+A trained model can be downloaded from [here](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0). Unzip and place in the *model* directory. The model was trained with a sampling rate of 16 kHz.
+
+## How to Perform Speech Enhancement
+Simply run the script (python3 deepxi.py). Run the script in the virtual environment that TensorFlow is installed in. The script has different inference options, and is also able to perform training if required.
 
 ## Directory Description
 Directory | Description
