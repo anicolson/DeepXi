@@ -31,7 +31,7 @@ train = False # perform training flag.
 cont = False # continue testing from last epoch.
 train_clean_speech_ver = 'v1' # train clean speech set version.
 train_noise_ver = 'v1' # train noise set version.
-model_path = HOME + '/model/DeepXi/' + version # model save path.
+model_path = HOME + '/model/' + version # model save path.
 mbatch_size = 10 # mini-batch size.
 max_epochs = 10 # maximum number of epochs.
 train_clean_speech_path = '' # path to the clean speech training set.
@@ -57,7 +57,6 @@ out_type = 'y'
 # 'ibm' - Ideal Binary Mask (IBM).
 # 'wf' - Wiener Filter (WF).
 # 'srwf' - Square-Root Wiener Filter (SRWF).
-# 'spp' - Speech Presence Probability (SPP).
 # 'mmse-stsa' - Minimum-Mean Square Error - Short-Time Spectral Amplitude (MMSE-STSA) estimator.
 # 'mmse-lsa' - Minimum-Mean Square Error - Log-Spectral Amplitude (MMSE-LSA) estimator.
 gain = 'mmse-lsa'
@@ -358,9 +357,6 @@ if test:
 	if gain is 'ibm': G = tf.cast(tf.greater(xi_hat_ph, 1), tf.float32) # IBM gain function.
 	if gain is 'wf': G = tf.div(xi_hat_ph, tf.add(xi_hat_ph, 1.0)) # WF gain function.
 	if gain is 'srwf': G = tf.sqrt(tf.div(xi_hat_ph, tf.add(xi_hat_ph, 1.0))) # SRWF gain function.
-	if gain is 'spp':
-		G = tf.sqrt(xi_hat_ph)
-		G = tf.div(G, tf.add(G, 1.0)) # SPP gain function.
 	s_hat_MS = tf.multiply(x_MS_2D_ph, G_ph) # enhanced speech single-sided magnitude spectrum.
 	
 	## SYNTHESIS GRAPH
