@@ -1,24 +1,24 @@
-# DeepXi: Residual Network-based A Priori SNR estimator
+# DeepXi: Residual Bidirectional Long Short-Term Memory (ResBLSTM) Network *A Priori* SNR estimator
 
-![](./fig.png "My crude attempt at drawing Renee French's Go Gopher.")
+![](./fig.png "ResBLSTM a priori SNR estimator.")
 
-
-DeepXi is a Residual Network-based (ResNet) A Priori SNR estimator that was proposed in [1]. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/). 
+DeepXi is a residual bidirectional long short-term memory (ResBLSTM) network *a priori* SNR estimator that was proposed in [1]. It can be used by Minimum Mean-Square Error (MMSE) approaches like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/) and is trained to estimate the *a priori* SNR for single channel noisy speech with a sampling frequency of 16 kHz. 
 
 ## Prerequisites
 * [TensorFlow](https://www.tensorflow.org/)
 * [Python 3](https://www.python.org/)
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
 
-## File Description
-File | Description
---------| -----------  
-train.py | Training, must give paths to the clean speech and noise training files.
-inf.py | Inference, outputs .mat MATLAB a priori SNR estimates.
-run.py | Used to pass variables to inf.py. must give paths to the model, and the clean speech and noise testing files.
+## Download the Model
+A trained model can be downloaded from [here](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0). The model was trained with a sampling rate of 16 kHz.
 
-## Availability
-The DeepXi implementation will be made available after submission.
+## Directory Description
+Directory | Description
+--------| -----------  
+noisy_speech | Noisy speech. Place noisy speech .wav files to be enhanced here.
+enhanced_speech | Enhanced speech .wav output files.
+lib | Functions for deepxi.py.
+model | The directory for the model (the model must be [downloaded](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0).).
 
 ## References
 [1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Submitted to Speech Communication.
