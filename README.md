@@ -21,4 +21,4 @@ run.py | Used to pass variables to inf.py. must give paths to the model, and the
 The DeepXi implementation will be made available after submission.
 
 ## References
-[1] A. Nicolson and K. K. Paliwal, "A Priori Signal-to-Noise Ratio Estimation Using a Deep Residual Long Short-Term Memory Network", to be submitted.
+[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", to be submitted.
