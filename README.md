@@ -19,7 +19,7 @@ Simply run the script (python3 deepxi.py). Run the script in the virtual environ
 Directory | Description
 --------| -----------  
 noisy_speech | Noisy speech. Place noisy speech .wav files to be enhanced here.
-enhanced_speech | Enhanced speech .wav output files.
+output | DeepXi outputs, including the enhanced speech .wav output files.
 lib | Functions for deepxi.py.
 model | The directory for the model (the model must be [downloaded](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0).).
 
