@@ -10,7 +10,7 @@ DeepXi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a residual bi
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
 
 ## Download the Model
-A trained model can be downloaded from [here](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0). Unzip and place in the *model* directory. The model was trained with a sampling rate of 16 kHz.
+A trained model can be downloaded from [here](https://www.dropbox.com/s/do8ghm7vibs5278/n1.5a.zip?dl=0). Unzip and place in the *model* directory. The model was trained with a sampling rate of 16 kHz.
 
 ## How to Perform Speech Enhancement
 Simply run the script (python3 deepxi.py). Run the script in the virtual environment that TensorFlow is installed in. The script has different inference options, and is also able to perform training if required.
@@ -19,7 +19,7 @@ Simply run the script (python3 deepxi.py). Run the script in the virtual environ
 Directory | Description
 --------| -----------  
 lib | Functions for deepxi.py.
-model | The directory for the model (the model must be [downloaded](https://www.dropbox.com/s/il0unehep10o0gd/epoch-10.zip?dl=0).).
+model | The directory for the model (the model must be [downloaded](https://www.dropbox.com/s/do8ghm7vibs5278/n1.5a.zip?dl=0).).
 noisy_speech | Noisy speech. Place noisy speech .wav files to be enhanced here.
 output | DeepXi outputs, including the enhanced speech .wav output files.
 stats | Statistics of a sample from the training set. The mean and standard deviation of the *a priori* SNR for the sample are used to compute the training target. 
