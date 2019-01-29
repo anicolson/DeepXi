@@ -16,7 +16,7 @@ Installation
 -----
 
 It is recommended to use a [virtual environment](http://virtualenvwrapper.readthedocs.io/en/latest/install.html).
------
+
 1. `git clone https://github.com/anicolson/DeepXi.git`
 2. `pip install -r requirements.txt`
 
