@@ -1,7 +1,7 @@
 Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 ====
 
-![](./fig.png "ResBLSTM a priori SNR estimator.")
+![hello moto](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")
 
 Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/) and is trained to estimate the *a priori* SNR for single channel noisy speech with a sampling frequency of 16 kHz. 
 
@@ -23,7 +23,7 @@ Installation
 
 It is recommended to use a [virtual environment](http://virtualenvwrapper.readthedocs.io/en/latest/install.html) for installation.
 
-Prerequisites
+Prerequisites:
 
 * [TensorFlow](https://www.tensorflow.org/) (installed in a virtual environment)
 * [Python3](https://docs.python-guide.org/starting/install3/linux/)
@@ -33,11 +33,6 @@ To install:
 
 1. `git clone https://github.com/anicolson/DeepXi.git`
 2. `pip install -r requirements.txt`
-
-Download the Model
------
-
-A trained model can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). Unzip and place in the *model* directory. The model was trained with a sampling rate of 16 kHz.
 
 How to Perform Speech Enhancement
 -----
