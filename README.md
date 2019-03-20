@@ -9,7 +9,7 @@ Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learn
 Current Models
 -----
 
-The scripts for each of the models can be found in the *./ver* directory.
+The scripts for each of the following models can be found in the *./ver* directory:
 
 * **c2.7a** is a TCN (temporal convolutional network) that has 2 million parameters.
 * **c1.13a** is a ResLSTM (residual long short-term memory network) that has 10.8 million parameters.
@@ -21,13 +21,15 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 Installation
 -----
 
+It is recommended to use a [virtual environment](http://virtualenvwrapper.readthedocs.io/en/latest/install.html) for installation.
+
 Prerequisites
 
 * [TensorFlow](https://www.tensorflow.org/) (installed in a virtual environment)
 * [Python3](https://docs.python-guide.org/starting/install3/linux/)
-* [MATLAB](https://www.mathworks.com/products/matlab.html) (only for using .mat output files)
+* [MATLAB](https://www.mathworks.com/products/matlab.html) (only required for .mat output files)
 
-It is recommended to use a [virtual environment](http://virtualenvwrapper.readthedocs.io/en/latest/install.html).
+To install:
 
 1. `git clone https://github.com/anicolson/DeepXi.git`
 2. `pip install -r requirements.txt`
