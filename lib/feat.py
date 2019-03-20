@@ -4,7 +4,7 @@
 ## AFFILIATION:    Signal Processing Laboratory, Griffith University.
 ## BRIEF:          Functions to create feature extraction graph.
 
-from lib import dct
+import dct
 import numpy as np
 from scipy import signal
 import tensorflow as tf

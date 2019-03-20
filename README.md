@@ -1,16 +1,23 @@
-DeepXi: Residual Bidirectional Long Short-Term Memory (ResBLSTM) Network *A Priori* SNR estimator
+Deep Xi: *A Priori* SNR estimation using deep learning
 ====
 
 ![](./fig.png "ResBLSTM a priori SNR estimator.")
 
-DeepXi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a residual bidirectional long short-term memory (ResBLSTM) network *a priori* SNR estimator that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/) and is trained to estimate the *a priori* SNR for single channel noisy speech with a sampling frequency of 16 kHz. 
+Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/) and is trained to estimate the *a priori* SNR for single channel noisy speech with a sampling frequency of 16 kHz. 
+
+
+Current Models
+-----
+* c2.7a TCN (temporal convolutional network) approx 2 million parameters
+* c1.13a ResLSTM (residual long short-term memory network) approx 10.8 million parameters
+* n1.9a ResBLSTM (residual bidirectional long short-term memory network) approx 21.3 million parameters
 
 Prerequisites
 -----
 
 * [TensorFlow](https://www.tensorflow.org/) (installed in a virtual environment)
 * [Python3](https://docs.python-guide.org/starting/install3/linux/)
-* [MATLAB](https://www.mathworks.com/products/matlab.html)
+* [MATLAB](https://www.mathworks.com/products/matlab.html) (only for using .mat output files)
 
 Installation
 -----
@@ -44,4 +51,4 @@ stats | Statistics of a sample from the training set. The mean and standard devi
 References
 -----
 
-[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Submitted to Speech Communication.
+[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Submitted with revisions to Speech Communication.

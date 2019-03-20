@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.python.training import moving_averages
 import numpy as np
-import argparse
+import argparse, math, sys
 
 # beta = tf.Print(beta, [beta], message='beta', summarize=5000)		
 
@@ -15,6 +15,7 @@ def Residual(input, seq_len, keep_prob, training, num_outputs, args):
 	blocks = 0; # number of blocks.
 	if args.conv_caus: args.padding = 'valid'
 	else: args.padding = 'same'
+	dcount = 0 # count for dilation rate.
 
 	## RESIDUAL BLOCKS
 	for i in range(len(args.blocks)):	
@@ -33,7 +34,9 @@ def Residual(input, seq_len, keep_prob, training, num_outputs, args):
 			elif args.blocks[i] == 'F3': network.append(tf.reshape(tf.boolean_mask(tf.squeeze(tf.extract_image_patches(tf.expand_dims(network[-1], 2), 
 						[1, args.context, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], "SAME"), axis=[2]), 
 						tf.sequence_mask(seq_len)), [-1, args.input_dim*args.context])) # non-causal input (converts 3D tensor to 2D tensor).
-		
+			elif args.blocks[i] == 'F4': network.append(tf.squeeze(tf.extract_image_patches(tf.expand_dims(network[-1], 2), 
+					[1, args.context, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], "SAME"), axis=[2])) # non-causal input.		
+				
 			## LAYERS (NO RESIDUAL CONNECTION)
 			elif args.blocks[i] == 'L1': network.append(tf.layers.dense(network[-1], args.cell_size, tf.nn.relu, True)) # MLP -> ReLU.
 			elif args.blocks[i] == 'L2': network.append(tf.nn.relu(tf.contrib.layers.layer_norm(tf.layers.dense(network[-1], 
@@ -48,8 +51,8 @@ def Residual(input, seq_len, keep_prob, training, num_outputs, args):
 				training, args)) # 1D CNN, (conv_size, conv_filt).
 			elif args.blocks[i] == 'C2': network.append(coupling_unit(network[-1], 1, args.conv_filt, seq_len, 
 				training, args)) # 1D CNN, (1, conv_filt)
-			elif args.blocks[i] == 'C3': network.append(coupling_unit(network[-1], 1, args.cell_size, seq_len, 
-				training, args)) # 1D CNN, (1, cell_size)
+			elif args.blocks[i] == 'C3': network.append(coupling_unit(network[-1], 1, args.coup_conv_filt, 
+				seq_len, training, args)) # 1D CNN, (1, cell_size)
 
 			## RESIDUAL BLOCKS
 			elif args.blocks[i] == 'B1': # bottleneck residual block with pre-activated units.
@@ -66,10 +69,38 @@ def Residual(input, seq_len, keep_prob, training, num_outputs, args):
 					2, training, args))
 			elif args.blocks[i] == 'B3': network.append(rnn_layer(network[-1], args.cell_size, seq_len, 
 						args.cell_type, args)) # RNN.	 	
+			
 
-			## TRIAL
-			# elif args.blocks[i] == 'TRIAL': network.append(brnn_trial_layer(network[-1], args.cell_size, seq_len, 
-			# 			args.cell_type, args)) # .	 
+			elif args.blocks[i] == 'B4': # temporal conv block with pre-activated units.
+				args.dilation_rate = 2**(dcount) # exponentially increasing dilation rate.
+				B4 = block_unit(network[-1], 'BU4', args.conv_size, args.conv_filt, seq_len, 1, training, args)
+				network.append(block_unit(B4, 'BU4', args.conv_size, args.conv_filt, seq_len, 2, training, args))
+				dcount += 1
+				if 2**(dcount) > args.max_dilation_rate: dcount = 0
+
+			elif args.blocks[i] == 'B5': # bottleneck temporal conv block with pre-activated units.
+				args.dilation_rate = 2**(dcount) # exponentially increasing dilation rate.
+				with tf.variable_scope('D' + str(args.dilation_rate)):
+					B5 = block_unit(network[-1], 'BU1', 1, args.conv_filt, seq_len, 
+						1, training, args)
+					B5 = block_unit(B5, 'BU4', args.conv_size, args.conv_filt, seq_len, 
+					 	2, training, args)
+					network.append(block_unit(B5, 'BU1', 1, args.cell_size, seq_len, 
+						3, training, args))
+				dcount += 1
+				if 2**(dcount) > args.max_dilation_rate: dcount = 0
+			# elif args.blocks[i] == 'B6': # bottleneck temporal conv block with pre-activated units.
+			# 	args.dilation_rate = 2**(dcount) # exponentially increasing dilation rate.
+			# 	with tf.variable_scope('D' + str(args.dilation_rate)):
+			# 		B5 = block_unit(network[-1], 'BU1', 1, args.conv_filt, seq_len, 
+			# 			1, training, args)
+			# 		B5 = block_unit(B5, 'BU4', args.conv_size, args.conv_filt, seq_len, 
+			# 		 	2, training, args)
+			# 		network.append(block_unit(B5, 'BU1', 1, args.cell_size, seq_len, 
+			# 			3, training, args))
+			# 	dcount += 1
+			# 	if 2**(dcount) > args.max_dilation_rate: dcount = 0
+
 
 			## OUTPUT LAYER
 			elif args.blocks[i] == 'O1': network.append(tf.layers.dense(tf.boolean_mask(network[-1], tf.sequence_mask(seq_len)), num_outputs)) # Output layer, converts 3D tensor to 2D tensor.
@@ -121,23 +152,43 @@ def coupling_unit(input, conv_size, conv_filt, seq_len, training, args):
 def block_unit(input, block_unit, conv_size, conv_filt, seq_len, unit_id, training, args):
 	with tf.variable_scope(block_unit + '_' + str(unit_id)):
 		if block_unit == 'BU1': U = conv_layer(tf.nn.relu(masked_layer_norm(input, 
-			seq_len)), conv_size, conv_filt, seq_len, args, True) # (LN -> ReLU -> W).
+			seq_len)), conv_size, conv_filt, seq_len, args) # (LN -> ReLU -> 1D conv).
 		elif block_unit == 'BU2': U = conv_layer(tf.nn.relu(masked_batch_norm(input, 
-			seq_len, training)), conv_size, conv_filt, seq_len, args, True) # (BN -> ReLU -> W).
+			seq_len, training)), conv_size, conv_filt, seq_len, args) # (BN -> ReLU -> 1D conv).
+		elif block_unit == 'BU3': U = tf.nn.relu(masked_layer_norm(conv_layer(input, 
+			conv_size, conv_filt, seq_len, args), seq_len)) # (1D dilated conv -> LN -> ReLU). (no dropout, and WeightNorm replaced with LayerNorm).
+		elif block_unit == 'BU4': U = conv_layer(tf.nn.relu(masked_layer_norm(input, 
+			seq_len)), conv_size, conv_filt, seq_len, args, dilation_rate=args.dilation_rate) # (LN -> ReLU -> 1D dilated conv).
 		else: # residual unit does not exist.
 			raise ValueError('Residual unit does not exist: %s.' % (block_unit))
 		return U
 
 ## CNN LAYER
-def conv_layer(input, conv_size, conv_filt, seq_len, args, use_bias=True, bias_init=tf.constant_initializer(0.0)):
+def conv_layer(input, conv_size, conv_filt, seq_len, args, dilation_rate=1, 
+	use_bias=True, bias_init=tf.constant_initializer(0.0)):
 	if args.conv_caus:
-		input = tf.concat([tf.zeros([tf.shape(input)[0], conv_size - 1, 
+		input = tf.concat([tf.zeros([tf.shape(input)[0], (conv_size - 1)*dilation_rate, 
 			tf.shape(input)[2]]), input], 1)
-	conv = tf.layers.conv1d(input, conv_filt, conv_size, activation=None,
-		padding=args.padding, use_bias=use_bias, bias_initializer=bias_init) # 1D CNN: (conv_size, conv_filt).
+	conv = tf.layers.conv1d(input, conv_filt, conv_size, dilation_rate=dilation_rate, 
+		activation=None, padding=args.padding, use_bias=use_bias, bias_initializer=bias_init) # 1D CNN: (conv_size, conv_filt).
 	conv = tf.multiply(conv, tf.cast(tf.expand_dims(tf.sequence_mask(seq_len), 
-		2), tf.float32))
+		2), tf.float32), name= 'k' + str(conv_size) + '_f' + str(conv_filt) + '_d' + str(dilation_rate))
 	return conv
+
+## CNN L
+
+##
+# def conv_layer(input, conv_size, conv_filt, seq_len, args, dilation_rate=1, 
+# 	use_bias=True, bias_init=tf.constant_initializer(0.0)):
+# 	if args.conv_caus:
+# 		input = tf.concat([tf.zeros([tf.shape(input)[0], (conv_size - 1)*dilation_rate, 
+# 			tf.shape(input)[2]]), input], 1)
+# 	conv = tf.layers.conv1d(input, conv_filt, conv_size, dilation_rate=dilation_rate, 
+# 		activation=None, padding=args.padding, use_bias=use_bias, bias_initializer=bias_init) # 1D CNN: (conv_size, conv_filt).
+# 	conv = tf.multiply(conv, tf.cast(tf.expand_dims(tf.sequence_mask(seq_len), 
+# 		2), tf.float32), name='d_' + str(dilation_rate))
+# 	return conv
+
 
 ## RNN LAYER
 def rnn_layer(input, cell_size, seq_len, scope, args):
@@ -186,88 +237,6 @@ def rnn_layer(input, cell_size, seq_len, scope, args):
 				raise ValueError('Incorrect args.bidi_connect specification.')
 		return output
 
-
-# def act_bw_func(act_bw, suppress_bw):
-# 	f1 = lambda: act_bw
-# 	f2 = lambda: tf.zeros_like(act_bw)
-# 	return tf.case([(suppress_bw, f2)], default=f1)
-
-# def act_avg_func(act_sum, suppress_bw):
-# 	f1 = lambda: tf.div(act_sum, 2)
-# 	f2 = lambda: act_sum
-# 	return tf.case([(suppress_bw, f2)], default=f1)
-
-## BRNN TRIAL LAYER
-# def brnn_trial_layer(input, cell_size, seq_len, scope, args):
-# 	with tf.variable_scope(scope):
-# 		cell_fw = tf.contrib.rnn.LSTMCell(cell_size, args.peep, num_proj=args.cell_proj) # forward LSTMCell.
-# 		cell_bw = tf.contrib.rnn.LSTMCell(cell_size, args.peep, num_proj=args.cell_proj) # backward LSTMCell.
-# 		output, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, input, seq_len, 
-# 			swap_memory=True, parallel_iterations=args.par_iter, dtype=tf.float32) # bidirectional recurrent neural network.
-
-# 		if args.trial is 't1':	
-# 			act_fw = output[0];
-# 			f1 = lambda: output[1]
-# 			f2 = lambda: tf.zeros_like(output[1])
-# 			act_bw = tf.case([(args.suppress_bw, f2)], default=f1)
-# 			output = tf.concat([act_fw, act_bw], 2)
-
-# 		if args.trial is 't2':	
-# 			act_fw = output[0];
-# 			f1 = lambda: output[1]
-# 			f2 = lambda: tf.zeros_like(output[1])
-# 			act_bw = tf.case([(args.suppress_bw, f2)], default=f1)
-# 			output = tf.add(act_fw, act_bw)
-
-# 		if args.trial is 't3':	
-# 			act_fw = output[0];
-# 			f1 = lambda: output[1]
-# 			f2 = lambda: tf.zeros_like(output[1])
-# 			act_bw = tf.case([(args.suppress_bw, f2)], default=f1)
-# 			act_sum = tf.add(act_fw, act_bw)
-# 			f1 = lambda: tf.div(act_sum, 2)
-# 			f2 = lambda: act_sum
-# 			output = tf.case([(args.suppress_bw, f2)], default=f1)
-
-# 		# if args.trial is 't4':	
-# 		# 	act_fw = output[0];
-# 		# 	act_bw = tf.multiply(output[1], tf.cast(tf.logical_not(args.bidi_caus), tf.float32))
-# 		# 	output = tf.concat([act_fw, act_bw], 2)
-
-
-
-# 		# if args.trial is 't4':	
-# 		# 	act_fw = output[0];
-# 		# 	act_bw = tf.multiply(output[1], 
-# 		# 		tf.cast(tf.expand_dims(tf.expand_dims(tf.logical_not(args.suppress_bw), 
-# 		# 		1), 2), tf.float32))
-# 		# 	act_sum = tf.add(act_fw, act_bw)
-# 		# 	output = tf.div(act_sum,
-# 		# 		tf.cast(tf.expand_dims(tf.expand_dims(tf.add(tf.cast(tf.logical_not(args.suppress_bw), 
-# 		# 		tf.float32), 1), 1), 2), tf.float32))
-
-# 		# if args.trial is 't4':	
-# 		# 	act_fw = output[0];
-# 		# 	act_bw = tf.multiply(output[1], tf.logical_not(args.bidi_caus), 
-# 		# 		1), 2), tf.float32))
-# 		# 	act_sum = tf.add(act_fw, act_bw)
-# 		# 	output = tf.div(act_sum,
-# 		# 		tf.cast(tf.expand_dims(tf.expand_dims(tf.add(tf.cast(tf.logical_not(args.suppress_bw), 
-# 		# 		tf.float32), 1), 1), 2), tf.float32))
-
-
-# 			# suppress_bw = tf.reshape(args.suppress_bw, [-1, 1])    # Convert to a len(yp) x 1 matrix.
-# 			# suppress_bw = tf.tile(suppress_bw, [1, tf.reduce_max(seq_len)])  # Create multiple columns.
-
-
-# 			#suppress_bw = tf.tile(tf.expand_dims(args.suppress_bw, 1), tf.reduce_max(seq_len))
-# 			# act_bw = tf.map_fn(lambda z: act_bw_func(z[0], z[1]), (output[1], suppress_bw), dtype=(tf.float32, tf.float32, tf.float32))
-# 			# act_sum = tf.add(act_fw, act_bw)
-# 			# act_bw = tf.map_fn(lambda z: act_avg_func(z[0], z[1]), 
-# 			# 	(act_sum, suppress_bw), dtype=(tf.float32, tf.float32,
-# 			# 	tf.float32))
-# 		return output
-
 ## LOSS FUNCTIONS
 def loss(target, estimate, loss_fnc):
 	'loss functions for gradient descent.'
@@ -276,17 +245,52 @@ def loss(target, estimate, loss_fnc):
 			loss = tf.reduce_sum(tf.square(tf.subtract(target, estimate)), axis=1)
 		if loss_fnc == 'sigmoid_cross_entropy':
 			loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=target, logits=estimate), axis=1)
-		if loss_fnc == 'mse':
-			loss = tf.losses.mean_squared_error(labels=target, predictions=estimate)
-		if loss_fnc == 'softmax_xentropy':
-			loss = tf.nn.softmax_cross_entropy_with_logits(labels=target, logits=estimate)
-		if loss_fnc == 'sigmoid_xentropy':
-			loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=target, logits=estimate)
-	return loss
+		if loss_fnc == 'cross_entropy':
+			loss = tf.negative(tf.reduce_sum(tf.multiply(target, tf.log(estimate))))
+		# if loss_fnc == 'mse':
+		# 	loss = tf.losses.mean_squared_error(labels=target, predictions=estimate)
+		# if loss_fnc == 'softmax_xentropy':
+		# 	loss = tf.nn.softmax_cross_entropy_with_logits(labels=target, logits=estimate)
+		# if loss_fnc == 'sigmoid_xentropy':
+		# 	loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=target, logits=estimate)
+		return loss
 
 ## GRADIENT DESCENT OPTIMISERS
-def optimizer(loss, lr=None, epsilon=None, var_list=None, optimizer='adam'):
+def optimizer(loss, lr=None, epsilon=None, var_list=None, optimizer='adam', grad_clip=False):
 	'optimizers for training.'
+	with tf.name_scope(optimizer + '_opt'):
+		if optimizer == 'adam':
+			if lr == None: lr = 0.001 # default.
+			if epsilon == None: epsilon = 1e-8 # default.
+			optimizer = tf.train.AdamOptimizer(learning_rate=lr, epsilon=epsilon)
+		if optimizer == 'lazyadam':
+			if lr == None: lr = 0.001 # default.
+			if epsilon == None: epsilon = 1e-8 # default.
+			optimizer = tf.contrib.opt.LazyAdamOptimizer(learning_rate=lr, epsilon=epsilon)
+		if optimizer == 'nadam':
+			if lr == None: lr = 0.001 # default.
+			if epsilon == None: epsilon = 1e-8 # default.
+			optimizer = tf.contrib.opt.NadamOptimizer(learning_rate=lr, epsilon=epsilon)
+		if optimizer == 'sgd':
+			if lr == None: lr = 0.5 # default.
+			optimizer = tf.train.GradientDescentOptimizer(lr)
+		grads_and_vars = optimizer.compute_gradients(loss, var_list=var_list)
+		
+
+		# with open('tmp.txt', 'w') as f:
+		# 	for item in grads_and_vars:
+		# 		f.write("%s\n" % str(item))
+
+		# sys.exit()
+
+		if grad_clip: grads_and_vars = [(tf.clip_by_value(gv[0], -1., 1.), gv[1]) for gv in grads_and_vars]
+		trainer = optimizer.apply_gradients(grads_and_vars)
+	return trainer, optimizer
+
+
+## OPTIMISER FUNCTION
+def optimizer_legacy(loss, lr=None, epsilon=None, var_list=None, optimizer='adam'):
+	'WILL BE REMOVED IN FUTURE. optimizers for training.'
 	with tf.name_scope(optimizer + '_opt'):
 		if optimizer == 'adam':
 			if lr == None: lr = 0.001 # default.
@@ -405,3 +409,103 @@ def masked_batch_norm(inp, seq_len, training=False, decay=0.99, centre=True, sca
 			variance_epsilon)
 		norm = tf.multiply(norm, mask)
 		return norm
+
+def reslink(x, y):
+	if x.get_shape().as_list()[-1] == y.get_shape().as_list()[-1]: return tf.add(x, y, name='add')
+	elif x.get_shape().as_list()[-1] > y.get_shape().as_list()[-1]: return tf.add(tf.layers.dense(x, y.get_shape().as_list()[-1], 
+		use_bias = False), y, name='add_' + str(x.get_shape().as_list()[-1]) + '_' + str(y.get_shape().as_list()[-1]))
+	else: return tf.add(x, tf.layers.dense(y, x.get_shape().as_list()[-1], use_bias = False), 
+		name='add_' + str(y.get_shape().as_list()[-1]) + '_' + str(x.get_shape().as_list()[-1]))
+
+def Network_tRDL(input, seq_len, keep_prob, training, num_outputs, args):
+	blocks = 0; # number of blocks.
+	dcount = 0 # count for dilation rate.
+	height = int((args.depth-1)/2 + 1)
+	network = [input]
+	if args.conv_caus: args.padding = 'valid'
+	else: args.padding = 'same'
+	if isinstance(args.conv_filt, int): args.conv_filt = [[args.conv_filt]*height]*args.depth
+	if len(args.conv_filt) == 1: args.conv_filt = [[args.conv_filt[0]]*height]*args.depth
+	for i in range(len(args.blocks)):
+		blocks += 1
+		
+		block_input = network[-1]
+
+		with tf.variable_scope(args.blocks[i] + '_' + str(blocks)):
+			block = [None]*(height)
+			for j in range(height): block[j] = [None]*(3*args.depth)
+			conv_id = 1
+			conv_count = 1
+			for d in range(args.depth):
+				conn_idx = d*3; conv_idx = d*3+1; res_idx = d*3+2; 
+				if args.dilation_strat == 'depth' and d>0: args.dilation_rate = 2**(d-1)
+				for h in range(height): 
+					name='h' + str(h) + '_d' + str(d)
+					if args.dilation_strat == 'height': args.dilation_rate = 2**(h)
+					if d >= math.ceil(args.depth/2): 
+						h = (height-1)-h
+						if h < conv_count:
+
+							## CONNECTION
+							if d<args.depth-1 and h==0: block[h][conn_idx] = tf.concat([block[h][res_idx-3], block[h+1][conn_idx]], 2)
+							elif d==math.ceil(args.depth/2) and h==height-2: block[h][conn_idx] = tf.concat([block[h][res_idx-3], block[h+1][conv_idx-3]], 2)
+							elif d+h==args.depth-1: block[h][conn_idx] = tf.concat([block[h][res_idx-3], block[h+1][res_idx-3]], 2)
+							else: block[h][conn_idx] = tf.concat([block[h][res_idx-3], block[h+1][conn_idx]], 2)
+
+							## CONVOLUTION: 
+							if (h+d)%2: block[h][conv_idx] = block_unit(block[h][conn_idx], 'BU1', 2*h+1, args.conv_filt[h][d], seq_len, conv_id, training, args)
+							else: block[h][conv_idx] = block_unit(block[h][conn_idx], 'BU1', 1, args.conv_filt[h][d], seq_len, conv_id, training, args)
+							conv_id += 1
+
+							## RESIDUAL
+							if args.depth==3: block[h][res_idx] = reslink(block[h][conv_idx], block[h][conv_idx-6])
+							elif d==math.ceil(args.depth/2) and h==0: block[h][res_idx] = reslink(block[h][conv_idx], block[h][res_idx-6])
+							else: block[h][res_idx] = reslink(block[h][conv_idx], block[h][conn_idx-3])
+
+					else:
+						if h < conv_count:
+
+							## CONNECTION
+							if d==1 and h==1: pass # block[h][conn_idx] = reslink(block[h-1][conv_idx-3], block_input[h])
+							elif d==h and d>0: pass # block[h][conn_idx] = reslink(block[h-1][conn_idx], block_input[h])
+							elif d==2 and h==1: block[h][conn_idx] = tf.concat([block[h-1][res_idx-3], block[h][conv_idx-3]], 2)
+							elif h==1: block[h][conn_idx] = tf.concat([block[h-1][res_idx-3], block[h][res_idx-3]], 2)
+							elif d-1==h and h>1: block[h][conn_idx] = tf.concat([block[h-1][conn_idx], block[h][conv_idx-3]], 2)
+							elif h>0: block[h][conn_idx] = tf.concat([block[h-1][conn_idx], block[h][res_idx-3]], 2)
+
+							## CONVOLUTION: 
+							if d==0 and h==0: conv_input=block_input
+							elif d==1 and h==0: conv_input=block[h][conv_idx-3]
+							elif h==0: conv_input=block[h][res_idx-3]
+							elif d==1 and h==1: conv_input=block[h-1][conv_idx-3]
+							elif d==h: conv_input=block[h-1][conn_idx]
+							else: conv_input=block[h][conn_idx]
+							if (h+d)%2: block[h][conv_idx] = block_unit(conv_input, 'BU4', 2*h+1, args.conv_filt[h][d], seq_len, conv_id, training, args)
+							else: block[h][conv_idx] = block_unit(conv_input, 'BU1', 1, args.conv_filt[h][d], seq_len, conv_id, training, args)
+							conv_id += 1
+							
+							## RESIDUAL
+							if d==1 and h==0: block[h][res_idx] = reslink(block[h][conv_idx], block_input)
+							elif d==2 and h==0: block[h][res_idx] = reslink(block[h][conv_idx], block[h][conv_idx-6])
+							elif d>0 and h==0: block[h][res_idx] = reslink(block[h][conv_idx], block[h][res_idx-6])
+							elif d==2 and h==1: block[h][res_idx] = reslink(block[h][conv_idx], block[h-1][conv_idx-3])
+							elif d-1==h: block[h][res_idx] = reslink(block[h][conv_idx], block[h-1][conn_idx-3])
+							elif d>h: block[h][res_idx] = reslink(block[h][conv_idx], block[h][conn_idx-3])
+
+				if d >= math.ceil(args.depth/2)-1: conv_count -= 1
+				elif d < math.ceil(args.depth/2)-1: conv_count += 1
+
+			if args.verbose:
+				for h in range(height):
+					for d in range(args.depth):
+						if block[h][1+(3*d)] != None:
+							print('h:%i, d:%i,' % (h, d))
+							for j in range(3): 
+								if block[h][j+(3*d)] != None: print(block[h][j+(3*d)])
+
+			block_output = tf.concat([block[0][3*args.depth-1], block_input], 2)                
+			network.append(block_output) # block output and residual connection.
+
+	network.append(tf.layers.dense(tf.boolean_mask(network[-1], 
+		tf.sequence_mask(seq_len)), num_outputs)) # Output layer, converts 3D tensor to 2D tensor.
+	return network[-1]

@@ -123,8 +123,7 @@ def _batch(fdir, fnames, snr_l):
 	fname_l = [] # list of file names.
 	wav_l = [] # list for waveforms.
 	snr_test_l = [] # list of SNR levels for the test set.
-	if isinstance(fnames, str): 
-		fnames = [fnames] # if string, put into list.
+	if isinstance(fnames, str): fnames = [fnames] # if string, put into list.
 	for fname in fnames:
 		for fpath in glob.glob(os.path.join(fdir, fname)):
 			for snr in snr_l:
@@ -144,3 +143,17 @@ def _batch(fdir, fnames, snr_l):
 	return wav_np, np.array(len_l, np.int32), np.array(snr_test_l, np.int32), fname_l
 
 
+def Mov_avg(avg, new_sample):
+	'''
+	Moving average.
+
+	Inputs:
+		avg - moving average.
+		new_sample - new sample.
+
+	Outputs:
+		avg - moving average.
+	'''
+	avg -= avg/16
+	avg += new_sample/16
+	return avg
