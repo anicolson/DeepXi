@@ -1,4 +1,4 @@
-Deep Xi: *A Priori* SNR estimation using deep learning
+Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 ====
 
 ![](./fig.png "ResBLSTM a priori SNR estimator.")
@@ -8,19 +8,24 @@ Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learn
 
 Current Models
 -----
-* c2.7a TCN (temporal convolutional network) approx 2 million parameters
-* c1.13a ResLSTM (residual long short-term memory network) approx 10.8 million parameters
-* n1.9a ResBLSTM (residual bidirectional long short-term memory network) approx 21.3 million parameters
+
+The scripts for each of the models can be found in the *./ver* directory.
+
+* **c2.7a** is a TCN (temporal convolutional network) that has 2 million parameters.
+* **c1.13a** is a ResLSTM (residual long short-term memory network) that has 10.8 million parameters.
+* **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) that has 21.3 million parameters.
+
+Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
+
+
+Installation
+-----
 
 Prerequisites
------
 
 * [TensorFlow](https://www.tensorflow.org/) (installed in a virtual environment)
 * [Python3](https://docs.python-guide.org/starting/install3/linux/)
 * [MATLAB](https://www.mathworks.com/products/matlab.html) (only for using .mat output files)
-
-Installation
------
 
 It is recommended to use a [virtual environment](http://virtualenvwrapper.readthedocs.io/en/latest/install.html).
 
