@@ -49,18 +49,16 @@ Inference:
 
 ```
 cd ver/c2/7/a
-python3 deepxi.py --test 1 --out_type y --gain mmse-lsa
+python3 deepxi.py --test 1 --out_type y --gain mmse-lsa --gpu 0
 ```
-**y** for **--out_type** specifies enhanced speech .wav output. 
-
-**mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
+**y** for **--out_type** specifies enhanced speech .wav output. **mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
 
 
 Training:
 
 ```
 cd ver/c2/7/a
-python3 deepxi.py --train 1 --verbose 1
+python3 deepxi.py --train 1 --verbose 1 --gpu 0
 ```
 
 <!--
@@ -78,4 +76,5 @@ stats | Statistics of a sample from the training set. The mean and standard devi
 References
 -----
 
-[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Submitted with revisions to Speech Communication.
+[[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Submitted with revisions to Speech Communication.](./xi_2018.pdf).
+
