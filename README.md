@@ -11,7 +11,7 @@ Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 
 
 <p align="center">
-  <a>**Figure 1:** ResBLSTM *a priori* SNR estimator.</a>
+  <b>Figure 1:</b> <a> ResBLSTM </a> <i> a priori</a>  <a> SNR estimator.</a>
 </p>
 
 
