@@ -1,7 +1,7 @@
 Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 ====
 
-Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to speech enhancemnet like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a front-end for robust ASR, as shown in Figure 1. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
+Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to speech enhancemnet like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a front-end for robust ASR, as shown in **Figure 1**. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
 
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
@@ -22,7 +22,7 @@ The scripts for each of the following models can be found in the *./ver* directo
 
 * **c2.7a** is a TCN (temporal convolutional network) that has 2 million parameters.
 * **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 2**.
-* **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 3**..
+* **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 3**.
 
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
 
