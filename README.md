@@ -43,11 +43,13 @@ To install:
 1. `git clone https://github.com/anicolson/DeepXi.git`
 2. `pip install -r requirements.txt`
 
-How to Perform Speech Enhancement
+How to Use the Deep Xi Scripts
 -----
 
 Simply run the script (python3 deepxi.py). Run the script in the virtual environment that TensorFlow is installed in. The script has different inference options, and is also able to perform training if required.
 
+
+<!--
 Directory Description
 -----
 
@@ -57,7 +59,7 @@ lib | Functions for deepxi.py.
 model | The directory for the model (the model must be [downloaded](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0)).
 noisy_speech | Noisy speech. Place noisy speech .wav files to be enhanced here.
 output | DeepXi outputs, including the enhanced speech .wav output files.
-stats | Statistics of a sample from the training set. The mean and standard deviation of the *a priori* SNR for the sample are used to compute the training target. 
+stats | Statistics of a sample from the training set. The mean and standard deviation of the *a priori* SNR for the sample are used to compute the training target.-->
 
 References
 -----
