@@ -1,1 +1,0 @@
-Outputs are found in this directory. 'y' indicates enhanced speech .wav files.

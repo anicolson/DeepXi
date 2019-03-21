@@ -24,8 +24,11 @@ The scripts for each of the following models can be found in the *./ver* directo
 * **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 2**.
 * **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 3**.
 
-Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
+A trained model for **c2.7a**  can be found in the *./model* directory. Trained models for **c1.13a** and **n1.9a** will be made available shortly. 
 
+<!--
+Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
+-->
 
 Installation
 -----
