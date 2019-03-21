@@ -3,21 +3,17 @@ Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 
 Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to speech enhancemnet like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a front-end for robust ASR, as shown in Figure 1. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
 
-
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
 | <p align="center"> <b>Figure 1:</b> Deep Xi used as a front-end for robust ASR. The back-end (Deep Speech) is available <a href="https://github.com/mozilla/DeepSpeech">here</a>. The noisy speech magnitude spectrogram, as shown in (a), is a mixture of clean speech with <i>voice babble</i> noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the <i>a priori</i> SNR, as shown in (b). The <i>a priori</i> SNR estimate is used to compute an MMSE approach gain function, which is multiplied elementwise with the noisy speech magnitude spectrum to produce the clean speech magnitude spectrum estimate, as shown in (c). <a href="https://github.com/anicolson/matlab_feat">MFCCs</a> are computed from the estimated clean speech magnitude spectrogram, producing the estimated clean speech cepstrogram, as shown in (d). The back-end system, Deep Speech, computes the hypothesis transcript, from the estimated clean speech cepstrogram, as shown in (e). </p> |
 
-![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")
-<p align="center">
-  <b>Figure 2:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a>
-</p>
+|![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")|
+|----|
+| <p align="center"> <b>Figure 2:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
-![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")
-<p align="center">
-  <b>Figure 3:</b> <a> ResLSTM </a> <i> a priori</i>  <a> SNR estimator.</a>
-</p>
-
+|![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")|
+|----|
+| <p align="center"> <b>Figure 3:</b> <a> ResLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
 Current Models
 -----
