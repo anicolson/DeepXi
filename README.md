@@ -51,7 +51,9 @@ Inference:
 cd ver/c2/7/a
 python3 deepxi.py --test 1 --out_type y --gain mmse-lsa
 ```
-**y** for **--out_type** specifies enhanced speech .wav output. **mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
+**y** for **--out_type** specifies enhanced speech .wav output. 
+
+**mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
 
 
 Training:
