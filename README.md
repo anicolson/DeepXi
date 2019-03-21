@@ -3,12 +3,12 @@ Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 
 ![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")
 <p align="center">
-  <b>Figure 1:</b> <a> ResBLSTM </a> <i> a priori</a>  <a> SNR estimator.</a>
+  <b>Figure 1:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a>
 </p>
 
 ![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")
 <p align="center">
-  <b>Figure 2:</b> <a> ResLSTM </a> <i> a priori</a>  <a> SNR estimator.</a>
+  <b>Figure 2:</b> <a> ResLSTM </a> <i> a priori</i>  <a> SNR estimator.</a>
 </p>
 
 Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/) and is trained to estimate the *a priori* SNR for single channel noisy speech with a sampling frequency of 16 kHz. 
