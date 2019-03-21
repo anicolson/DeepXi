@@ -45,6 +45,15 @@ To install:
 
 How to Use the Deep Xi Scripts
 -----
+Inference:
+
+```
+cd ver/c2/7/a
+python3 deepxi.py --test 1 --out_type y --gain mmse-lsa
+```
+
+
+
 
 Simply run the script (python3 deepxi.py). Run the script in the virtual environment that TensorFlow is installed in. The script has different inference options, and is also able to perform training if required.
 
