@@ -3,7 +3,6 @@ Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 
 ![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")
 
-**Figure 1:** ResBLSTM *a priori* SNR estimator
 
 ![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")
 
@@ -12,7 +11,7 @@ Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 
 
 <p align="center">
-  <b>Some Links:</b><br>
+  <a>**Figure 1:** ResBLSTM *a priori* SNR estimator.</a>
 </p>
 
 
