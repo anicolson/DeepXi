@@ -1,15 +1,12 @@
 Deep Xi: *A Priori* SNR Estimation Using Deep Learning
 ====
 
+Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to speech enhancemnet like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a front-end for robust ASR, as shown in Figure 1. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
+
 ![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")
 <p align="center">
-  <b>Figure 1:</b> <a> Deep Xi used as a front-end for robust ASR. Deep Speech is available [here](https://github.com/mozilla/DeepSpeech)</a>
+  <b>Figure 1:</b> <a> Deep Xi used as a front-end for robust ASR. Deep Speech is available [here](https://github.com/mozilla/DeepSpeech). A block diagram of the proposed front-end for robust ASR. The noisy speech magnitude spectrogram, $|\textbf{X}|$, as shown in (a), is a mixture of clean speech with \textit{voice babble} noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the \textit{a priori} SNR, $\boldsymbol{\hat{\xi}}$, as shown in (b). $\boldsymbol{\hat{\xi}}$ is used to compute an MMSE approach gain function, $G(\boldsymbol{\hat{\xi}})$, which is then multiplied elementwise with $|\textbf{X}|$ to produce the clean speech magnitude spectrogram estimate, $|\hat{\textbf{S}}|$, as shown in (c). MFCCs are computed from the estimated clean speech magnitude specrogram, producing the estimated clean speech cepstrogram, $\hat{\textbf{C}}$, as shown in (d). The back-end system, Deep Speech, computes the hypothesis transcript, $H$, from $\hat{\textbf{C}}$, as shown in (e). </a>
 </p>
-
-Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning method for *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to speech enhancemnet like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a front-end for robust ASR, as shown in Figure 1.
-
-DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/) and is trained to estimate the *a priori* SNR for single channel noisy speech with a sampling frequency of 16 kHz. 
-
 
 ![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")
 <p align="center">
