@@ -1,7 +1,7 @@
 Deep Xi: A Deep Learning Approach to *A Priori* SNR Estimation
 ====
 
-Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to speech enhancemnet like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a front-end for robust ASR, as shown in **Figure 1**. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
+Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a **front-end for robust ASR**, as shown in **Figure 1**. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
 
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
