@@ -77,7 +77,7 @@ The following speech datasets were used:
 The following noise datasets were used:
 * The QUT-NOISE dataset, which can be found [here](https://research.qut.edu.au/saivt/databases/qut-noise-databases-and-protocols/).
 * The Nonspeech dataset, which can be found [here](http://web.cse.ohio-state.edu/pnl/corpus/HuNonspeech/HuCorpus.html). 
-* The Environemental Background Noise dataset.
+* The Environemental Background Noise dataset, which can be found [here](http://www.utdallas.edu/~nxk019000/VAD-dataset/).
 * The noise set from the MUSAN corpus, which can be found [here](http://www.openslr.org/17/).
 * Multiple packs from the FreeSound website, which can be found  [here](https://freesound.org/)
 
