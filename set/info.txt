@@ -1,2 +1,6 @@
-Sets used for training. For the validation set, identical filenames for the clean speech and noise must be placed in 'val_clean_speech' and 'val_noise', with the SNR at the end of the filename. As an example:
+Sets used for training. 
+
+For the validation set only:
+
+Identical filenames for the clean speech and noise must be placed in 'val_clean_speech' and 'val_noise', with the SNR at the end of the filename. As an example:
 './val_clean_speech/198_19-198-0003_Machinery17_15dB.wav' contains the clean speech, and './val_noise/198_19-198-0003_Machinery17_15dB.wav' contains the noise at the same length. They will be mixed together at the SNR level specified in the filename.

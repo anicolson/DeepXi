@@ -65,20 +65,23 @@ python3 deepxi.py --train 1 --verbose 1 --gpu 0
 ```
 Other options can be found in the *deepxi.py* script.
 
-<!--
-Directory Description
+Datasets Used For Training
 -----
+The .wav files used for training are single-channel, with a sampling frequency of 16 kHz.
 
-Directory | Description
---------| -----------  
-lib | Functions for deepxi.py.
-model | The directory for the model (the model must be [downloaded](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0)).
-noisy_speech | Noisy speech. Place noisy speech .wav files to be enhanced here.
-output | DeepXi outputs, including the enhanced speech .wav output files.
-stats | Statistics of a sample from the training set. The mean and standard deviation of the *a priori* SNR for the sample are used to compute the training target.-->
+The following speech datasets were used:
+* The *train-clean-100* set from Librispeech corpus, which can be found [here](http://www.openslr.org/12/).
+* The CSTR VCTK corpus, which can be found [here](https://datashare.is.ed.ac.uk/handle/10283/2651).
+* The *si* and *sx* training sets from the TIMIT corpus, which can be found [here](https://catalog.ldc.upenn.edu/LDC93S1) (not open source).
+
+The following noise datasets were used:
+* The QUT-NOISE dataset, which can be found [here](https://research.qut.edu.au/saivt/databases/qut-noise-databases-and-protocols/).
+* The Nonspeech dataset, which can be found [here](http://web.cse.ohio-state.edu/pnl/corpus/HuNonspeech/HuCorpus.html). 
+* The Environemental Background Noise dataset.
+* The noise set from the MUSAN corpus, which can be found [here](http://www.openslr.org/17/).
+* Multiple packs from the FreeSound website, which can be found  [here](https://freesound.org/)
 
 References
 -----
 
 [[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Submitted with revisions to Speech Communication.](./xi_2018.pdf)
-
