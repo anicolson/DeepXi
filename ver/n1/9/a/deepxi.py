@@ -39,7 +39,7 @@ parser.add_argument('--max_epochs', default=100, type=int, help='Maximum number 
 ## OPTIONS (TEST)
 parser.add_argument('--test', default=False, type=bool, help='Testing flag')
 parser.add_argument('--val', default=False, type=bool, help='Find validation error for "test_epoch"')
-parser.add_argument('--test_epoch', default=None, type=int, help='Epoch for testing')
+parser.add_argument('--test_epoch', default=18, type=int, help='Epoch for testing')
 parser.add_argument('--test_noisy_speech_ver', default='v2', type=str, help='Noisy speech test set version')
 
 # TEST OUTPUT TYPE

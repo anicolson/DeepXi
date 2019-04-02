@@ -1,7 +1,7 @@
 Deep Xi: A Deep Learning Approach to *A Priori* SNR Estimation
 ====
 
-Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a **front-end for robust ASR**, as shown in **Figure 1**. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
+Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a **front-end for robust ASR**, as shown in **Figure 1**. DeepXi is implemented in [TensorFlow](https://www.tensorflow.org/).
 
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
@@ -17,14 +17,22 @@ Deep Xi (where the Greek letter 'xi' or ξ is ponounced  /zaɪ/) is a deep learn
 
 Current Models
 -----
-
-The scripts for each of the following models can be found in the *./ver* directory:
+The scripts for each of the following models can be found in the [*./ver* directory](https://github.com/anicolson/DeepXi/tree/master/ver):
 
 * **c2.7a** is a TCN (temporal convolutional network) that has 2 million parameters.
 * **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 2**.
 * **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 3**.
 
-A trained model for **c2.7a**  can be found in the *./model* directory. Trained models for **c1.13a** and **n1.9a** will be made available shortly. 
+**'c'** and **'n'** indicate if the system is *causal* or *non-causal*, respectively. **'c1'**, **'n1'**, and **'c2'** indicate if a ResLSTM, ResBLSTM, or a TCN network is used, respectively.
+
+Model Availability
+-----
+
+* **c2.7a**  can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/c2.7a). 
+* **c1.13a** can be downloaded from the Nihao cloud service [here](https://app.nihaocloud.com/f/d5675749ba7342a09a61/?dl=1).
+* **n1.9a** can be downloaded from the Nihao cloud service [here](https://app.nihaocloud.com/f/3739ce91061e4d619272/?dl=1).
+
+Note: The trained models for **c1.13a** and **n1.9a** are too large to be stored on github.
 
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
