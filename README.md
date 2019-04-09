@@ -29,8 +29,8 @@ Model Availability
 -----
 
 * **c2.7a**  can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/c2.7a). 
-* **c1.13a** can be downloaded from the Nihao cloud service [here](https://app.nihaocloud.com/f/d5675749ba7342a09a61/?dl=1).
-* **n1.9a** can be downloaded from the Nihao cloud service [here](https://app.nihaocloud.com/f/3739ce91061e4d619272/?dl=1).
+* **c1.13a** can be downloaded from Dropbox [here](https://www.dropbox.com/s/tpe5ydj758jvic9/c1.13a.zip?dl=0), or the Nihao cloud service [here](https://app.nihaocloud.com/f/d5675749ba7342a09a61/?dl=1).
+* **n1.9a** can be downloaded from Dropbox [here](https://www.dropbox.com/s/1o5d7pj2pinxitz/n1.9a.zip?dl=0), or the Nihao cloud service [here](https://app.nihaocloud.com/f/3739ce91061e4d619272/?dl=1).
 
 Note: The trained models for **c1.13a** and **n1.9a** are too large to be stored on github.
 
