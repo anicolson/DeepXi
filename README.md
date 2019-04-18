@@ -20,7 +20,7 @@ Current Models
 -----
 The scripts for each of the following *a priori* SNR estimators can be found in the [*./ver* directory](https://github.com/anicolson/DeepXi/tree/master/ver):
 
-* **c2.7a** is a TCN (temporal convolutional network) that has 2 million parameters.
+* **c2.7a** is a TCN ([temporal convolutional network](https://arxiv.org/pdf/1803.01271.pdf)) that has 2 million parameters.
 * **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 2**.
 * **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 3**.
 
