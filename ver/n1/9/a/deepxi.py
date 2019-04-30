@@ -39,6 +39,7 @@ parser.add_argument('--train_noise_ver', default='v1', type=str, help='Noise tra
 parser.add_argument('--mbatch_size', default=10, type=int, help='Mini-batch size')
 parser.add_argument('--sample_size', default=250, type=int, help='Sample size')
 parser.add_argument('--max_epochs', default=100, type=int, help='Maximum number of epochs')
+parser.add_argument('--retrain_epoch', default=18, type=int, help='Epoch to retrain from')
 
 ## OPTIONS (TEST)
 parser.add_argument('--test', default=False, type=bool, help='Testing flag')
@@ -231,11 +232,12 @@ if args.train:
 		## CONTINUE FROM LAST EPOCH
 		if args.cont:
 			with open('data/epoch_par_' + args.ver + '.p', 'rb') as f: epoch_par = pickle.load(f) # load epoch parameters from last epoch.
-			epoch_par['start_idx'] = 0; epoch_par['end_idx'] = args.mbatch_size # reset start and end index of mini-batch. 
+			epoch_par['start_idx'] = 0; epoch_par['end_idx'] = args.mbatch_size; # reset start and end index of mini-batch.
+			epoch_par['epoch_comp'] = args.retrain_epoch # set to retrain epoch.
 			random.shuffle(train_clean_speech_list) # shuffle list.
 			with open('data/epoch_par_' + args.ver + '.p', 'wb') as f: pickle.dump(epoch_par, f) # save epoch parameters.
-			saver.restore(sess, args.model_path + '/epoch-' + str(epoch_par['epoch_comp'])) # load model from last epoch.
-
+			saver.restore(sess, args.model_path + '/epoch-' + str(args.retrain_epoch)) # load model from last epoch.
+			
 		## TRAIN RAW NETWORK
 		else:
 			if os.path.isfile('data/epoch_par_' + args.ver + '.p'): os.remove('data/epoch_par_' + args.ver + '.p') # remove epoch parameters.

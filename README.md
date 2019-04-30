@@ -72,6 +72,14 @@ Training:
 cd ver/c2/7/a
 python3 deepxi.py --train 1 --verbose 1 --gpu 0
 ```
+
+Retraining:
+
+```
+cd ver/c2/7/a
+python3 deepxi.py --train 1 --cont 1 --retrain_epoch 175 --verbose 1 --gpu 0
+```
+
 Other options can be found in the *deepxi.py* script.
 
 Datasets Used For Training
