@@ -231,10 +231,8 @@ if args.train:
 
 		## CONTINUE FROM LAST EPOCH
 		if args.cont:
-			with open('data/epoch_par_' + args.ver + '.p', 'rb') as f: epoch_par = pickle.load(f) # load epoch parameters from last epoch.
-			epoch_par['start_idx'] = 0; epoch_par['end_idx'] = args.mbatch_size; # reset start and end index of mini-batch.
-			epoch_par['epoch_comp'] = args.retrain_epoch # set to retrain epoch.
-			random.shuffle(train_clean_speech_list) # shuffle list.
+			epoch_par = {'epoch_size': len(train_clean_speech_list), 'epoch_comp': args.retrain_epoch, 
+				'start_idx': 0, 'end_idx': args.mbatch_size, 'val_error': float("inf")} # create epoch parameters.
 			with open('data/epoch_par_' + args.ver + '.p', 'wb') as f: pickle.dump(epoch_par, f) # save epoch parameters.
 			saver.restore(sess, args.model_path + '/epoch-' + str(args.retrain_epoch)) # load model from last epoch.
 			
