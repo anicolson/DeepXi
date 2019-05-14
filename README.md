@@ -7,6 +7,9 @@ Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep lear
 |----|
 | <p align="center"> <b>Figure 1:</b> Deep Xi used as a front-end for robust ASR. The back-end (Deep Speech) is available <a href="https://github.com/mozilla/DeepSpeech">here</a>. The noisy speech magnitude spectrogram, as shown in <b>(a)</b>, is a mixture of clean speech with <i>voice babble</i> noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the <i>a priori</i> SNR, as shown in <b>(b)</b>. The <i>a priori</i> SNR estimate is used to compute an MMSE approach gain function, which is multiplied elementwise with the noisy speech magnitude spectrum to produce the clean speech magnitude spectrum estimate, as shown in <b>(c)</b>. <a href="https://github.com/anicolson/matlab_feat">MFCCs</a> are computed from the estimated clean speech magnitude spectrogram, producing the estimated clean speech cepstrogram, as shown in <b>(d)</b>. The back-end system, Deep Speech, computes the hypothesis transcript, from the estimated clean speech cepstrogram, as shown in <b>(e)</b>. </p> |
 
+|![](./fig_tcn.gif "TCN a priori SNR estimator.")|
+|----|
+| <p align="center"> <b>Figure 2:</b> <a> TCN </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
 |![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")|
 |----|
@@ -20,9 +23,9 @@ Current Models
 -----
 The scripts for each of the following *a priori* SNR estimators can be found in the [*./ver* directory](https://github.com/anicolson/DeepXi/tree/master/ver):
 
-* **c2.7a** is a TCN ([temporal convolutional network](https://arxiv.org/pdf/1803.01271.pdf)) that has 2 million parameters.
-* **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 2**.
-* **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 3**.
+* **c2.7a** is a TCN ([temporal convolutional network](https://arxiv.org/pdf/1803.01271.pdf)) that has 2 million parameters, as shown in **Figure 2**.
+* **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 3**.
+* **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 4**.
 
 **'c'** and **'n'** indicate if the system is *causal* or *non-causal*, respectively. **'c1'**, **'n1'**, and **'c2'** indicate if a ResLSTM, ResBLSTM, or a TCN network is used, respectively.
 
