@@ -13,11 +13,11 @@ Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep lear
 
 |![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")|
 |----|
-| <p align="center"> <b>Figure 2:</b> <a> ResLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
+| <p align="center"> <b>Figure 3:</b> <a> ResLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
 |![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")|
 |----|
-| <p align="center"> <b>Figure 3:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
+| <p align="center"> <b>Figure 4:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
 Current Models
 -----
