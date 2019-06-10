@@ -1,5 +1,9 @@
-[//]: # export PATH=/usr/local/cuda-10.0/bin${PATH:+:${PATH}}
-[//]: # export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+<!--- 
+
+export PATH=/usr/local/cuda-10.0/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+-->
 
 Deep Xi: A Deep Learning Approach to *A Priori* SNR Estimation. Used for Speech Enhancement and Robust ASR.
 ====
