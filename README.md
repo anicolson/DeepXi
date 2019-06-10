@@ -56,7 +56,7 @@ It is recommended to use a [virtual environment](http://virtualenvwrapper.readth
 
 Prerequisites:
 
-* [TensorFlow ](https://www.tensorflow.org/) r1.11 (installed in a virtual environment). Will be updated to r2.0 in the near future.
+* [TensorFlow ](https://www.tensorflow.org/) r1.13.
 * [Python3](https://docs.python-guide.org/starting/install3/linux/)
 * [MATLAB](https://www.mathworks.com/products/matlab.html) (only required for .mat output files)
 
