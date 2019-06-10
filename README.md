@@ -31,7 +31,7 @@ Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep lear
 
 Current Models
 -----
-The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network with [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), otherwise known as a [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises 2 million parameters.
+The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network that employs [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), otherwise known as a [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises 2 million parameters.
 
 
 
@@ -52,9 +52,7 @@ A trained network, version **3a**, can be found in the [*./model* directory](htt
 Installation
 -----
 
-It is recommended to have the following prerequisites if using a GPU.
-
-Prerequisites:
+Prerequisites for GPU usage:
 
 * [CUDA 10.0](https://developer.nvidia.com/cuda-10.0-download-archive).
 * [cuDNN (>= 7.4.1)](https://developer.nvidia.com/cudnn)
