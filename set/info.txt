@@ -1,4 +1,4 @@
-This directory contains the sets used for training and testing. 
+Sets used for training. 
 
 For the validation set only:
 
