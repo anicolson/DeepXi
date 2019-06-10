@@ -1,0 +1,3 @@
+model_checkpoint_path: "epoch-1"
+all_model_checkpoint_paths: "epoch-0"
+all_model_checkpoint_paths: "epoch-1"

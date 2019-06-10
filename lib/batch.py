@@ -12,7 +12,7 @@ import numpy as np
 from scipy.io.wavfile import read
 import glob, os, pickle, random, sys
 
-def _clean_mbatch(clean_list, mbatch_size, start_idx, end_idx):
+def Clean_mbatch(clean_list, mbatch_size, start_idx, end_idx):
 	'''
 	Creates a padded mini-batch of clean speech signals.
 
@@ -36,7 +36,7 @@ def _clean_mbatch(clean_list, mbatch_size, start_idx, end_idx):
 		seq_len.append(mbatch_list[i]['seq_len']) # append length of signal to list.
 	return mbatch, np.array(seq_len, np.int32)
 
-def _noise_mbatch(noise_list, mbatch_size, clean_seq_len):
+def Noise_mbatch(noise_list, mbatch_size, clean_seq_len):
 	'''
 	Creates a padded mini-batch of noise speech signals.
 
@@ -67,7 +67,7 @@ def _noise_mbatch(noise_list, mbatch_size, clean_seq_len):
 		seq_len.append(mbatch_list[i]['seq_len']) # append length of signal to list.
 	return mbatch, np.array(seq_len, np.int32)
 
-def _train_list(file_dir, file_name, name):
+def Train_list(file_dir, file_name, name):
 	'''
 	Places the file paths and signal lengths of a file into a dictionary, which 
 	is then appended to a list. SPHERE format cannot be used. 'glob' is used to 
@@ -102,7 +102,7 @@ def _train_list(file_dir, file_name, name):
 	random.shuffle(train_list) # shuffle list.
 	return train_list
 
-def _batch(fdir, fnames, snr_l):
+def Batch(fdir, fnames, snr_l):
 	'''
 	REQUIRES REWRITING.
 
@@ -145,19 +145,3 @@ def _batch(fdir, fnames, snr_l):
 		wav_np[i,:len(wav)] = wav # add waveform to numpy array.
 		len_l.append(len(wav)) # append length of waveform to list.
 	return wav_np, np.array(len_l, np.int32), np.array(snr_test_l, np.int32), fname_l
-
-
-def Mov_avg(avg, new_sample):
-	'''
-	Moving average.
-
-	Inputs:
-		avg - moving average.
-		new_sample - new sample.
-
-	Outputs:
-		avg - moving average.
-	'''
-	avg -= avg/16
-	avg += new_sample/16
-	return avg

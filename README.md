@@ -28,22 +28,13 @@ Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep lear
 
 Current Models
 -----
-The scripts for each of the following *a priori* SNR estimators can be found in the [*./ver* directory](https://github.com/anicolson/DeepXi/tree/master/ver):
-
-* **c2.7a** is a TCN ([temporal convolutional network](https://arxiv.org/pdf/1803.01271.pdf)) that has 2 million parameters, as shown in **Figure 2**.
-* **c1.13a** is a ResLSTM (residual long short-term memory network) with 10.8 million parameters, as shown in **Figure 3**.
-* **n1.9a** is a ResBLSTM (residual bidirectional long short-term memory network) with 21.3 million parameters, as shown in **Figure 4**.
-
-**'c'** and **'n'** indicate if the system is *causal* or *non-causal*, respectively. **'c1'**, **'n1'**, and **'c2'** indicate if a ResLSTM, ResBLSTM, or a TCN network is used, respectively.
+The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network with [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises 2 million parameters.
 
 Model Availability
 -----
 
-* **c2.7a**  can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/c2.7a). 
-* **c1.13a** can be downloaded from Dropbox [here](https://www.dropbox.com/s/tpe5ydj758jvic9/c1.13a.zip?dl=0), or the Nihao cloud service [here](https://app.nihaocloud.com/f/d5675749ba7342a09a61/?dl=1).
-* **n1.9a** can be downloaded from Dropbox [here](https://www.dropbox.com/s/1o5d7pj2pinxitz/n1.9a.zip?dl=0), or the Nihao cloud service [here](https://app.nihaocloud.com/f/3739ce91061e4d619272/?dl=1).
+* A trained network, version **3a**, can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3a). 
 
-Note: The trained models for **c1.13a** and **n1.9a** are too large to be stored on github.
 
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
@@ -56,22 +47,22 @@ It is recommended to use a [virtual environment](http://virtualenvwrapper.readth
 
 Prerequisites:
 
-* [TensorFlow ](https://www.tensorflow.org/) r1.13.
-* [Python3](https://docs.python-guide.org/starting/install3/linux/)
-* [MATLAB](https://www.mathworks.com/products/matlab.html) (only required for .mat output files)
+* [CUDA 10.0](https://developer.nvidia.com/cuda-10.0-download-archive).
+* [cuDNN (>= 7.4.1)](https://developer.nvidia.com/cudnn)
 
 To install:
 
-1. `git clone https://github.com/anicolson/DeepXi.git`
-2. `pip install -r requirements.txt`
+1. `virtualenv --system-site-packages -p python3 ~/venv/DeepXi`
+2. `source ~/venv/DeepXi/bin/activate`
+3. `pip install --upgrade tensorflow-gpu`
+4. `pip install -r requirements.txt`
 
 How to Use the Deep Xi Scripts
 -----
 Inference:
 
 ```
-cd ver/c2/7/a
-python3 deepxi.py --test 1 --out_type y --gain mmse-lsa --gpu 0
+python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu 0
 ```
 **y** for **--out_type** specifies enhanced speech .wav output. **mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
 
@@ -87,7 +78,7 @@ Retraining:
 
 ```
 cd ver/c2/7/a
-python3 deepxi.py --train 1 --cont 1 --retrain_epoch 175 --verbose 1 --gpu 0
+python3 deepxi.py --train 1 --cont 1 --epoch 175 --verbose 1 --gpu 0
 ```
 
 Other options can be found in the *deepxi.py* script.

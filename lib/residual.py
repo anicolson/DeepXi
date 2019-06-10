@@ -181,8 +181,9 @@ def conv_layer(input, conv_size, conv_filt, seq_len, args, dilation_rate=1,
 			tf.shape(input)[2]]), input], 1)
 	conv = tf.layers.conv1d(input, conv_filt, conv_size, dilation_rate=dilation_rate, 
 		activation=None, padding=args.padding, use_bias=use_bias, bias_initializer=bias_init) # 1D CNN: (conv_size, conv_filt).
-	conv = tf.multiply(conv, tf.cast(tf.expand_dims(tf.sequence_mask(seq_len), 
-		2), tf.float32), name= 'k' + str(conv_size) + '_f' + str(conv_filt) + '_d' + str(dilation_rate))
+	if not args.conv_caus:
+		conv = tf.multiply(conv, tf.cast(tf.expand_dims(tf.sequence_mask(seq_len), 
+			2), tf.float32), name= 'k' + str(conv_size) + '_f' + str(conv_filt) + '_d' + str(dilation_rate))
 	return conv
 
 ## CNN L
