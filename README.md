@@ -12,7 +12,7 @@ Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep lear
 
 
 * Minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach.
-* Estimate of the ideal ratio mask **(IRM)** and the ideal binary mask **(IBM)**. 
+* Estimate the ideal ratio mask **(IRM)** and the ideal binary mask **(IBM)**. 
 * A **front-end for robust ASR**, as shown in **Figure 1**.
 
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
