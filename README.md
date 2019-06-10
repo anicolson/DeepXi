@@ -8,7 +8,12 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 Deep Xi: A Deep Learning Approach to *A Priori* SNR Estimation. Used for Speech Enhancement and Robust ASR.
 ====
 
-Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [1]. It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach. It can also be used to estimate the ideal ratio mask (IRM) and the ideal binary mask (IBM). Deep Xi can be used as a **front-end for robust ASR**, as shown in **Figure 1**. Deep Xi is implemented in [TensorFlow](https://www.tensorflow.org/).
+Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [1] and is implemented in [TensorFlow](https://www.tensorflow.org/). Some of its use cases include:
+
+
+* Minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach.
+* Estimate of the ideal ratio mask **(IRM)** and the ideal binary mask **(IBM)**. 
+* A **front-end for robust ASR**, as shown in **Figure 1**.
 
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
@@ -63,8 +68,7 @@ To install:
 5. `cd DeepXi`
 6. `pip install -r requirements.txt`
 
-If a GPU is not going to be used, replace step 4 with:
-4. `pip install --upgrade tensorflow`
+If a GPU is not going to be used, replace step 4 with: `pip install --upgrade tensorflow`
 
 How to Use the Deep Xi Scripts
 -----
