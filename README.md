@@ -70,7 +70,7 @@ If a GPU is not going to be used, replace step 4 with: `pip install --upgrade te
 
 How to Use the Deep Xi Scripts
 -----
-Inference:
+**Inference:**
 
 ```
 python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu 0
@@ -78,13 +78,13 @@ python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu 0
 **y** for **--out_type** specifies enhanced speech .wav output. **mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
 
 
-Training:
+**Training:**
 
 ```
 python3 deepxi.py --train 1 --verbose 1 --gpu 0
 ```
 
-Retraining:
+**Retraining:**
 
 ```
 python3 deepxi.py --train 1 --cont 1 --epoch 175 --verbose 1 --gpu 0
