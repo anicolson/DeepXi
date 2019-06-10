@@ -28,10 +28,7 @@ Current Models
 -----
 The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network with [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), otherwise known as a [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises 2 million parameters.
 
-Model Availability
------
 
-* A trained network, version **3a**, can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3a). 
 
 |![](./fig_tcn.gif "Deep Xi a priori SNR estimator.")|
 |----|
@@ -40,6 +37,12 @@ Model Availability
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
 -->
+
+Availability
+-----
+
+A trained network, version **3a**, can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3a). 
+
 
 Installation
 -----
@@ -53,13 +56,15 @@ Prerequisites:
 
 To install:
 
-1. `virtualenv --system-site-packages -p python3 ~/venv/DeepXi`
-2. `source ~/venv/DeepXi/bin/activate`
-3. `pip install --upgrade tensorflow-gpu`
-4. `pip install -r requirements.txt`
+1. `git clone https://github.com/anicolson/DeepXi.git`
+2. `virtualenv --system-site-packages -p python3 ~/venv/DeepXi`
+3. `source ~/venv/DeepXi/bin/activate`
+4. `pip install --upgrade tensorflow-gpu`
+5. `cd DeepXi`
+6. `pip install -r requirements.txt`
 
-If a GPU is not going to be used, replace step 3 with:
-3. `pip install --upgrade tensorflow`
+If a GPU is not going to be used, replace step 4 with:
+4. `pip install --upgrade tensorflow`
 
 How to Use the Deep Xi Scripts
 -----
