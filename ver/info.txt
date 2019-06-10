@@ -1,1 +1,0 @@
-Different networks are found in this directory. 'n' indicates non-causal, and 'c' indicates causal. 'c1' indicates ResLSTM, 'n1' indicates ResBLSTM, and 'c2' indicates TCN.

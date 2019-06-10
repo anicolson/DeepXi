@@ -14,27 +14,28 @@ Deep Xi (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep lear
 |----|
 | <p align="center"> <b>Figure 1:</b> Deep Xi used as a front-end for robust ASR. The back-end (Deep Speech) is available <a href="https://github.com/mozilla/DeepSpeech">here</a>. The noisy speech magnitude spectrogram, as shown in <b>(a)</b>, is a mixture of clean speech with <i>voice babble</i> noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the <i>a priori</i> SNR, as shown in <b>(b)</b>. The <i>a priori</i> SNR estimate is used to compute an MMSE approach gain function, which is multiplied elementwise with the noisy speech magnitude spectrum to produce the clean speech magnitude spectrum estimate, as shown in <b>(c)</b>. <a href="https://github.com/anicolson/matlab_feat">MFCCs</a> are computed from the estimated clean speech magnitude spectrogram, producing the estimated clean speech cepstrogram, as shown in <b>(d)</b>. The back-end system, Deep Speech, computes the hypothesis transcript, from the estimated clean speech cepstrogram, as shown in <b>(e)</b>. </p> |
 
-|![](./fig_tcn.gif "TCN a priori SNR estimator.")|
-|----|
-| <p align="center"> <b>Figure 2:</b> <a> TCN </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
-|![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")|
+<!-- |![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 3:</b> <a> ResLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
 |![](./fig_resblstm.png "ResBLSTM a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 4:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
+ -->
 
 Current Models
 -----
-The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network with [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises 2 million parameters.
+The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network with [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), otherwise known as a [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises 2 million parameters.
 
 Model Availability
 -----
 
 * A trained network, version **3a**, can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3a). 
 
+|![](./fig_tcn.gif "Deep Xi a priori SNR estimator.")|
+|----|
+| <p align="center"> <b>Figure 2:</b> <a> TCN </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0). 
@@ -43,7 +44,7 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 Installation
 -----
 
-It is recommended to use a [virtual environment](http://virtualenvwrapper.readthedocs.io/en/latest/install.html) for installation.
+It is recommended to have the following prerequisites if using a GPU.
 
 Prerequisites:
 
@@ -56,6 +57,9 @@ To install:
 2. `source ~/venv/DeepXi/bin/activate`
 3. `pip install --upgrade tensorflow-gpu`
 4. `pip install -r requirements.txt`
+
+If a GPU is not going to be used, replace step 3 with:
+3. `pip install --upgrade tensorflow`
 
 How to Use the Deep Xi Scripts
 -----
@@ -70,14 +74,12 @@ python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu 0
 Training:
 
 ```
-cd ver/c2/7/a
 python3 deepxi.py --train 1 --verbose 1 --gpu 0
 ```
 
 Retraining:
 
 ```
-cd ver/c2/7/a
 python3 deepxi.py --train 1 --cont 1 --epoch 175 --verbose 1 --gpu 0
 ```
 
