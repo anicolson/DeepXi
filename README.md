@@ -54,7 +54,7 @@ Installation
 
 Prerequisites for GPU usage:
 
-* [CUDA 10.0](https://developer.nvidia.com/cuda-10.0-download-archive).
+* [CUDA 10.0](https://developer.nvidia.com/cuda-10.0-download-archive)
 * [cuDNN (>= 7.4.1)](https://developer.nvidia.com/cudnn)
 
 To install:
