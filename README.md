@@ -111,4 +111,4 @@ The following noise datasets were used:
 References
 -----
 
-[[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Accepted to Speech Communication.](./xi_2018.pdf)
+[[1] A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Accepted to Speech Communication.](https://doi.org/10.1016/j.specom.2019.06.002)
