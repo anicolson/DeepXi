@@ -33,8 +33,6 @@ Current Models
 -----
 The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network that employs [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), otherwise known as a [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises of 2 million parameters.
 
-
-
 |![](./fig_tcn.gif "Deep Xi a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 2:</b> <a> TCN </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
@@ -110,5 +108,6 @@ The following noise datasets were used:
 
 References
 -----
+Please cite the following when using Deep Xi:
 
 [1] [A. Nicolson and K. K. Paliwal, "Deep Learning For Minimum Mean-Square Error Approaches to Speech Enhancement", Speech Communication, 2019, ISSN 0167-6393, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)
