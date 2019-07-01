@@ -40,11 +40,9 @@ def deepxi_args(args):
 	args.Ns = int(args.fs*args.Ts*0.001) # window shift (samples).
 	args.NFFT = int(pow(2, np.ceil(np.log2(args.Nw)))) # number of DFT components.
 
-	## A PRIORI SNR IN DB STATS
-	mu_mat = spio.loadmat(args.stats_path + '/mu.mat') # mean of a priori SNR in dB from MATLAB.
-	args.mu = tf.constant(mu_mat['mu'], dtype=tf.float32) 
-	sigma_mat = spio.loadmat(args.stats_path + '/sigma.mat') # standard deviation of a priori SNR in dB from MATLAB.
-	args.sigma = tf.constant(sigma_mat['sigma'], dtype=tf.float32) 
+	## A PRIORI SNR IN DB STATISTICS (FROM .MAT FILE)
+	args.mu_mat = spio.loadmat(args.stats_path + '/mu.mat') # mean of a priori SNR in dB from MATLAB.
+	args.sigma_mat = spio.loadmat(args.stats_path + '/sigma.mat') # standard deviation of a priori SNR in dB from MATLAB.
 
 	## DATASETS
 	if args.train: ## TRAINING AND VALIDATION CLEAN SPEECH AND NOISE SET
@@ -77,6 +75,10 @@ class deepxi_net:
 		self.target_ph = tf.placeholder(tf.float32, shape=[None, args.input_dim], name='target_phh') # training target placeholder.
 		self.keep_prob_ph = tf.placeholder(tf.float32, name='keep_prob_ph') # keep probability placeholder.
 		self.training_ph = tf.placeholder(tf.bool, name='training_ph') # training placeholder.
+
+		## A PRIORI SNR IN DB STATISTICS
+		args.mu = tf.constant(args.mu_mat['mu'], dtype=tf.float32) 
+		args.sigma = tf.constant(args.sigma_mat['sigma'], dtype=tf.float32) 
 
 		## FEATURE GRAPH
 		print('Preparing graph...')
