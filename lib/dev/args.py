@@ -27,12 +27,6 @@ def add_args(args, modulation=False):
 	args.N_w = int(args.f_s*args.T_w*0.001) # window length (samples).
 	args.N_s = int(args.f_s*args.T_s*0.001) # window shift (samples).
 	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_w)))) # number of DFT components.
-	if modulation:
-		args.L_w = int((args.f_s*args.T_a_w*0.001)/args.N_s) # acoustic-domain window length (samples).
-		args.L_s = int((args.f_s*args.T_a_s*0.001)/args.N_s) # acoustic-domain window shift (samples).
-		args.NFFT_m = int(pow(2, np.ceil(np.log2(args.L_w)))) # number of modulation-domain DFT components.
-		args.d_y = int(args.NFFT/2 + 1) # number of frequency-domain components.
-		args.d_x = int(args.NFFT_m/2 + 1) # number of modulation-domain components.
 
 	## DATASETS
 	if args.train: ## TRAINING AND VALIDATION CLEAN SPEECH AND NOISE SET
@@ -59,7 +53,7 @@ def get_args():
 
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
-	parser.add_argument('--ver', type=str, help='Model version')
+	parser.add_argument('--ver', default='3d', type=str, help='Model version')
 	parser.add_argument('--par_iter', default=256, type=int, help='dynamic_rnn/bidirectional_dynamic_rnn parallel iterations')
 	parser.add_argument('--epoch', type=int, help='Epoch to use/retrain from')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
@@ -73,8 +67,7 @@ def get_args():
 	parser.add_argument('--train_s_ver', default='v1', type=str, help='Clean speech training set version')
 	parser.add_argument('--train_d_ver', default='v1', type=str, help='Noise training set version')
 	parser.add_argument('--mbatch_size', default=10, type=int, help='Mini-batch size')
-	# parser.add_argument('--mbatch_nframes', type=int, help='Number of frames to use for mini-batch')
-	parser.add_argument('--sample_size', default=100, type=int, help='Sample size')
+	parser.add_argument('--sample_size', default=1000, type=int, help='Sample size')
 	parser.add_argument('--max_epochs', default=250, type=int, help='Maximum number of epochs')
 	parser.add_argument('--grad_clip', default=True, type=str2bool, help='Gradient clipping')
 
@@ -97,24 +90,22 @@ def get_args():
 	parser.add_argument('--gain', default='wf', type=str, help='Gain function for testing')
 
 	## PATHS
-	parser.add_argument('--model_path', default='', type=str, help='Model save path')
-	parser.add_argument('--set_path', type=str, help='Path to datasets')
-	parser.add_argument('--data_path', type=str, help='Save data path')
-	parser.add_argument('--stats_path', default='./../../../stats', 
+	parser.add_argument('--model_path', default='model', type=str, help='Model save path')
+	parser.add_argument('--set_path', default='set', type=str, help='Path to datasets')
+	parser.add_argument('--data_path', default='data', type=str, help='Save data path')
+	parser.add_argument('--stats_path', default='stats', 
 		type=str, help='Path to training set statistics')
-	parser.add_argument('--test_x_path', default='', 
+	parser.add_argument('--test_x_path', default='set/test_noisy_speech', 
 		type=str, help='Path to the noisy speech test set')
-	parser.add_argument('--out_path', default='', 
+	parser.add_argument('--out_path', default='out', 
 		type=str, help='Output path')
 
 	## FEATURES
-	parser.add_argument('--min_snr', type=int, help='Minimum trained SNR level')
-	parser.add_argument('--max_snr', type=int, help='Maximum trained SNR level')
+	parser.add_argument('--min_snr', default=-10, type=int, help='Minimum trained SNR level')
+	parser.add_argument('--max_snr', default=20, type=int, help='Maximum trained SNR level')
 	parser.add_argument('--f_s', default=16000, type=int, help='Sampling frequency (Hz)')
 	parser.add_argument('--T_w', default=32, type=int, help='Window length (ms)')
-	parser.add_argument('--T_s', type=int, help='Window shift (ms)')
-	parser.add_argument('--T_a_w', type=int, help='Acoustic-domain window length (ms)')
-	parser.add_argument('--T_a_s', type=int, help='Acoustic-domain window shift (ms)')
+	parser.add_argument('--T_s', default=16, type=int, help='Window shift (ms)')
 	parser.add_argument('--nconst', default=32768.0, type=float, help='Normalisation constant (see feat.addnoisepad())')
 
 	## NETWORK PARAMETERS
@@ -133,30 +124,6 @@ def get_args():
 	parser.add_argument('--norm_type', default='layer', type=str, help='Normalisation type')
 	parser.add_argument('--warmup_steps', default=4000, type=int, help='Number of learning rate warmup steps')
 	parser.add_argument('--pos_enc', default=True, type=str2bool, help='Add positional encoding')
-
-	## ARTIFICIAL NEURAL NETWORK PARAMETERS
-	# parser.add_argument('--blocks', type=list, help='Residual blocks')
-	# parser.add_argument('--cell_size', default=256, type=int, help='Cell size')
-	# parser.add_argument('--cell_proj', default=None, type=int, help='Cell projection size (None for no proj.)')
-	# parser.add_argument('--cell_type', default=None, type=str, help='RNN cell type')
-	# parser.add_argument('--peep', default=None, type=str2bool, help='Use peephole connections')
-	# parser.add_argument('--bidi', default=None, type=str2bool, help='Bidirectional recurrent neural network flag')
-	# parser.add_argument('--bidi_con', default=None, type=str, help='Forward and backward cell activation connection')
-	# parser.add_argument('--res_con', default='add', type=str, help='Residual connection (add or concat)')
-	# parser.add_argument('--res_proj', default=None, type=int, help='Output size of the residual projection weight (None for no projection)')
-	# parser.add_argument('--block_unit', default=None, type=str, help='Residual unit')
-	# parser.add_argument('--coup_unit', default='CU1', type=str, help='Coupling unit')
-	# parser.add_argument('--coup_conv_filt', default=256, type=int, help='Number of filters for coupling unit')
-	# parser.add_argument('--conv_size', default=3, type=int, help='Convolution kernel size')
-	# parser.add_argument('--conv_filt', default=64, type=int, help='Number of convolution filters')
-	# parser.add_argument('--conv_caus', default=True, type=str2bool, help='Causal convolution flag')
-	# parser.add_argument('--max_dilation_rate', default=16, type=int, help='Maximum dilation rate')
-	# parser.add_argument('--dropout', default=False, type=str2bool, help='Use droput during training flag')
-	# parser.add_argument('--keep_prob', default=False, type=float, help='Keep probability during training (0.75 typically)')
-	# parser.add_argument('--context', default=None, type=int, help='Input context (no. of frames)')
-	# parser.add_argument('--depth', default=None, type=int, help='Temporal residual-dense lattice (tRDL) depth')
-	# parser.add_argument('--dilation_strat', default=None, type=str, help='tRDL dilation strategy (height)')
-	# parser.add_argument('--lr', default=0.001, type=float, help='Initial learning rate')
 
 	## LANGUAGE MODEL
 	parser.add_argument('--librispeech_data_path', default=expanduser("~") + '/data/librispeech', type=str, help='Path to store librispeech data')

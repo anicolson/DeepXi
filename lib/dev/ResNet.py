@@ -10,7 +10,7 @@
 
 import tensorflow as tf
 from tensorflow.python.training import moving_averages
-from utils import Normalisation
+from dev.normalisation import Normalisation
 import numpy as np
 import argparse, math, sys
 from dev.add_noise import add_noise_batch
