@@ -33,7 +33,7 @@ Current Models
 -----
 The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a Residual Network that employs [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), otherwise known as a [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). The Deep Xi network can be seen in **Figure 2**. It comprises of 2 million parameters.
 
-|![](./Deep Xi-ResNet.png "Deep Xi a priori SNR estimator.")|
+|![](./Deep-Xi-ResNet.png "Deep Xi a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 2:</b> <a> TCN </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
 
