@@ -79,7 +79,7 @@ python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu 0
 ```
 python3 deepxi.py --train 1 --verbose 1 --gpu 0
 ```
-
+Ensure to delete the data directory before training. This will allow training lists and statistics for your training set to be saved and used.
 **Retraining:**
 
 ```
