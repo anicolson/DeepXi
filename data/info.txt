@@ -1,0 +1,1 @@
+Statistics for target mapping are stored here, as well as the training lists.
