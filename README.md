@@ -64,8 +64,6 @@ To install:
 5. `cd DeepXi`
 6. `pip install -r requirements.txt`
 
-If a GPU is not going to be used, replace step 4 with: `pip install --upgrade tensorflow`
-
 How to Use the Deep Xi Scripts
 -----
 **Inference:**
@@ -88,7 +86,8 @@ python3 deepxi.py --train 1 --verbose 1 --gpu 0
 python3 deepxi.py --train 1 --cont 1 --epoch 175 --verbose 1 --gpu 0
 ```
 
-Other options can be found in the *deepxi.py* script.
+Other options can be found in the *args.py* script. **If a GPU is not to be used, include the following option: `--gpu ''`**
+
 
 Datasets Used For Training
 -----
