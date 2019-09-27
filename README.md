@@ -5,9 +5,10 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi: A Deep Learning Approach to *A Priori* SNR Estimation. Used for Speech Enhancement and Robust ASR.
+Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.* 
 ====
-
+Used for speech enhancement, noise estimation, and as a front-end for robust ASR.
+----
 [Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow](https://www.tensorflow.org/). Some of its use cases include:
 
 
