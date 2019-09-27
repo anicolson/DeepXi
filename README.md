@@ -44,7 +44,7 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 Availability
 -----
 
-A trained network, version **3a**, can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3a). 
+A trained network, version **3d**, can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3d). 
 
 
 Installation
