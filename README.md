@@ -65,7 +65,7 @@ To install:
 1. `git clone https://github.com/anicolson/DeepXi.git`
 2. `virtualenv --system-site-packages -p python3 ~/venv/DeepXi`
 3. `source ~/venv/DeepXi/bin/activate`
-4. `pip install --upgrade tensorflow-gpu`
+4. `pip install --upgrade tensorflow-gpu==1.14`
 5. `cd DeepXi`
 6. `pip install -r requirements.txt`
 
