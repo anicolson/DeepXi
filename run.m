@@ -10,6 +10,12 @@ clear all; close all; clc;
 %% Note: the script will finish with 'Inference complete.'.
 %
 
+if isunix
+	matlab_bin = [matlabroot, '/bin/glnxa64'];
+	command = ['sudo mv ', matlab_bin, '/libexpat.so.1 ', matlab_bin, '/libexpat.so.1.NOFIND'];
+	system(command);
+end
+
 gpu_flag = lower(input('Use a GPU? (y/n):', 's'));
 if ismember(gpu_flag, {'y', 'yes'})
     gpu_flag = true;
@@ -20,7 +26,7 @@ else
 end
 
 if gpu_flag
-    system('source ~/tf/bin/activate; python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu ''0'' --epoch 76');
+    system('source ~/venv/DeepXi/bin/activate; python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu ''0''');
 else
-    system('source ~/tf/bin/activate; python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu '''' --epoch 76');
+    system('source ~/venv/DeepXi/bin/activate; python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu ''''');
 end
