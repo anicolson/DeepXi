@@ -87,7 +87,7 @@ def get_args():
 	# 'ibm' - Ideal Binary Mask (IBM), 'wf' - Wiener Filter (WF), 'srwf' - Square-Root Wiener Filter (SRWF),
 	# 'cwf' - Constrained Wiener Filter (cWF), 'mmse-stsa' - Minimum-Mean Square Error - Short-Time Spectral Amplitude (MMSE-STSA) estimator,
 	# 'mmse-lsa' - Minimum-Mean Square Error - Log-Spectral Amplitude (MMSE-LSA) estimator.
-	parser.add_argument('--gain', default='wf', type=str, help='Gain function for testing')
+	parser.add_argument('--gain', default='srwf', type=str, help='Gain function for testing')
 
 	## PATHS
 	parser.add_argument('--model_path', default='model', type=str, help='Model save path')
