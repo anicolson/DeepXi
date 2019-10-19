@@ -55,7 +55,7 @@ def get_args():
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
 	parser.add_argument('--ver', default='3d', type=str, help='Model version')
 	parser.add_argument('--par_iter', default=256, type=int, help='dynamic_rnn/bidirectional_dynamic_rnn parallel iterations')
-	parser.add_argument('--epoch', default=100, type=int, help='Epoch to use/retrain from')
+	parser.add_argument('--epoch', default=175, type=int, help='Epoch to use/retrain from')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--test', default=False, type=str2bool, help='Testing flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
