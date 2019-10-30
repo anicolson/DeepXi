@@ -54,29 +54,17 @@ def get_args():
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
 	parser.add_argument('--ver', default='3d', type=str, help='Model version')
-	parser.add_argument('--par_iter', default=256, type=int, help='dynamic_rnn/bidirectional_dynamic_rnn parallel iterations')
 	parser.add_argument('--epoch', default=173, type=int, help='Epoch to use/retrain from')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
-	parser.add_argument('--test', default=False, type=str2bool, help='Testing flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
-	parser.add_argument('--save_plot', default=False, type=bool, help='Save plot of feature input')
 
 	## OPTIONS (TRAIN)
 	parser.add_argument('--cont', default=False, type=str2bool, help='Continue testing from last epoch')
-	parser.add_argument('--train_s_ver', default='v1', type=str, help='Clean speech training set version')
-	parser.add_argument('--train_d_ver', default='v1', type=str, help='Noise training set version')
 	parser.add_argument('--mbatch_size', default=10, type=int, help='Mini-batch size')
 	parser.add_argument('--sample_size', default=1000, type=int, help='Sample size')
 	parser.add_argument('--max_epochs', default=250, type=int, help='Maximum number of epochs')
 	parser.add_argument('--grad_clip', default=True, type=str2bool, help='Gradient clipping')
-
-	## OPTIONS (TEST)
-	# parser.add_argument('--val', default=False, type=str2bool, help='Find validation error for "test_epoch"')
-	# parser.add_argument('--test_x_ver', default='v2', type=str, help='Noisy speech test set version')
-	parser.add_argument('--test_cer', default=False, type=str2bool, help='Test character error rate')
-	parser.add_argument('--test_perplex', default=False, type=str2bool, help='Test set perplexity')
-	parser.add_argument('--test_output', default=False, type=str2bool, help='Test output of LM')
 
 	# TEST OUTPUT TYPE
 	# 'raw' - output from network (.mat), 'xi_hat' - a priori SNR estimate (.mat),
@@ -111,36 +99,12 @@ def get_args():
 	## NETWORK PARAMETERS
 	parser.add_argument('--d_in', default=257, type=int, help='Input dimensionality')
 	parser.add_argument('--d_out', default=257, type=int, help='Ouput dimensionality')
-	parser.add_argument('--N', default=4, type=int, help='Number of layers')
 	parser.add_argument('--d_model', default=256, type=int, help='Model dimensions')
 	parser.add_argument('--n_blocks', default=40, type=int, help='Number of blocks')
-	parser.add_argument('--h', default=4, type=int, help='Number of heads for multi-head attention')
-	parser.add_argument('--d_ff', default=256, type=int, help='Feed-forward network inner dimensionality')
-	parser.add_argument('--P_drop', default=0.1, type=float, help='Dropout probability')
 	parser.add_argument('--d_f', default=64, type=int, help='Number of filters')
 	parser.add_argument('--k_size', default=3, type=int, help='Kernel size')
 	parser.add_argument('--max_d_rate', default=16, type=int, help='Maximum dilation rate')
-	parser.add_argument('--d_b', type=list, help='Output size of each encoder-decoder block')
 	parser.add_argument('--norm_type', default='FrameLayerNorm', type=str, help='Normalisation type')
-	parser.add_argument('--warmup_steps', default=4000, type=int, help='Number of learning rate warmup steps')
-	parser.add_argument('--pos_enc', default=True, type=str2bool, help='Add positional encoding')
-
-	## LANGUAGE MODEL
-	parser.add_argument('--librispeech_data_path', default=expanduser("~") + '/data/librispeech', type=str, help='Path to store librispeech data')
-	parser.add_argument('--seed', default=43, type=int, help='Random number seed')
-	parser.add_argument('--max_words', default=50, type=int, help='Maximum number of words in a sentence')
-	parser.add_argument('--word2vec_size', default=64, type=int, help='Word2vec map size')
-	parser.add_argument('--num_train_sent', default=int(1e5), type=int, help='Number of training sentences')
-	parser.add_argument('--num_val_sent', default=int(1e4), type=int, help='Number of validation sentences')
-	parser.add_argument('--num_test_sent', default=int(1e4), type=int, help='Number of test sentences')
-
-	## rdl_19
-	parser.add_argument('--max_drop', default=0.0, type=float)
-	parser.add_argument('--growth_rate', default=[[64,32,16,8]], type=list)
-	parser.add_argument('--dense_factor', default=[[1,1,1,1]], type=list)
-	parser.add_argument('--net_height', default=[4], type=list)
-	parser.add_argument('--no_layers', default=[7], type=list)
-	parser.add_argument('--net_blocks', default=[2], type=list)
 
 	args = parser.parse_args()
 	return args
