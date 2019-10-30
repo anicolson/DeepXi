@@ -35,7 +35,7 @@ def Normalisation(x, norm_type='FrameLayerNorm', seq_len=None, mask=None, traini
 count = 0 
 def SeqCausalLayerNorm(x, seq_len, centre=True, scale=True):
 	'''
-	Sequence-wise causal layer normalisation with sequence masking (https://arxiv.org/pdf/1510.01378.pdf). 
+	Sequence-wise causal layer normalisation with sequence masking (causal version of https://arxiv.org/pdf/1510.01378.pdf). 
 
 	Input/s:
 		x - input.
