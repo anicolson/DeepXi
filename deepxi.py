@@ -43,7 +43,8 @@ class deepxi_net:
 		## RESNET		
 		self.input_ph = tf.placeholder(tf.float32, shape=[None, None, args.d_in], name='input_ph') # noisy speech MS placeholder.
 		self.nframes_ph = tf.placeholder(tf.int32, shape=[None], name='nframes_ph') # noisy speech MS sequence length placeholder.
-		self.output = ResNet(self.input_ph, self.nframes_ph, n_blocks=args.n_blocks, boolean_mask=True)
+		self.output = ResNet(self.input_ph, self.nframes_ph, args.norm_type, n_blocks=args.n_blocks, boolean_mask=True, d_out=args.d_out, 
+			d_model=args.d_model, d_f=args.d_f, k_size=args.k_size, max_d_rate=args.max_d_rate)
 
 		## TRAINING FEATURE EXTRACTION GRAPH
 		self.s_ph = tf.placeholder(tf.int16, shape=[None, None], name='s_ph') # clean speech placeholder.

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TRAIN=0
+TRAIN=1
 MAX_EPOCHS=175
 INFER=0
 EPOCH=175
@@ -15,7 +15,7 @@ DATA_PATH='data'
 TEST_X_PATH='set/test_noisy_speech'
 OUT_PATH='out'
 MODEL_PATH='model'
-NUM_GPU=2
+NUM_GPU=1
 
 get_free_gpu () {
 	while true
@@ -34,7 +34,7 @@ get_free_gpu () {
 }
 
 get_free_gpu $NUM_GPU
-python3 deepxi.py --ver '3d' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
+python3 deepxi.py --ver '3e' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
 	--gpu $? --mbatch_size $MBATCH_SIZE --sample_size $SAMPLE_SIZE --set_path $SET_PATH --data_path $DATA_PATH \
 	--T_w $T_W --T_s $T_S --min_snr $MIN_SNR --max_snr $MAX_SNR --test_x_path $TEST_X_PATH \
 	--out_path $OUT_PATH --model_path $MODEL_PATH
