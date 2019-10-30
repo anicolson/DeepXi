@@ -12,7 +12,7 @@ import argparse, os, string
 import numpy as np
 import tensorflow as tf
 
-def Normalisation(x, norm_type='SeqCausalLayerNorm', seq_len=None, mask=None, training=False, centre=True, scale=True):
+def Normalisation(x, norm_type='FrameLayerNorm', seq_len=None, mask=None, training=False, centre=True, scale=True):
 	'''
 	Normalisation.
 
