@@ -95,7 +95,6 @@ python3 deepxi.py --train 1 --cont 1 --epoch 173 --verbose 1 --gpu 0
 
 Other options can be found in [*args.py*](https://github.com/anicolson/DeepXi/blob/master/lib/dev/args.py). **If a GPU is not to be used, include the following option: `--gpu ''`**
 
-
 Datasets Used For Training
 -----
 The .wav files used for training are single-channel, with a sampling frequency of 16 kHz.
