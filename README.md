@@ -97,7 +97,7 @@ Other options can be found in [*args.py*](https://github.com/anicolson/DeepXi/bl
 
 Current Issues
 -----
-* The periodic Hann window is used for analysis and synthesis. Need to investigate what is better for speech enhancement: a symmetric or a periodic window function.
+* The periodic Hann window is currently being used for analysis and synthesis. Need to investigate what is better for speech enhancement: a symmetric or a periodic window function.
 
 Datasets Used For Training
 -----
