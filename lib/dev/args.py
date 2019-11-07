@@ -67,8 +67,8 @@ def get_args():
 	parser.add_argument('--grad_clip', default=True, type=str2bool, help='Gradient clipping')
 
 	# TEST OUTPUT TYPE
-	# 'raw' - output from network (.mat), 'xi_hat' - a priori SNR estimate (.mat),
-	# 'gain' - gain function (.mat), 'y' - enhanced speech (.wav).
+	# 'xi_hat' - a priori SNR estimate (.mat),
+	# 'y' - enhanced speech (.wav).
 	parser.add_argument('--out_type', default='y', type=str, help='Output type for testing')
 
 	## GAIN FUNCTION
