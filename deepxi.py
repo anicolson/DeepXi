@@ -206,27 +206,36 @@ def train(sess, net, args):
 def infer(sess, net, args):
 	print("Inference...")
 	net.saver.restore(sess, args.model_path + '/epoch-' + str(args.epoch)) # load model from epoch.
-	args.out_path = args.out_path + '/' + args.gain + '/y'
-	if not os.path.exists(args.out_path): os.makedirs(args.out_path) # make output directory.
+	
+	if args.out_type == 'xi_hat':
+		args.out_path = args.out_path + '/xi_hat'
+		if not os.path.exists(args.out_path): os.makedirs(args.out_path) # make output directory.
+	elif args.out_type == 'y':
+		args.out_path = args.out_path + '/' + args.gain + '/y'
+		if not os.path.exists(args.out_path): os.makedirs(args.out_path) # make output directory.
+	else: ValueError('Incorrect output type.')
+
 	for j in range(len(args.test_x_len)):
 		input_feat = sess.run(net.infer_feat, feed_dict={net.s_ph: [args.test_x[j][0:args.test_x_len[j]]], 
 			net.s_len_ph: [args.test_x_len[j]]}) # sample of training set.
 	
 		xi_mapped_hat = sess.run(net.infer_output, feed_dict={net.input_ph: input_feat[0], 
-			net.nframes_ph: input_feat[1], net.training_ph: False}) # output of network.
+			net.nframes_ph: input_feat[1], net.P_drop_ph: 0.0, net.training_ph: False}) # output of network.
 		xi_dB_hat = np.add(np.multiply(np.multiply(args.stats['sigma_hat'], np.sqrt(2.0)), 
 			spsp.erfinv(np.subtract(np.multiply(2.0, xi_mapped_hat), 1))), args.stats['mu_hat']); # a priori SNR estimate.			
 		xi_hat = np.power(10.0, np.divide(xi_dB_hat, 10.0))
+		
+		if args.out_type == 'xi_hat':
+			spio.savemat(args.out_path + '/' + args.test_fnames[j] + '.mat', {'xi_hat':xi_hat})
 
-		y_MAG = np.multiply(input_feat[0], gain.gfunc(xi_hat, xi_hat+1, gtype=args.gain))
+		elif args.out_type == 'y':
+			y_MAG = np.multiply(input_feat[0], gain.gfunc(xi_hat, xi_hat+1, gtype=args.gain))
+			y = np.squeeze(sess.run(net.y, feed_dict={net.y_MAG_ph: y_MAG, 
+				net.x_PHA_ph: input_feat[2], net.nframes_ph: input_feat[1], net.training_ph: False})) # output of network.
+			if np.isnan(y).any(): ValueError('NaN values found in enhanced speech.')
+			if np.isinf(y).any(): ValueError('Inf values found in enhanced speech.')
+			utils.save_wav(args.out_path + '/' + args.test_fnames[j] + '.wav', args.f_s, y)
 
-		y = np.squeeze(sess.run(net.y, feed_dict={net.y_MAG_ph: y_MAG, 
-			net.x_PHA_ph: input_feat[2], net.nframes_ph: input_feat[1], net.training_ph: False})) # output of network.
-
-		if np.isnan(y).any(): ValueError('NaN values found in enhanced speech.')
-		if np.isinf(y).any(): ValueError('Inf values found in enhanced speech.')
-
-		utils.save_wav(args.out_path + '/' + args.test_fnames[j] + '.wav', args.f_s, y)
 		print("Inference (%s): %3.2f%%.       " % (args.out_type, 100*((j+1)/len(args.test_x_len))), end="\r")
 	print('\nInference complete.')
 
