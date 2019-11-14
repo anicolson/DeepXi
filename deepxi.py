@@ -220,7 +220,7 @@ def infer(sess, net, args):
 			net.s_len_ph: [args.test_x_len[j]]}) # sample of training set.
 	
 		xi_mapped_hat = sess.run(net.infer_output, feed_dict={net.input_ph: input_feat[0], 
-			net.nframes_ph: input_feat[1], net.P_drop_ph: 0.0, net.training_ph: False}) # output of network.
+			net.nframes_ph: input_feat[1], net.training_ph: False}) # output of network.
 		xi_dB_hat = np.add(np.multiply(np.multiply(args.stats['sigma_hat'], np.sqrt(2.0)), 
 			spsp.erfinv(np.subtract(np.multiply(2.0, xi_mapped_hat), 1))), args.stats['mu_hat']); # a priori SNR estimate.			
 		xi_hat = np.power(10.0, np.divide(xi_dB_hat, 10.0))
