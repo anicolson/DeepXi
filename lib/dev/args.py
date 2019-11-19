@@ -53,7 +53,7 @@ def get_args():
 
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
-	parser.add_argument('--ver', default='3d', type=str, help='Model version')
+	parser.add_argument('--ver', default='3e', type=str, help='Model version')
 	parser.add_argument('--epoch', default=173, type=int, help='Epoch to use/retrain from')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
