@@ -55,6 +55,7 @@ A trained model for version **3e** can be found in the [*./model* directory](htt
 Results
 -----
 This section is not complete.
+
 | Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
 |----------------------------|--------|------|------|------|------|-----------|
 | Noisy speech               | --     | 3.35 | 2.44 | 2.63 | 1.97 | 92 (91.5) |
