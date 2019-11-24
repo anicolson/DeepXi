@@ -31,18 +31,6 @@ Deep Xi can be used for speech enhancement, for noise estimation, and as a front
 | <p align="center"> <b>Figure 4:</b> <a> ResBLSTM </a> <i> a priori</i>  <a> SNR estimator.</a> </p> |
  -->
 
-| Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
-|----------------------------|--------|------|------|------|------|-----------|
-| Noisy speech               | --     | 3.35 | 2.44 | 2.63 | 1.97 | 92 (91.5) |
-| Wiener                     | Yes    | 3.23 | 2.68 | 2.67 | 2.22 | --        |
-| SEGAN                      | No     | 3.48 | 2.94 | 2.80 | 2.16 | 93        |
-| WaveNet                    | No     | 3.62 | 3.23 | 2.98 | --   | --        |
-| MMSE-GAN                   | No     | 3.80 | 3.12 | 3.14 | 2.53 | 93        |
-| Deep Feature Loss          | Yes    | 3.86 | 3.33 | 3.22 | --   | --        |
-| Metric-GAN                 | No     | 3.99 | 3.18 | 3.42 | 2.86 | --        |
-| ResNet (Deep Xi--MMSE-LSA) | Yes    | 4.12 | 3.33 | 3.48 | 2.82 | 93 (93.3) |
-
-
 Current Models
 -----
 The ResLSTM and ResBLSTM networks used for Deep Xi in [1] have been replaced with a residual network (ResNet) that employs [causal dilated convolutional units](https://arxiv.org/pdf/1803.01271.pdf), a type of [temporal convolutional network (TCN)](https://arxiv.org/pdf/1803.01271.pdf). Deep Xi-ResNet can be seen in **Figure 2**. The full model comprises of 2 million parameters, utilises 40 bottlekneck blocks, and has a maximum dilation rate of 16. This provides a contextual field of approximately 8 seconds. 
@@ -62,6 +50,21 @@ A trained network for version **3e** will be made available within the next coup
 -->
 
 A trained model for version **3e** can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model/3d). 
+
+
+Results
+-----
+This section is not complete.
+| Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
+|----------------------------|--------|------|------|------|------|-----------|
+| Noisy speech               | --     | 3.35 | 2.44 | 2.63 | 1.97 | 92 (91.5) |
+| Wiener                     | Yes    | 3.23 | 2.68 | 2.67 | 2.22 | --        |
+| SEGAN                      | No     | 3.48 | 2.94 | 2.80 | 2.16 | 93        |
+| WaveNet                    | No     | 3.62 | 3.23 | 2.98 | --   | --        |
+| MMSE-GAN                   | No     | 3.80 | 3.12 | 3.14 | 2.53 | 93        |
+| Deep Feature Loss          | Yes    | 3.86 | 3.33 | 3.22 | --   | --        |
+| Metric-GAN                 | No     | 3.99 | 3.18 | 3.42 | 2.86 | --        |
+| ResNet (Deep Xi--MMSE-LSA) | Yes    | 4.12 | 3.33 | 3.48 | 2.82 | 93 (93.3) |
 
 
 
