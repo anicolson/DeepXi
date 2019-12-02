@@ -10,7 +10,7 @@ Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.*
 
 Deep Xi can be used for speech enhancement, for noise estimation, and as a front-end for robust ASR.
 ----
-[Deep Xi](https://github.com/anicolson/DeepXi/blob/master/1-s2.0-S0167639318304308-main.pdf) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow](https://www.tensorflow.org/). Some of its use cases include:
+[Deep Xi](https://github.com/anicolson/DeepXi/blob/master/1-s2.0-S0167639318304308-main.pdf) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://github.com/anicolson/DeepXi/blob/master/1-s2.0-S0167639318304308-main.pdf) and is implemented in [TensorFlow](https://www.tensorflow.org/). Some of its use cases include:
 
 
 * Minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach.
