@@ -8,11 +8,11 @@
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from dev.acoustic.analysis_synthesis import polar
+from ..analysis_synthesis import polar
 import tensorflow as tf
-from dev.add_noise import add_noise_batch
-from dev.num_frames import num_frames
-from dev.utils import log10
+from ..add_noise import add_noise_batch
+from ..num_frames import num_frames
+from ..utils import log10
 
 def input(z, z_len, N_w, N_s, NFFT, f_s):
 	'''

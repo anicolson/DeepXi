@@ -9,11 +9,10 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import tensorflow as tf
-from tensorflow.python.training import moving_averages
-from dev.normalisation import Normalisation
+from .normalisation import Normalisation
 import numpy as np
 import argparse, math, sys
-from dev.add_noise import add_noise_batch
+from .add_noise import add_noise_batch
 
 def CausalDilatedConv1d(x, d_f, k_size, d_rate=1, use_bias=True):
 	'''
