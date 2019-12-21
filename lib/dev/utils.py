@@ -19,7 +19,7 @@ def save_wav(save_path, f_s, wav):
 	wav_write(save_path, f_s, wav)
 
 def log10(x):
-    numerator = tf.log(x)
+    numerator = tf.math.log(x)
     denominator = tf.constant(np.log(10), dtype=numerator.dtype)
     return tf.truediv(numerator, denominator)
 

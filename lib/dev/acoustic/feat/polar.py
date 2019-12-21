@@ -7,12 +7,18 @@
 ## This Source Code Form is subject to the terms of the Mozilla Public
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# import sys
+# import os
+# IMPORT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+# print('IMPORT_PATH', IMPORT_PATH)
+# sys.path.append(IMPORT_PATH)
 
-from ..analysis_synthesis import polar
+
+from .. import analysis_synthesis_polar
 import tensorflow as tf
-from ..add_noise import add_noise_batch
-from ..num_frames import num_frames
-from ..utils import log10
+from .. import add_noise_batch
+from .. import num_frames
+from .. import log10
 
 def input(z, z_len, N_w, N_s, NFFT, f_s):
 	'''
@@ -33,7 +39,7 @@ def input(z, z_len, N_w, N_s, NFFT, f_s):
 	'''
 	z = tf.truediv(tf.cast(z, tf.float32), 32768.0)
 	L = num_frames(z_len, N_s)
-	z_MAG, z_PHA = polar.analysis(z, N_w, N_s, NFFT)
+	z_MAG, z_PHA = analysis_synthesis_polar.analysis(z, N_w, N_s, NFFT)
 	return z_MAG, L, z_PHA
 
 def input_target_spec(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s):
@@ -58,8 +64,8 @@ def input_target_spec(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s):
 	'''
 	(x, s, _) = add_noise_batch(s, d, s_len, d_len, SNR)
 	L = num_frames(s_len, N_s) # number of time-domain frames for each sequence (uppercase eta).
-	x_MAG, _ = polar.analysis(x, N_w, N_s, NFFT)	
-	s_MAG, _ = polar.analysis(s, N_w, N_s, NFFT)
+	x_MAG, _ = analysis_synthesis_polar.analysis(x, N_w, N_s, NFFT)	
+	s_MAG, _ = analysis_synthesis_polar.analysis(s, N_w, N_s, NFFT)
 	s_MAG = tf.boolean_mask(s_MAG, tf.sequence_mask(L))
 	return x_MAG, s_MAG, L
 
@@ -87,10 +93,10 @@ def input_target_xi(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s, mu, sigma):
 	'''
 	(x, s, d) = add_noise_batch(s, d, s_len, d_len, SNR)
 	L = num_frames(s_len, N_s) # number of acoustic-domain frames for each sequence (uppercase eta).
-	x_MAG, _ = polar.analysis(x, N_w, N_s, NFFT)	
-	s_MAG, _ = polar.analysis(s, N_w, N_s, NFFT)
+	x_MAG, _ = analysis_synthesis_polar.analysis(x, N_w, N_s, NFFT)	
+	s_MAG, _ = analysis_synthesis_polar.analysis(s, N_w, N_s, NFFT)
 	s_MAG = tf.boolean_mask(s_MAG, tf.sequence_mask(L))
-	d_MAG, _ = polar.analysis(d, N_w, N_s, NFFT)
+	d_MAG, _ = analysis_synthesis_polar.analysis(d, N_w, N_s, NFFT)
 	d_MAG = tf.boolean_mask(d_MAG, tf.sequence_mask(L))
 	xi = tf.truediv(tf.square(tf.maximum(s_MAG, 1e-12)), tf.square(tf.maximum(d_MAG, 1e-12))) # a priori SNR.
 	xi_dB = tf.multiply(10.0, log10(xi)) # a priori SNR in dB.
@@ -119,8 +125,8 @@ def target_xi(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s):
 	'''
 	(_, s, d) = add_noise_batch(s, d, s_len, d_len, SNR)
 	L = num_frames(s_len, N_s) # number of acoustic-domain frames for each sequence (uppercase eta).
-	s_MAG, _ = polar.analysis(s, N_w, N_s, NFFT)
-	d_MAG, _ = polar.analysis(d, N_w, N_s, NFFT)
+	s_MAG, _ = analysis_synthesis_polar.analysis(s, N_w, N_s, NFFT)
+	d_MAG, _ = analysis_synthesis_polar.analysis(d, N_w, N_s, NFFT)
 	s_MAG = tf.boolean_mask(s_MAG, tf.sequence_mask(L))
 	d_MAG = tf.boolean_mask(d_MAG, tf.sequence_mask(L))
 	xi = tf.truediv(tf.square(tf.maximum(s_MAG, 1e-12)), tf.square(tf.maximum(d_MAG, 1e-12))) # a priori SNR.

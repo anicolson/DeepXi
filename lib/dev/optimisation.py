@@ -31,7 +31,7 @@ def optimiser(loss, lr=None, epsilon=None, var_list=None, optimizer='adam', grad
 		if optimizer == 'adam':
 			if lr == None: lr = 0.001 # default.
 			if epsilon == None: epsilon = 1e-8 # default.
-			optimizer = tf.train.AdamOptimizer(learning_rate=lr, epsilon=epsilon)
+			optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=lr, epsilon=epsilon)
 		if optimizer == 'lazyadam':
 			if lr == None: lr = 0.001 # default.
 			if epsilon == None: epsilon = 1e-8 # default.

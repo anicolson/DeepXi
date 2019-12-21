@@ -26,7 +26,7 @@ def analysis(x, N_w, N_s, NFFT):
 
     ## MAGNITUDE & PHASE SPECTRUMS (ACOUSTIC DOMAIN)
     x_DFT = tf.signal.stft(x, N_w, N_s, NFFT, pad_end=True)
-    x_MAG = tf.abs(x_DFT); x_PHA = tf.angle(x_DFT)
+    x_MAG = tf.abs(x_DFT); x_PHA = tf.math.angle(x_DFT)
     return x_MAG, x_PHA
 
 def synthesis(y_MAG, x_PHA, N_w, N_s, NFFT):

@@ -71,7 +71,7 @@ def add_noise(s, d, SNR):
 	'''
 	s_len = tf.shape(s)[0]
 	d_len = tf.shape(d)[0]
-	i = tf.random_uniform([1], 0, tf.add(1, tf.subtract(d_len, s_len)), tf.int32)
+	i = tf.random.uniform([1], 0, tf.add(1, tf.subtract(d_len, s_len)), tf.int32)
 	d = tf.slice(d, [i[0]], [s_len])
 	d = tf.multiply(tf.truediv(d, tf.norm(d)), tf.truediv(tf.norm(s), 
 		tf.pow(10.0, tf.multiply(0.05, SNR))))

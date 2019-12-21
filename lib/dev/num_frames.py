@@ -22,7 +22,7 @@ def num_frames(N, N_s):
 	Output:
 		number of frames
 	'''
-	return tf.cast(tf.ceil(tf.truediv(tf.cast(N, tf.float32),tf.cast(N_s, tf.float32))), tf.int32) # number of frames.
+	return tf.cast(tf.math.ceil(tf.truediv(tf.cast(N, tf.float32),tf.cast(N_s, tf.float32))), tf.int32) # number of frames.
 
 def acou_num_frames(N, N_s, K_s):
     '''
