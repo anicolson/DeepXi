@@ -103,7 +103,7 @@ python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --ver '3f' --epoch 175 
 **Training:**
 
 ```
-python3 deepxi.py --train 1 --verbose 1 --gpu 0
+python3 deepxi.py --train 1 --ver 'ANY_NAME' --gpu 0
 ```
 Ensure to delete the data directory before training. This will allow training lists and statistics for your training set to be saved and used.
 
