@@ -95,7 +95,7 @@ How to Use the Deep Xi Scripts
 **Inference:**
 
 ```
-python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --gpu 0
+python3 deepxi.py --infer 1 --out_type y --gain mmse-lsa --ver '3f' --epoch 175 --gpu 0
 ```
 **y** for **--out_type** specifies enhanced speech .wav output. **mmse-lsa** specifies the used gain function (others include **mmse-stsa**, **wf**, **irm**, **ibm**, **srwf**, **cwf**).
 
@@ -110,7 +110,7 @@ Ensure to delete the data directory before training. This will allow training li
 **Retraining:**
 
 ```
-python3 deepxi.py --train 1 --cont 1 --epoch 173 --verbose 1 --gpu 0
+python3 deepxi.py --train 1 --cont 1 --ver '3f' --epoch 175 --gpu 0
 ```
 
 Other options can be found in [*args.py*](https://github.com/anicolson/DeepXi/blob/master/lib/dev/args.py). **If a GPU is not to be used, include the following option: `--gpu ''`**
