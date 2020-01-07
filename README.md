@@ -86,6 +86,10 @@ To install:
 5. `cd DeepXi`
 6. `pip install -r requirements.txt`
 
+If a GPU is not to be used, step 4 should be:
+4. `pip install --upgrade tensorflow==1.14`
+
+
 How to Use the Deep Xi Scripts
 -----
 **Inference:**
