@@ -117,7 +117,7 @@ Other options can be found in [*args.py*](https://github.com/anicolson/DeepXi/bl
 
 Current Issues
 -----
-* Masking may need to be performed after each instance of frame-wise layer normalisation due to scaling and shift properties of layer normalisation. This will be fixed shortly.
+* Masking may need to be performed after each instance of frame-wise layer normalisation due to the scaling and shift properties being applied to the zero padding at the end of each sequence during training. This will be looked into shortly.
 
 Datasets Used For Training
 -----
