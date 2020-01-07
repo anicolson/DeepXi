@@ -65,7 +65,7 @@ Objective scores obtained on the test set described [here](http://ssw9.talp.cat/
 | [MMSE-GAN](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8462068)                 | No     | 3.80 | 3.12 | 3.14 | 2.53 | **93**        |
 | [Deep Feature Loss](https://arxiv.org/pdf/1806.10522.pdf)          | Yes    | 3.86 | **3.33** | 3.22 | --   | --        |
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf)                 | No     | 3.99 | 3.18 | 3.42 | **2.86** | --        |
-| **ResNet (Deep Xi--MMSE-LSA)** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
+| **Deep Xi (ResNet 3e, MMSE-LSA)** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
 
 
 
@@ -113,7 +113,7 @@ Other options can be found in [*args.py*](https://github.com/anicolson/DeepXi/bl
 
 Current Issues
 -----
-* The periodic Hann window is currently being used for analysis and synthesis. Need to investigate what is better for speech enhancement: a symmetric or a periodic window function.
+* Masking may need to be performed after each instance of frame-wise layer normalisation due to scaling and shift properties of layer normalisation. This will be fixed shortly.
 
 Datasets Used For Training
 -----

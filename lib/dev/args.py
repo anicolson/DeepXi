@@ -11,7 +11,7 @@
 import argparse
 import numpy as np
 import os
-from dev.se_batch import Train_list, Batch
+from dev.se_batch import Batch_list, Batch
 from os.path import expanduser
 
 ## ADD ADDITIONAL ARGUMENTS
@@ -30,18 +30,19 @@ def add_args(args, modulation=False):
 
 	## DATASETS
 	if args.train: ## TRAINING AND VALIDATION CLEAN SPEECH AND NOISE SET
-		args.train_s_list = Train_list(args.train_s_path, '*.wav', 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # clean speech training list.
-		args.train_d_list = Train_list(args.train_d_path, '*.wav', 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # noise training list.
+		args.train_s_list = Batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # clean speech training list.
+		args.train_d_list = Batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # noise training list.
 		if not os.path.exists(args.model_path): os.makedirs(args.model_path) # make model path directory.
-		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path, '*.wav', 
+		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path,  
 			list(range(args.min_snr, args.max_snr + 1))) # clean validation waveforms and lengths.
-		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, '*.wav', 
+		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, 
 			list(range(args.min_snr, args.max_snr + 1))) # noise validation waveforms and lengths.
 		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))
 		args.val_steps=int(np.ceil(args.val_s.shape[0]/args.mbatch_size))
 
 	## INFERENCE
-	if args.infer: args.test_x, args.test_x_len, args.test_snr, args.test_fnames = Batch(args.test_x_path, '*.wav', []) # noisy speech test waveforms and lengths.
+	# if args.infer: args.test_x, args.test_x_len, args.test_snr, args.test_fnames = Batch(args.test_x_path, '*', []) # noisy speech test waveforms and lengths.
+	if args.infer: args.test_x_list = Batch_list(args.test_x_path, 'test_x', args.data_path)
 	return args
 
 ## STRING TO BOOLEAN
@@ -53,8 +54,8 @@ def get_args():
 
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
-	parser.add_argument('--ver', default='3e', type=str, help='Model version')
-	parser.add_argument('--epoch', default=173, type=int, help='Epoch to use/retrain from')
+	parser.add_argument('--ver', type=str, help='Model version')
+	parser.add_argument('--epoch', type=int, help='Epoch to use/retrain from')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
@@ -81,12 +82,8 @@ def get_args():
 	parser.add_argument('--model_path', default='model', type=str, help='Model save path')
 	parser.add_argument('--set_path', default='set', type=str, help='Path to datasets')
 	parser.add_argument('--data_path', default='data', type=str, help='Save data path')
-	parser.add_argument('--stats_path', default='stats', 
-		type=str, help='Path to training set statistics')
-	parser.add_argument('--test_x_path', default='set/test_noisy_speech', 
-		type=str, help='Path to the noisy speech test set')
-	parser.add_argument('--out_path', default='out', 
-		type=str, help='Output path')
+	parser.add_argument('--test_x_path', default='set/test_noisy_speech', type=str, help='Path to the noisy speech test set')
+	parser.add_argument('--out_path', default='out', type=str, help='Output path')
 
 	## FEATURES
 	parser.add_argument('--min_snr', default=-10, type=int, help='Minimum trained SNR level')

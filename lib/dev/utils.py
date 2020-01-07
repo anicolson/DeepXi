@@ -13,10 +13,15 @@ import argparse, os, string
 import numpy as np
 from scipy.io.wavfile import write as wav_write
 import tensorflow as tf
+import soundfile as sf
 
 def save_wav(save_path, f_s, wav):
 	if isinstance(wav[0], np.float32): wav = np.asarray(np.multiply(wav, 32768.0), dtype=np.int16)
 	wav_write(save_path, f_s, wav)
+
+def read_wav(path):
+	wav, f_s = sf.read(path, dtype='int16')
+	return wav, f_s
 
 def log10(x):
     numerator = tf.log(x)
@@ -42,52 +47,3 @@ def gpu_config(gpu_selection, log_device_placement=False):
 	config.gpu_options.allow_growth=True
 	config.log_device_placement=log_device_placement
 	return config
-
-## CREATE A SPARSE REPRESENTATION
-def sparse_tuple_from(sequences, dtype=np.int32):
-	"""
-	Create a sparse representention of the input sequences.
-	
-	Input/s:
-
-		sequences: a list of lists of type dtype where each element is a sequence
-		dtype: data type.
-
-	Output/s:
-
-		a tuple with (indices, values, shape)
-	"""
-
-	indices = []
-	values = []
-
-	for n, seq in enumerate(sequences):
-		indices.extend(zip([n]*len(seq), range(len(seq))))
-		values.extend(seq)
-
-	indices = np.asarray(indices, dtype=np.int64)
-	values = np.asarray(values, dtype=dtype)
-	shape = np.asarray([len(sequences), np.asarray(indices).max(0)[1]+1], dtype=np.int64)
-
-	return indices, values, shape
-
-# def sparse_tuple_from(sequences, dtype=np.int32):
-#     """Creates a sparse representention of ``sequences``.
-#     Args:
-        
-#         * sequences: a list of lists of type dtype where each element is a sequence
-    
-#     Returns a tuple with (indices, values, shape)
-#     """
-#     indices = []
-#     values = []
-
-#     for n, seq in enumerate(sequences):
-#         indices.extend(zip([n]*len(seq), range(len(seq))))
-#         values.extend(seq)
-
-#     indices = np.asarray(indices, dtype=np.int64)
-#     values = np.asarray(values, dtype=dtype)
-#     shape = np.asarray([len(sequences), indices.max(0)[1]+1], dtype=np.int64)
-
-#     return tf.SparseTensor(indices=indices, values=values, dense_shape=shape) 

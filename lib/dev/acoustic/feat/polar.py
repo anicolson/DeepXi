@@ -9,10 +9,11 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from dev.acoustic.analysis_synthesis import polar
-import tensorflow as tf
 from dev.add_noise import add_noise_batch
 from dev.num_frames import num_frames
 from dev.utils import log10
+import dev.xi as xi
+import tensorflow as tf
 
 def input(z, z_len, N_w, N_s, NFFT, f_s):
 	'''
@@ -92,11 +93,8 @@ def input_target_xi(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s, mu, sigma):
 	s_MAG = tf.boolean_mask(s_MAG, tf.sequence_mask(L))
 	d_MAG, _ = polar.analysis(d, N_w, N_s, NFFT)
 	d_MAG = tf.boolean_mask(d_MAG, tf.sequence_mask(L))
-	xi = tf.truediv(tf.square(tf.maximum(s_MAG, 1e-12)), tf.square(tf.maximum(d_MAG, 1e-12))) # a priori SNR.
-	xi_dB = tf.multiply(10.0, log10(xi)) # a priori SNR in dB.
-	xi_mapped = tf.multiply(0.5, tf.add(1.0, tf.erf(tf.truediv(tf.subtract(xi_dB, mu), 
-		tf.multiply(sigma, tf.sqrt(2.0)))))) # mapped a priori SNR.
-	return x_MAG, xi_mapped, L
+	xi_bar = xi.xi_bar(s_MAG, d_MAG, mu, sigma)
+	return x_MAG, xi_bar, L
 
 def target_xi(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s):
 	'''
@@ -123,6 +121,5 @@ def target_xi(s, d, s_len, d_len, SNR, N_w, N_s, NFFT, f_s):
 	d_MAG, _ = polar.analysis(d, N_w, N_s, NFFT)
 	s_MAG = tf.boolean_mask(s_MAG, tf.sequence_mask(L))
 	d_MAG = tf.boolean_mask(d_MAG, tf.sequence_mask(L))
-	xi = tf.truediv(tf.square(tf.maximum(s_MAG, 1e-12)), tf.square(tf.maximum(d_MAG, 1e-12))) # a priori SNR.
-	xi_dB = tf.multiply(10.0, log10(xi)) # a priori SNR in dB.
+	xi_dB = xi.xi_dB(s_MAG, d_MAG)
 	return xi_dB, L

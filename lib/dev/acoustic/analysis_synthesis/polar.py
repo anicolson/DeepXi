@@ -9,8 +9,10 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import tensorflow as tf
+import functools
+from tensorflow.python.ops.signal import window_ops
 
-def analysis(x, N_w, N_s, NFFT):
+def analysis(x, N_w, N_s, NFFT, legacy=False):
     '''
     Polar form acoustic-domain analysis.
 
@@ -24,12 +26,23 @@ def analysis(x, N_w, N_s, NFFT):
         Magnitude and phase spectrums.
     '''
 
-    ## MAGNITUDE & PHASE SPECTRUMS (ACOUSTIC DOMAIN)
-    x_DFT = tf.signal.stft(x, N_w, N_s, NFFT, pad_end=True)
-    x_MAG = tf.abs(x_DFT); x_PHA = tf.angle(x_DFT)
-    return x_MAG, x_PHA
 
-def synthesis(y_MAG, x_PHA, N_w, N_s, NFFT):
+    if legacy:
+
+        ## MAGNITUDE & PHASE SPECTRUMS (ACOUSTIC DOMAIN)
+        x_DFT = tf.signal.stft(x, N_w, N_s, NFFT, pad_end=True)
+        x_MAG = tf.abs(x_DFT); x_PHA = tf.angle(x_DFT)
+        return x_MAG, x_PHA
+
+    else:
+
+        ## MAGNITUDE & PHASE SPECTRUMS (ACOUSTIC DOMAIN)
+        W = functools.partial(window_ops.hamming_window, periodic=False)
+        x_DFT = tf.signal.stft(x, N_w, N_s, NFFT, window_fn=W, pad_end=True)
+        x_MAG = tf.abs(x_DFT); x_PHA = tf.angle(x_DFT)
+        return x_MAG, x_PHA
+
+def synthesis(y_MAG, x_PHA, N_w, N_s, NFFT, legacy=False):
     '''
     Polar form acoustic-domain synthesis.
 
@@ -44,6 +57,15 @@ def synthesis(y_MAG, x_PHA, N_w, N_s, NFFT):
         synthesised signal.
     '''
 
-    ## SYNTHESISED SIGNAL
-    y_DFT = tf.cast(y_MAG, tf.complex64)*tf.exp(1j*tf.cast(x_PHA, tf.complex64))
-    return tf.signal.inverse_stft(y_DFT, N_w, N_s, NFFT, tf.signal.inverse_stft_window_fn(N_s))
+    if legacy:
+
+        ## SYNTHESISED SIGNAL
+        y_DFT = tf.cast(y_MAG, tf.complex64)*tf.exp(1j*tf.cast(x_PHA, tf.complex64))
+        return tf.signal.inverse_stft(y_DFT, N_w, N_s, NFFT, tf.signal.inverse_stft_window_fn(N_s))
+
+    else:
+
+        ## SYNTHESISED SIGNAL
+        W = functools.partial(window_ops.hamming_window, periodic=False)
+        y_DFT = tf.cast(y_MAG, tf.complex64)*tf.exp(1j*tf.cast(x_PHA, tf.complex64))
+        return tf.signal.inverse_stft(y_DFT, N_w, N_s, NFFT, tf.signal.inverse_stft_window_fn(N_s, W))
