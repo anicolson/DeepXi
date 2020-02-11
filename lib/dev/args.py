@@ -42,7 +42,7 @@ def add_args(args, modulation=False):
 
 	## INFERENCE
 	# if args.infer: args.test_x, args.test_x_len, args.test_snr, args.test_fnames = Batch(args.test_x_path, '*', []) # noisy speech test waveforms and lengths.
-	if args.infer: args.test_x_list = Batch_list(args.test_x_path, 'test_x', args.data_path)
+	if args.infer: args.test_x_list = Batch_list(args.test_x_path, 'test_x', args.data_path, make_new=True)
 	return args
 
 ## STRING TO BOOLEAN
