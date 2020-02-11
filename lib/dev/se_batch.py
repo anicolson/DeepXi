@@ -13,7 +13,7 @@ import numpy as np
 from dev.utils import read_wav
 from scipy.io.wavfile import read
 
-def Batch_list(file_dir, list_name, data_path=None):
+def Batch_list(file_dir, list_name, data_path=None, make_new=False):
 	from soundfile import SoundFile, SEEK_END
 	'''
 	Places the file paths and wav lengths of an audio file into a dictionary, which 
@@ -26,19 +26,21 @@ def Batch_list(file_dir, list_name, data_path=None):
 		file_dir - directory containing the wavs.
 		list_name - name for the list.
 		data_path - path to store pickle files.
+		make_new - re-create list.
 
 	Outputs:
 		batch_list - list of file paths and wav length.
 	'''
 	file_name = ['*.wav', '*.flac', '*.mp3']
 	if data_path == None: data_path = 'data'
-	if os.path.exists(data_path + '/' + list_name + '_list_' + platform.node() + '.p'):
-		print('Loading ' + list_name + ' list from pickle file...')
-		with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'rb') as f:
-			batch_list = pickle.load(f)
-		if batch_list[0]['file_path'].find(file_dir) != -1: 
-			print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
-			return batch_list
+	if not make_new:
+		if os.path.exists(data_path + '/' + list_name + '_list_' + platform.node() + '.p'):
+			print('Loading ' + list_name + ' list from pickle file...')
+			with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'rb') as f:
+				batch_list = pickle.load(f)
+			if batch_list[0]['file_path'].find(file_dir) != -1: 
+				print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
+				return batch_list
 	print('Creating ' + list_name + ' list, as no pickle file exists...')
 	batch_list = [] # list for wav paths and lengths.
 	for fn in file_name:
