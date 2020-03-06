@@ -1,7 +1,3 @@
-[![](https://api.gh-polls.com/poll/01BM2T00TMSDTZWJ1RP6TQF200/Option%20A)](https://api.gh-polls.com/poll/01BM2T00TMSDTZWJ1RP6TQF200/Option%20A/vote)
-[![](https://api.gh-polls.com/poll/01BM2T00TMSDTZWJ1RP6TQF200/Option%20B)](https://api.gh-polls.com/poll/01BM2T00TMSDTZWJ1RP6TQF200/Option%20B/vote)
-[![](https://api.gh-polls.com/poll/01BM2T00TMSDTZWJ1RP6TQF200/Option%20C)](https://api.gh-polls.com/poll/01BM2T00TMSDTZWJ1RP6TQF200/Option%20C/vote)
-
 
 <!--- 
 
