@@ -59,6 +59,7 @@ def get_args():
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
+	parser.add_argument('--model', default='ResNet', type=str, help='Model type')
 
 	## OPTIONS (TRAIN)
 	parser.add_argument('--cont', default=False, type=str2bool, help='Continue testing from last epoch')
@@ -102,6 +103,7 @@ def get_args():
 	parser.add_argument('--k_size', default=3, type=int, help='Kernel size')
 	parser.add_argument('--max_d_rate', default=16, type=int, help='Maximum dilation rate')
 	parser.add_argument('--norm_type', default='FrameLayerNorm', type=str, help='Normalisation type')
+	parser.add_argument('--net_height', default=[4], type=list, help='RDL block height')
 
 	args = parser.parse_args()
 	return args
