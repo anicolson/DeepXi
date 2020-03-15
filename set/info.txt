@@ -1,4 +1,4 @@
-Sets used for training. 
+Directories used to store clean speech and noise for validation and training, as well as noisy speech for testing. 
 
 For the validation set only:
 
