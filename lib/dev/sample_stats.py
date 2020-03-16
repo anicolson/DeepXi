@@ -23,6 +23,8 @@ def get_stats(stats_path, args, config):
 		with open(stats_path + '/stats.p', 'rb') as f:
 			args.stats = pickle.load(f)
 		return args
+	elif args.infer:
+		raise ValueError('You have not completed training (no stats.p file exsists). In the Deep Xi github repository, data/stats.p is available.')
 	else:
 		print('Finding sample statistics...')
 		random.shuffle(args.train_s_list) # shuffle list.
