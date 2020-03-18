@@ -1,8 +1,5 @@
-## FILE:           .py 
-## DATE:           2019
 ## AUTHOR:         Aaron Nicolson
 ## AFFILIATION:    Signal Processing Laboratory, Griffith University.
-## BRIEF:          .
 ##
 ## This Source Code Form is subject to the terms of the Mozilla Public
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,7 +10,6 @@ from tensorflow.python.training import moving_averages
 from dev.normalisation import Normalisation
 import numpy as np
 import argparse, math, sys
-from dev.add_noise import add_noise_batch
 
 def ResLSTMBlock(x, d_model, seq_len, block, parallel_iterations=1024):
 	'''
