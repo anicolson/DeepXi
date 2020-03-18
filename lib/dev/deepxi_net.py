@@ -35,6 +35,9 @@ class deepxi_net:
 			from dev.RDLNet import RDLNet
 			self.output = RDLNet(self.input_ph, self.nframes_ph, args.norm_type, n_blocks=args.n_blocks, boolean_mask=True, d_out=args.d_out, 
 				d_f=args.d_f, net_height=args.net_height)
+		elif args.model == 'ResLSTM':
+			from dev.ResLSTM import ResLSTM
+			self.output = ResLSTM(self.input_ph, self.nframes_ph, args.norm_type, n_blocks=args.n_blocks, boolean_mask=True, d_out=args.d_out, d_model=args.d_model)
 
 		## TRAINING FEATURE EXTRACTION GRAPH
 		self.s_ph = tf.placeholder(tf.int16, shape=[None, None], name='s_ph') # clean speech placeholder.
