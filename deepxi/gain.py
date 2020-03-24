@@ -1,8 +1,5 @@
-## FILE:           gain.py
-## DATE:           2019
 ## AUTHOR:         Aaron Nicolson
 ## AFFILIATION:    Signal Processing Laboratory, Griffith University
-## BRIEF:          Gain functions and masks for speech enhancement.
 ##
 ## This Source Code Form is subject to the terms of the Mozilla Public
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,7 +9,7 @@ import numpy as np
 from scipy.special import exp1, i0, i1
 
 def mmse_stsa(xi, gamma):
-	'''
+	"""
 	Computes the MMSE-STSA gain function.
 		
 	Input/s: 
@@ -21,7 +18,7 @@ def mmse_stsa(xi, gamma):
 		
 	Output/s: 
 		G - MMSE-STSA gain function.
-	'''
+	"""
 	nu = np.multiply(xi, np.divide(gamma, np.add(1, xi)))
 	G = np.multiply(np.multiply(np.multiply(np.divide(np.sqrt(np.pi), 2), 
 		np.divide(np.sqrt(nu), gamma)), np.exp(np.divide(-nu,2))), 
@@ -32,7 +29,7 @@ def mmse_stsa(xi, gamma):
 	return G
 
 def mmse_lsa(xi, gamma):
-	'''
+	"""
 	Computes the MMSE-LSA gain function.
 		
 	Input/s: 
@@ -41,12 +38,12 @@ def mmse_lsa(xi, gamma):
 		
 	Output/s: 
 		MMSE-LSA gain function.
-	'''
+	"""
 	nu = np.multiply(np.divide(xi, np.add(1, xi)), gamma)
 	return np.multiply(np.divide(xi, np.add(1, xi)), np.exp(np.multiply(0.5, exp1(nu)))) # MMSE-LSA gain function.
 
 def wf(xi):
-	'''
+	"""
 	Computes the Wiener filter (WF) gain function.
 		
 	Input/s: 
@@ -54,11 +51,11 @@ def wf(xi):
 		
 	Output/s: 
 		WF gain function.
-	'''
+	"""
 	return np.divide(xi, np.add(xi, 1.0)) # WF gain function.
 
 def srwf(xi):
-	'''
+	"""
 	Computes the square-root Wiener filter (WF) gain function.
 		
 	Input/s: 
@@ -66,11 +63,11 @@ def srwf(xi):
 		
 	Output/s: 
 		SRWF gain function.
-	'''
+	"""
 	return np.sqrt(wf(xi)) # SRWF gain function.
 
 def cwf(xi):
-	'''
+	"""
 	Computes the constrained Wiener filter (WF) gain function.
 		
 	Input/s: 
@@ -78,11 +75,11 @@ def cwf(xi):
 		
 	Output/s: 
 		cWF gain function.
-	'''
+	"""
 	return wf(np.sqrt(xi)) # cWF gain function.
 
 def irm(xi):
-	'''
+	"""
 	Computes the ideal ratio mask (IRM).
 		
 	Input/s: 
@@ -90,12 +87,12 @@ def irm(xi):
 		
 	Output/s: 
 		IRM.
-	'''
+	"""
 	return srwf(xi) # IRM.
 
 
 def ibm(xi):
-	'''
+	"""
 	Computes the ideal binary mask (IBM) with a threshold of 0 dB.
 		
 	Input/s: 
@@ -103,11 +100,11 @@ def ibm(xi):
 		
 	Output/s: 
 		IBM.
-	'''
+	"""
 	return np.greater(self.xi_hat_ph, 1, dtype=np.float32) # IBM (1 corresponds to 0 dB).
 
 def gfunc(xi, gamma=None, gtype='mmse-lsa'):
-	'''
+	"""
 	Computes the selected gain function.
 		
 	Input/s: 
@@ -117,7 +114,7 @@ def gfunc(xi, gamma=None, gtype='mmse-lsa'):
 		
 	Output/s: 
 		G - gain function.
-	'''
+	"""
 	if gtype == 'mmse-lsa': G = mmse_lsa(xi, gamma)
 	elif gtype == 'mmse-stsa':  G = mmse_stsa(xi, gamma)
 	elif gtype == 'wf': G = wf(xi)
