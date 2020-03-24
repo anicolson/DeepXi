@@ -30,11 +30,11 @@ class TCN:
 		self.d_model = d_model
 		self.d_f = d_f
 		self.k = k
-		self.d_out = d_out
+		self.n_outp = n_outp
 		self.first_layer = self.feedforward(inp)
 		self.layer_list = [self.first_layer]
 		for i in range(B): self.layer_list.append(self.block(self.layer_list[-1], int(2**(i%(np.log2(max_d_rate)+1)))))
-		self.logits = Conv1D(self.d_out, 1, dilation_rate=1, use_bias=True)(self.layer_list[-1])
+		self.logits = Conv1D(self.n_outp, 1, dilation_rate=1, use_bias=True)(self.layer_list[-1])
 		if softmax: self.outp = Softmax()(self.logits)
 		else: self.outp = self.logits
 

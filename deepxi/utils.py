@@ -12,19 +12,28 @@
 # import tensorflow as tf
 # import soundfile as sf
 
+import numpy as np
+import os
+import soundfile as sf
+import tensorflow as tf
+
 def save_wav(save_path, f_s, wav):
+	"""
+	"""
 	if isinstance(wav[0], np.float32): wav = np.asarray(np.multiply(wav, 32768.0), dtype=np.int16)
 	wav_write(save_path, f_s, wav)
 
 def read_wav(path):
+	"""
+	"""
 	wav, f_s = sf.read(path, dtype='int16')
 	return wav, f_s
 
 def gpu_config(gpu_selection, log_device_placement=False):
+	"""
+	"""
 	os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 	os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_selection)
-	config = tf.ConfigProto()
-	config.allow_soft_placement=True
-	config.gpu_options.allow_growth=True
-	config.log_device_placement=log_device_placement
-	return config
+	gpus = tf.config.experimental.list_physical_devices('GPU')
+	for gpu in gpus:
+		tf.config.experimental.set_memory_growth(gpu, True)

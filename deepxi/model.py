@@ -12,11 +12,36 @@
 # import numpy as np
 # import tensorflow as tf
 
+from deepxi.network.cnn import TCN
+from deepxi.sig import DeepXiInput
+from deepxi.utils import read_wav
+from scipy.io import savemat
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tqdm import tqdm
+import deepxi.se_batch as batch
+import math, os, pickle, random
+import numpy as np
+import tensorflow as tf
+
 class DeepXi(DeepXiInput):
 	"""
 	Deep Xi
 	"""
-	def __init__(self, N_w, N_s, NFFT, f_s, mu=None, sigma=None, save_dir=None):
+	def __init__(
+		self, 
+		N_w, 
+		N_s, 
+		NFFT, 
+		f_s, 
+		mu=None, 
+		sigma=None, 
+		network='TCN', 
+		min_snr=None, 
+		max_snr=None, 
+		save_dir=None
+		):
 		"""
 		Argument/s
 			Nw - window length (samples).
@@ -25,28 +50,33 @@ class DeepXi(DeepXiInput):
 			f_s - sampling frequency.
 			mu - sample mean of each instantaneous a priori SNR in dB frequency component.
 			sigma - sample standard deviation of each instantaneous a priori SNR in dB frequency component.
+			network - network type.
+			min_snr - minimum SNR level for training.
+			max_snr - maximum SNR level for training.
 			save_dir - directory to save model.
 		"""
 		super().__init__(N_w, N_s, NFFT, f_s, mu, sigma)
+		self.min_snr = min_snr
+		self.max_snr = max_snr
 		self.save_dir = save_dir
-		self.n_inp = math.ceil(self.NFFT/2 + 1)
-		self.n_outp = self.n_inp
-		self.inp = Input(name='inp', shape=[None, self.n_inp], dtype='float32')
+		self.n_feat = math.ceil(self.NFFT/2 + 1)
+		self.n_outp = self.n_feat
+		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 
-		if args.network == 'TCN': self.network = TCN(self.inp, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16, softmax=False)
+
+# tf.keras.layers.Masking(
+#     mask_value=0.0, **kwargs
+# )
+
+		if network == 'TCN': self.network = TCN(self.inp, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16, softmax=False)
 		else: raise ValueError('Invalid network type.')
 
 		self.opt = Adam()
-		self.model = Model(inputs=self.inp, outputs=self.network)
+		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
 		if self.save_dir == None: self.save_dir = 'model'
 		if not os.path.exists(self.save_dir): os.makedirs(self.save_dir)
 		with open(self.save_dir + "/model.json", "w") as json_file: json_file.write(self.model.to_json())
-
-	def compile():
-		"""
-		"""
-		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
 
 	def save_weights(self, epoch):
 		""" 
@@ -58,87 +88,87 @@ class DeepXi(DeepXiInput):
 		"""
 		self.model.load_weights(self.save_dir + "/epoch-" + str(epoch))
 
-	def get_stats(stats_path, args, config):
+	def get_stats(self, stats_path, sample_size, train_s_list, train_d_list):
 		"""
 		"""
 		if os.path.exists(stats_path + '/stats.p'):
-			print('Loading sample statistics from pickle file...')
+			print('Loading sample statistics...')
 			with open(stats_path + '/stats.p', 'rb') as f:
-				args.stats = pickle.load(f)
-			return args
-		elif args.infer:
-			raise ValueError('You have not completed training (no stats.p file exsists). In the Deep Xi github repository, data/stats.p is available.')
+				stats = pickle.load(f)
+				self.mu = stats['mu_hat']
+				self.sigma = stats['sigma_hat']
+		elif train_s_list == None:
+			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.p.')
 		else:
 			print('Finding sample statistics...')
-			random.shuffle(args.train_s_list) # shuffle list.
-			s_sample, s_sample_seq_len = batch.Clean_mbatch(args.train_s_list, 
-				args.sample_size, 0, args.sample_size) # generate mini-batch of clean training waveforms.
-			d_sample, d_sample_seq_len = batch.Noise_mbatch(args.train_d_list, 
-				args.sample_size, s_sample_seq_len) # generate mini-batch of noise training waveforms.
-			snr_sample = np.random.randint(args.min_snr, args.max_snr + 1, args.sample_size) # generate mini-batch of SNR levels.
-			s_ph = tf.placeholder(tf.int16, shape=[None, None], name='s_ph') # clean speech placeholder.
-			d_ph = tf.placeholder(tf.int16, shape=[None, None], name='d_ph') # noise placeholder.
-			s_len_ph = tf.placeholder(tf.int32, shape=[None], name='s_len_ph') # clean speech sequence length placeholder.
-			d_len_ph = tf.placeholder(tf.int32, shape=[None], name='d_len_ph') # noise sequence length placeholder.
-			snr_ph = tf.placeholder(tf.float32, shape=[None], name='snr_ph') # SNR placeholder.
-			analysis = polar.target_xi(s_ph, d_ph, s_len_ph, d_len_ph, snr_ph, args.N_w, args.N_s, args.NFFT, args.f_s)
-			sample_graph = analysis[0]
+			random.shuffle(train_s_list) # shuffle list.
+			s_sample, s_sample_seq_len = batch.Clean_mbatch(train_s_list, sample_size, 0, sample_size) 
+			d_sample, d_sample_seq_len = batch.Noise_mbatch(train_d_list, sample_size, s_sample_seq_len) 
+			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
 			samples = []
-			with tf.Session(config=config) as sess:
-				for i in tqdm(range(s_sample.shape[0])):
-					sample = sess.run(sample_graph, feed_dict={s_ph: [s_sample[i]], d_ph: [d_sample[i]], s_len_ph: [s_sample_seq_len[i]], 
-						d_len_ph: [d_sample_seq_len[i]], snr_ph: [snr_sample[i]]}) # sample of training set.
-					samples.append(sample)
+			for i in tqdm(range(s_sample.shape[0])):
+				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_seq_len[i:i+1], 
+					d_sample_seq_len[i:i+1], snr_sample[i:i+1])
+				samples.append(xi.numpy())
 			samples = np.vstack(samples)
-			if len(samples.shape) != 2: ValueError('Incorrect shape for sample.')
-			args.stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
-			if not os.path.exists(stats_path): os.makedirs(stats_path) # make directory.
-			with open(stats_path + '/stats.p', 'wb') as f: 		
-				pickle.dump(args.stats, f)
-			spio.savemat(stats_path + '/stats.m', mdict={'mu_hat': args.stats['mu_hat'], 'sigma_hat': args.stats['sigma_hat']})
+			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
+			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
+			if not os.path.exists(stats_path): os.makedirs(stats_path)
+			with open(stats_path + '/stats.p', 'wb') as f: pickle.dump(stats, f)
+			savemat(stats_path + '/stats.m', mdict={'mu_hat': stats['mu_hat'], 'sigma_hat': stats['sigma_hat']})
 			print('Sample statistics saved to pickle file.')
-		return args
 
-	def train():
+	def train(
+		self, 
+		train_s_list, 
+		train_d_list, 
+		mbatch_size=8, 
+		max_epochs=200, 
+		ver='VERSION_NAME',
+		stats_path=None, 
+		sample_size=None,
+		resume=False,
+		start_epoch=None
+		):
 		"""
 		"""
+		self.train_s_list = train_s_list
+		self.train_d_list = train_d_list
+		self.mbatch_size = mbatch_size
+		self.n_examples = len(self.train_s_list)
+		self.n_iter = math.ceil(self.n_examples/mbatch_size)
 
-		train_file_path_list, max_frame_len, max_char_len = examples_list(args.train_list, feat,
-			'train_clean_100_' + str(args.blank_idx) + '_' + args.feat_type + '_' + str(args.M), args.data_path)
-		x_val, y_val, x_val_len, y_val_len = batch(args.val_list, feat, 
-			'dev_clean_' + str(args.blank_idx) + '_' + args.feat_type + '_' + str(args.M), args.data_path)
-		# train_file_path_list, max_frame_len, max_char_len = examples_list(args.val_list, feat,
-		# 	'dev_clean_' + str(args.blank_idx) + '_' + args.feat_type + '_' + str(args.M), args.data_path)
+		self.get_stats(stats_path, sample_size, train_s_list, train_d_list)
+		train_dataset = self.dataset()
 
-		train_dataset = model.dataset(train_file_path_list, args.mbatch_size, max_frame_len, max_char_len)
+		if resume: self.load_weights(self.save_dir, start_epoch)
+		else: start_epoch = 0
 
-		if args.cont: 
-			model.load_weights(args.model_path, args.epoch)
-			start_epoch = args.epoch + 1
-		else: start_epoch = 1
+		if not os.path.exists("log"): os.makedirs("log") # create log directory.
+		if not os.path.exists("log/" + ver + ".csv"):
+			with open("log/" + ver + ".csv", "a") as results:
+				results.write("Epoch, Train loss, Val. loss, D/T\n")
 
-		if args.lr_scheduler: callbacks = [tf.keras.callbacks.LearningRateScheduler(scheduler)]
-		else: callbacks = None
+		# pbar = tqdm(total=args.max_epochs, desc='Training E' + str(start_epoch))
+		# pbar.update(start_epoch-1)
+		# for i in range(start_epoch, args.max_epochs+1):
+			
+		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
 
-		if not os.path.exists('log'): os.makedirs('log') # create log directory.
-		with open("log/" + args.ver + ".csv", "a") as results:
-			results.write("Epoch, Train loss, Val. loss, Val. CER, D/T\n")
+		history = self.model.fit(train_dataset, initial_epoch=start_epoch, epochs=max_epochs, steps_per_epoch=self.n_iter)
+		
 
-		pbar = tqdm(total=args.max_epochs, desc='Training E' + str(start_epoch))
-		pbar.update(start_epoch-1)
-		for i in range(start_epoch, args.max_epochs+1):
-			history = model.fit(train_dataset, initial_epoch=i-1, epochs=i, steps_per_epoch=model.n_iter)
-			val_loss = model.loss(x_val, y_val, x_val_len, y_val_len, batch_size=args.mbatch_size)
-			likelihood = model.output([x_val], batch_size=args.mbatch_size)
-			_, cer = model.greedy_decode_metrics(likelihood, y_val, x_val_len, y_val_len, args.idx2char)
-			pbar.set_description_str("E%d train|val loss: %.2f|%.2f, val CER: %.2f%%" % (i, 
-				history.history['loss'][0], val_loss, 100*cer))
-			pbar.update(); pbar.refresh()
-			with open("log/" + args.ver + ".csv", "a") as results:
-				results.write("%d, %.2f, %.2f, %.2f, %s\n" % (i, 
-					history.history['loss'][0], val_loss, 100*cer,
-					datetime.now().strftime('%Y-%m-%d/%H:%M:%S')))
-			model.save_weights(args.model_path, i)
+		# val_loss = model.loss(x_val, y_val, x_val_len, y_val_len, batch_size=args.mbatch_size)
+		# likelihood = model.output([x_val], batch_size=args.mbatch_size)
+		# _, cer = model.greedy_decode_metrics(likelihood, y_val, x_val_len, y_val_len, args.idx2char)
+		# pbar.set_description_str("E%d train|val loss: %.2f|%.2f, val CER: %.2f%%" % (i, 
+		# 	history.history['loss'][0], val_loss, 100*cer))
+		# pbar.update(); pbar.refresh()
+		# with open("log/" + args.ver + ".csv", "a") as results:
+		# 	results.write("%d, %.2f, %.2f, %.2f, %s\n" % (i, 
+		# 		history.history['loss'][0], val_loss, 100*cer,
+		# 		datetime.now().strftime('%Y-%m-%d/%H:%M:%S')))
+		# model.save_weights(args.model_path, i)
 			
 
 	def infer(): 
@@ -146,79 +176,76 @@ class DeepXi(DeepXiInput):
 		"""
 		pass
 
-	def mbatch_gen(self, file_path_list, mbatch_size, max_frame_len, max_char_len): 
+	def dataset(self, buffer_size=16):
 		"""
 		"""
-		random.shuffle(file_path_list)
-		start_idx = 0; end_idx = mbatch_size
+		dataset = tf.data.Dataset.from_generator(
+			self.mbatch_gen, 
+			(tf.float32, tf.float32), 
+			(tf.TensorShape([None, None, self.n_feat]), 
+			tf.TensorShape([None, None, self.n_outp])))
+		dataset = dataset.prefetch(buffer_size) 
+		return dataset
+
+	def mbatch_gen(self): 
+		"""
+		"""
+		random.shuffle(self.train_s_list)
+		start_idx, end_idx = 0, self.mbatch_size
 		for _ in range(self.n_iter):
-			mbatch_file_path_list = file_path_list[start_idx:end_idx]
-			n_examples_mbatch = end_idx - start_idx
-			x_batch = np.zeros((n_examples_mbatch, max_frame_len, self.n_feat), np.float32)
-			y_batch = np.zeros((n_examples_mbatch, max_char_len), np.int32)
-			x_batch_len = np.zeros((n_examples_mbatch, 1), np.int32)
-			y_batch_len = np.zeros((n_examples_mbatch, 1), np.int32)
-			y_dummy =  np.zeros((n_examples_mbatch, 1), np.int32)
-			for (i,j) in zip(mbatch_file_path_list, range(n_examples_mbatch)): 
-				with np.load(i) as data:
-					x_batch[j,:,:] = data['x_example']
-					y_batch[j,:] = data['y_example']
-					x_batch_len[j,0] = data['x_example_len']
-					y_batch_len[j,0] = data['y_example_len']
-			start_idx += mbatch_size; end_idx += mbatch_size
-			if end_idx > self.n_examples_batch: end_idx = self.n_examples_batch
-			yield {"inp": x_batch, "tgt": y_batch, "inp_len": x_batch_len, "tgt_len": y_batch_len}, y_dummy
+			s_mbatch_list = self.train_s_list[start_idx:end_idx] # get mini-batch list from training list.
+			d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx) # get mini-batch list from training list.
+			max_len = max([dic['seq_len'] for dic in s_mbatch_list]) # find maximum length wav in mini-batch.
+			s_mbatch = np.zeros([len(s_mbatch_list), max_len], np.int16) # numpy array for wav matrix.
+			d_mbatch = np.zeros([len(s_mbatch_list), max_len], np.int16) # numpy array for wav matrix.
+			s_mbatch_len = np.zeros(len(s_mbatch_list), np.int32) # list of the wavs lengths.
+			for i in range(len(s_mbatch_list)):
+				(wav, _) = read_wav(s_mbatch_list[i]['file_path']) # read wav from given file path.		
+				s_mbatch[i,:s_mbatch_list[i]['seq_len']] = wav # add wav to numpy array.
+				s_mbatch_len[i] = s_mbatch_list[i]['seq_len'] # append length of wav to list.
+				flag = True
+				while flag:
+					if d_mbatch_list[i]['seq_len'] < s_mbatch_len[i]: d_mbatch_list[i] = random.choice(self.train_d_list)
+					else: flag = False
+				(wav, _) = read_wav(d_mbatch_list[i]['file_path']) # read wav from given file path.
+				rand_idx = np.random.randint(0, 1+d_mbatch_list[i]['seq_len']-s_mbatch_len[i])
+				d_mbatch[i,:s_mbatch_len[i]] = wav[rand_idx:rand_idx+s_mbatch_len[i]] # add wav to numpy array.
+			d_mbatch_len = s_mbatch_len
+			snr_mbatch = np.random.randint(self.min_snr, self.max_snr+1, end_idx-start_idx) # generate mini-batch of SNR levels.
+			x_STMS, xi_bar, _ = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
+			start_idx += self.mbatch_size; end_idx += self.mbatch_size
+			if end_idx > self.n_examples: end_idx = self.n_examples
+			yield x_STMS, xi_bar
 
+	def Clean_mbatch(clean_list, mbatch_size, start_idx, end_idx):
+		'''
+		Creates a padded mini-batch of clean speech wavs.
 
+		Inputs:
+			clean_list - training list for the clean speech files.
+			mbatch_size - size of the mini-batch.
+			version - version name.
 
+		Outputs:
+			mbatch - matrix of paded wavs stored as a numpy array.
+			seq_len - length of each wavs strored as a numpy array.
+			clean_list - training list for the clean files.
+		'''
 
-		# ## RESNET		
-		# self.input_ph = tf.placeholder(tf.float32, shape=[None, None, args.d_in], name='input_ph') # noisy speech MS placeholder.
-		# self.nframes_ph = tf.placeholder(tf.int32, shape=[None], name='nframes_ph') # noisy speech MS sequence length placeholder.
-		# if args.model == 'ResNet':
-		# 	self.output = ResNet(self.input_ph, self.nframes_ph, args.norm_type, n_blocks=args.n_blocks, boolean_mask=True, d_out=args.d_out, 
-		# 		d_model=args.d_model, d_f=args.d_f, k_size=args.k_size, max_d_rate=args.max_d_rate)
-		# elif args.model == 'RDLNet':
-		# 	from dev.RDLNet import RDLNet
-		# 	self.output = RDLNet(self.input_ph, self.nframes_ph, args.norm_type, n_blocks=args.n_blocks, boolean_mask=True, d_out=args.d_out, 
-		# 		d_f=args.d_f, net_height=args.net_height)
-		# elif args.model == 'ResLSTM':
-		# 	from dev.ResLSTM import ResLSTM
-		# 	self.output = ResLSTM(self.input_ph, self.nframes_ph, args.norm_type, n_blocks=args.n_blocks, boolean_mask=True, d_out=args.d_out, d_model=args.d_model)
+		return mbatch, np.array(seq_len, np.int32)
 
-		# ## TRAINING FEATURE EXTRACTION GRAPH
-		# self.s_ph = tf.placeholder(tf.int16, shape=[None, None], name='s_ph') # clean speech placeholder.
-		# self.d_ph = tf.placeholder(tf.int16, shape=[None, None], name='d_ph') # noise placeholder.
-		# self.s_len_ph = tf.placeholder(tf.int32, shape=[None], name='s_len_ph') # clean speech sequence length placeholder.
-		# self.d_len_ph = tf.placeholder(tf.int32, shape=[None], name='d_len_ph') # noise sequence length placeholder.
-		# self.snr_ph = tf.placeholder(tf.float32, shape=[None], name='snr_ph') # SNR placeholder.
-		# self.train_feat = polar.input_target_xi(self.s_ph, self.d_ph, self.s_len_ph, 
-		# 	self.d_len_ph, self.snr_ph, args.N_w, args.N_s, args.NFFT, args.f_s, args.stats['mu_hat'], args.stats['sigma_hat'])
+	def Noise_mbatch(noise_list, mbatch_size, clean_seq_len):
+		'''
+		Creates a padded mini-batch of noise speech wavs.
 
-		# ## INFERENCE FEATURE EXTRACTION GRAPH
-		# self.infer_feat = polar.input(self.s_ph, self.s_len_ph, args.N_w, args.N_s, args.NFFT, args.f_s)
+		Inputs:
+			noise_list - training list for the noise files.
+			mbatch_size - size of the mini-batch.
+			clean_seq_len - sequence length of each clean speech file in the mini-batch.
 
-		# ## PLACEHOLDERS
-		# self.x_ph = tf.placeholder(tf.int16, shape=[None, None], name='x_ph') # noisy speech placeholder.
-		# self.x_len_ph = tf.placeholder(tf.int32, shape=[None], name='x_len_ph') # noisy speech sequence length placeholder.
-		# self.target_ph = tf.placeholder(tf.float32, shape=[None, args.d_out], name='target_ph') # training target placeholder.
-		# self.keep_prob_ph = tf.placeholder(tf.float32, name='keep_prob_ph') # keep probability placeholder.
-		# self.training_ph = tf.placeholder(tf.bool, name='training_ph') # training placeholder.
-
-		# ## SYNTHESIS GRAPH
-		# if args.infer:	
-		# 	self.infer_output = tf.nn.sigmoid(self.output)
-		# 	self.y_MAG_ph = tf.placeholder(tf.float32, shape=[None, None, args.d_in], name='y_MAG_ph') 
-		# 	self.x_PHA_ph = tf.placeholder(tf.float32, [None, None, args.d_in], name='x_PHA_ph')
-		# 	self.y = synthesis(self.y_MAG_ph, self.x_PHA_ph, args.N_w, args.N_s, args.NFFT)
-
-		# ## LOSS & OPTIMIZER
-		# self.loss = optimisation.loss(self.target_ph, self.output, 'mean_sigmoid_cross_entropy', axis=[1])
-		# self.total_loss = tf.reduce_mean(self.loss, axis=0)
-		# self.trainer, _ = optimisation.optimiser(self.total_loss, optimizer='adam', grad_clip=True)
-
-		# ## SAVE VARIABLES
-		# self.saver = tf.train.Saver(max_to_keep=256)
-
-		# ## NUMBER OF PARAMETERS
-		# args.params = (np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
+		Outputs:
+			mbatch - matrix of paded wavs stored as a numpy array.
+			seq_len - length of each wavs strored as a numpy array.
+		'''
+		
+		return mbatch, np.array(seq_len, np.int32)

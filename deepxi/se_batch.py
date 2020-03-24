@@ -7,7 +7,7 @@
 
 import contextlib, glob, os, pickle, platform, random, sys, wave
 import numpy as np
-from dev.utils import read_wav
+from deepxi.utils import read_wav
 from scipy.io.wavfile import read
 
 def Batch_list(file_dir, list_name, data_path=None, make_new=False):
@@ -50,61 +50,6 @@ def Batch_list(file_dir, list_name, data_path=None, make_new=False):
 		pickle.dump(batch_list, f)
 	print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
 	return batch_list
-
-def Clean_mbatch(clean_list, mbatch_size, start_idx, end_idx):
-	'''
-	Creates a padded mini-batch of clean speech wavs.
-
-	Inputs:
-		clean_list - training list for the clean speech files.
-		mbatch_size - size of the mini-batch.
-		version - version name.
-
-	Outputs:
-		mbatch - matrix of paded wavs stored as a numpy array.
-		seq_len - length of each wavs strored as a numpy array.
-		clean_list - training list for the clean files.
-	'''
-	mbatch_list	= clean_list[start_idx:end_idx] # get mini-batch list from training list.
-	maxlen = max([dic['seq_len'] for dic in mbatch_list]) # find maximum length wav in mini-batch.
-	seq_len = [] # list of the wavs lengths.
-	mbatch = np.zeros([len(mbatch_list), maxlen], np.int16) # numpy array for wav matrix.
-	for i in range(len(mbatch_list)):
-		(wav, _) = read_wav(mbatch_list[i]['file_path']) # read wav from given file path.		
-		mbatch[i,:mbatch_list[i]['seq_len']] = wav # add wav to numpy array.
-		seq_len.append(mbatch_list[i]['seq_len']) # append length of wav to list.
-	return mbatch, np.array(seq_len, np.int32)
-
-def Noise_mbatch(noise_list, mbatch_size, clean_seq_len):
-	'''
-	Creates a padded mini-batch of noise speech wavs.
-
-	Inputs:
-		noise_list - training list for the noise files.
-		mbatch_size - size of the mini-batch.
-		clean_seq_len - sequence length of each clean speech file in the mini-batch.
-
-	Outputs:
-		mbatch - matrix of paded wavs stored as a numpy array.
-		seq_len - length of each wavs strored as a numpy array.
-	'''
-	
-	mbatch_list	= random.sample(noise_list, mbatch_size) # get mini-batch list from training list.
-	for i in range(len(clean_seq_len)):
-		flag = True
-		while flag:
-			if mbatch_list[i]['seq_len'] < clean_seq_len[i]:
-				mbatch_list[i] = random.choice(noise_list)
-			else:
-				flag = False
-	maxlen = max([dic['seq_len'] for dic in mbatch_list]) # find maximum length wav in mini-batch.
-	seq_len = [] # list of the wav lengths.
-	mbatch = np.zeros([len(mbatch_list), maxlen], np.int16) # numpy array for wav matrix.
-	for i in range(len(mbatch_list)):
-		(wav, _) = read_wav(mbatch_list[i]['file_path']) # read wav from given file path.
-		mbatch[i,:mbatch_list[i]['seq_len']] = wav # add wav to numpy array.
-		seq_len.append(mbatch_list[i]['seq_len']) # append length of wav to list.
-	return mbatch, np.array(seq_len, np.int32)
 
 def Batch(fdir, snr_l):
 	'''

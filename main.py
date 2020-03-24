@@ -19,10 +19,16 @@
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
+from deepxi.args import get_args
 from deepxi.model import DeepXi
+from deepxi.se_batch import Batch, Batch_list
+import deepxi.utils as utils
+import numpy as np
+import os
 
-## ADD ADDITIONAL ARGUMENTS
-def add_args(args, modulation=False):
+def add_args(args):
+	"""
+	"""
 
 	## DEPENDANT OPTIONS
 	args.model_path = args.model_path + '/' + args.ver # model save path.
@@ -54,25 +60,12 @@ def add_args(args, modulation=False):
 
 if __name__ == '__main__':
 
-	## GET COMMAND LINE ARGUMENTS
 	args = get_args()
-
-	## TRAINING AND TESTING SET ARGUMENTS
 	args = add_args(args)
-
-	## GPU CONFIGURATION
 	config = utils.gpu_config(args.gpu)
 
-	DeepXi(args.N_w, args.N_s, args.NFFT, args.f_s, save_dir=args.model_path)
+	deepxi = DeepXi(args.N_w, args.N_s, args.NFFT, args.f_s, min_snr=args.min_snr, 
+		max_snr=args.max_snr, save_dir=args.model_path)
 
-	exit()
-	
-	## GET STATISTICS
-	args = get_stats(args.data_path, args, config)
-
-	## MAKE DEEP XI NNET
-	net = deepxi_net.deepxi_net(args)
-
-	with tf.Session(config=config) as sess:
-		if args.train: train(sess, net, args)
-		if args.infer: infer(sess, net, args)
+	if args.train: deepxi.train(args.train_s_list, args.train_d_list, stats_path=args.data_path, sample_size=1000)
+	if args.infer: deepxi.infer()

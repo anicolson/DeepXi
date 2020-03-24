@@ -5,7 +5,7 @@
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# import argparse
+import argparse
 # import numpy as np
 # import os
 # from dev.se_batch import Batch_list, Batch
