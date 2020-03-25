@@ -109,7 +109,7 @@ class DeepXi(DeepXiInput):
 			for i in tqdm(range(s_sample.shape[0])):
 				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1], 
 					d_sample_len[i:i+1], snr_sample[i:i+1])
-				samples.append(xi.numpy())
+				samples.append(np.squeeze(xi.numpy()))
 			samples = np.vstack(samples)
 			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
 			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
