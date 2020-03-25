@@ -26,6 +26,13 @@ case `hostname` in
 	OUT_PATH=''
 	MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
 	;;
+"n060.default.domain") echo "Running on n060." 
+	SET_PATH=''
+	DATA_PATH=''$PROJ_DIR
+	TEST_X_PATH=''
+	OUT_PATH=''
+	MODEL_PATH=''$PROJ_DIR
+	;;
 *) echo "This workstation is not known. Using default paths."
 	SET_PATH='set'
 	DATA_PATH='data'
@@ -34,6 +41,8 @@ case `hostname` in
 	MODEL_PATH='model'
    ;;
 esac
+
+exit 0
 
 get_free_gpu () {
 	if [ $2 -eq 1 ]
