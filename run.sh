@@ -8,7 +8,7 @@ case `hostname` in
 "fist")  echo "Running on fist."
 	SET_PATH='/mnt/ssd/SE_TRAIN_V2'
 	DATA_PATH='/home/aaron/data/'$PROJ_DIR
-	TEST_X_PATH=''
+	TEST_X_PATH='/home/aaron/mnt/aaron/set/SE_TEST'
 	OUT_PATH=''
 	MODEL_PATH='/home/aaron/model/'$PROJ_DIR
 	;;
