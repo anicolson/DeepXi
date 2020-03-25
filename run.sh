@@ -70,7 +70,6 @@ T_S=16
 MIN_SNR=-10
 MAX_SNR=20
 WAIT=0
-NUM_GPU=2
 
 if [ -z $2 ]
 then
