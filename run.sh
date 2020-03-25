@@ -71,12 +71,12 @@ MIN_SNR=-10
 MAX_SNR=20
 WAIT=0
 
-if [ -z $2 ]
+if [ -z $1 ]
 then
 	get_free_gpu $NUM_GPU $WAIT
 	GPU=$?
 else
-	GPU=$2
+	GPU=$1
 fi
 python3 main.py --ver 'VER_NAME' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
 	--gpu $GPU --mbatch_size $MBATCH_SIZE --sample_size $SAMPLE_SIZE --set_path $SET_PATH --data_path $DATA_PATH \
