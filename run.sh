@@ -6,8 +6,8 @@ NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
 
 case `hostname` in
 "fist")  echo "Running on fist."
-	SET_PATH='/mnt/ssd'
-	DATA_PATH='/mnt/ssd/data/'$PROJ_DIR
+	SET_PATH='/mnt/ssd/SE_TRAIN_V2'
+	DATA_PATH='/home/aaron/data/'$PROJ_DIR
 	TEST_X_PATH=''
 	OUT_PATH=''
 	MODEL_PATH='/home/aaron/model/'$PROJ_DIR
@@ -73,7 +73,7 @@ WAIT=0
 NUM_GPU=2
 
 if [ -z $2 ]
-then		
+then
 	get_free_gpu $NUM_GPU $WAIT
 	GPU=$?
 else
