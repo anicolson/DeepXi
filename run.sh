@@ -2,8 +2,6 @@
 
 PROJ_DIR='deepxi'
 
-NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
-
 case `hostname` in
 "fist")  echo "Running on fist."
 	SET_PATH='/mnt/ssd/SE_TRAIN_V2'
@@ -34,6 +32,9 @@ case `hostname` in
 	MODEL_PATH='model'
    ;;
 esac
+
+NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
+echo "$NUM_GPU total GPU/s."
 
 get_free_gpu () {
 	if [ $2 -eq 1 ]
