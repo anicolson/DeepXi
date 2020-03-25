@@ -9,7 +9,7 @@ case `hostname` in
 	SET_PATH='/mnt/ssd/SE_TRAIN_V2'
 	DATA_PATH='/home/aaron/data/'$PROJ_DIR
 	TEST_X_PATH='/home/aaron/mnt/aaron/set/SE_TEST'
-	OUT_PATH=''
+	OUT_PATH='/home/aaron/out'$PROJ_DIR
 	MODEL_PATH='/home/aaron/model/'$PROJ_DIR
 	;;
 "pinky-jnr")  echo "Running on pinky-jnr."
