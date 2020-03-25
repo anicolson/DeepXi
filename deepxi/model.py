@@ -178,6 +178,8 @@ class DeepXi(DeepXiInput):
 	def mbatch_gen(self): 
 		"""
 		"""
+
+		## MAY NEED TO SET THIS TO FOR _ IN TOTAL_EPOCHS OR SOMETHING, AS an error may be thrown after max_epochs are completed.
 		while True:
 			random.shuffle(self.train_s_list)
 			start_idx, end_idx = 0, self.mbatch_size
