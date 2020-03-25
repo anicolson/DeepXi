@@ -71,7 +71,7 @@ if __name__ == '__main__':
 		args.train_s_list, 
 		args.train_d_list, 
 		stats_path=args.data_path, 
-		sample_size=args.sample_size
+		sample_size=args.sample_size,
 		mbatch_size=args.mbatch_size, 
 		max_epochs=args.max_epochs, 
 		ver=args.ver,
