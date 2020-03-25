@@ -78,46 +78,6 @@ class DeepXi(DeepXiInput):
 		if not os.path.exists(self.save_dir): os.makedirs(self.save_dir)
 		with open(self.save_dir + "/model.json", "w") as json_file: json_file.write(self.model.to_json())
 
-	def save_weights(self, epoch):
-		""" 
-		"""
-		self.model.save_weights(self.save_dir + "/epoch-" + str(epoch))
-
-	def load_weights(self, epoch):
-		""" 
-		"""
-		self.model.load_weights(self.save_dir + "/epoch-" + str(epoch))
-
-	def get_stats(self, stats_path, sample_size, train_s_list, train_d_list):
-		"""
-		"""
-		if os.path.exists(stats_path + '/stats.p'):
-			print('Loading sample statistics...')
-			with open(stats_path + '/stats.p', 'rb') as f:
-				stats = pickle.load(f)
-				self.mu = stats['mu_hat']
-				self.sigma = stats['sigma_hat']
-		elif train_s_list == None:
-			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.p.')
-		else:
-			print('Finding sample statistics...')
-			s_sample_list = random.sample(self.train_s_list, sample_size)
-			d_sample_list = random.sample(self.train_d_list, sample_size)
-			s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
-			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
-			samples = []
-			for i in tqdm(range(s_sample.shape[0])):
-				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1], 
-					d_sample_len[i:i+1], snr_sample[i:i+1])
-				samples.append(np.squeeze(xi.numpy()))
-			samples = np.vstack(samples)
-			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
-			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
-			if not os.path.exists(stats_path): os.makedirs(stats_path)
-			with open(stats_path + '/stats.p', 'wb') as f: pickle.dump(stats, f)
-			savemat(stats_path + '/stats.m', mdict={'mu_hat': stats['mu_hat'], 'sigma_hat': stats['sigma_hat']})
-			print('Sample statistics saved to pickle file.')
-
 	def train(
 		self, 
 		train_s_list, 
@@ -176,6 +136,36 @@ class DeepXi(DeepXiInput):
 		"""
 		pass
 
+	def get_stats(self, stats_path, sample_size, train_s_list, train_d_list):
+		"""
+		"""
+		if os.path.exists(stats_path + '/stats.p'):
+			print('Loading sample statistics...')
+			with open(stats_path + '/stats.p', 'rb') as f:
+				stats = pickle.load(f)
+				self.mu = stats['mu_hat']
+				self.sigma = stats['sigma_hat']
+		elif train_s_list == None:
+			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.p.')
+		else:
+			print('Finding sample statistics...')
+			s_sample_list = random.sample(self.train_s_list, sample_size)
+			d_sample_list = random.sample(self.train_d_list, sample_size)
+			s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
+			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
+			samples = []
+			for i in tqdm(range(s_sample.shape[0])):
+				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1], 
+					d_sample_len[i:i+1], snr_sample[i:i+1])
+				samples.append(np.squeeze(xi.numpy()))
+			samples = np.vstack(samples)
+			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
+			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
+			if not os.path.exists(stats_path): os.makedirs(stats_path)
+			with open(stats_path + '/stats.p', 'wb') as f: pickle.dump(stats, f)
+			savemat(stats_path + '/stats.m', mdict={'mu_hat': stats['mu_hat'], 'sigma_hat': stats['sigma_hat']})
+			print('Sample statistics saved to pickle file.')
+
 	def dataset(self, buffer_size=16):
 		"""
 		"""
@@ -224,3 +214,12 @@ class DeepXi(DeepXiInput):
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
+	def save_weights(self, epoch):
+		""" 
+		"""
+		self.model.save_weights(self.save_dir + "/epoch-" + str(epoch))
+
+	def load_weights(self, epoch):
+		""" 
+		"""
+		self.model.load_weights(self.save_dir + "/epoch-" + str(epoch))
