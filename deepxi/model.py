@@ -204,11 +204,12 @@ class DeepXi(DeepXiInput):
 	def wav_batch(self, s_batch_list, d_batch_list):
 		"""
 		"""
+		batch_size = len(s_batch_list)
 		max_len = max([dic['seq_len'] for dic in s_batch_list]) 
-		s_batch = np.zeros([len(s_batch_list), max_len], np.int16)
-		d_batch = np.zeros([len(s_batch_list), max_len], np.int16)
-		s_batch_len = np.zeros(len(s_batch_list), np.int32) 
-		for i in range(len(s_batch_list)):
+		s_batch = np.zeros([batch_size, max_len], np.int16)
+		d_batch = np.zeros([batch_size, max_len], np.int16)
+		s_batch_len = np.zeros(batch_size, np.int32) 
+		for i in range(batch_size):
 			(wav, _) = read_wav(s_batch_list[i]['file_path'])		
 			s_batch[i,:s_batch_list[i]['seq_len']] = wav
 			s_batch_len[i] = s_batch_list[i]['seq_len'] 
@@ -220,6 +221,6 @@ class DeepXi(DeepXiInput):
 			rand_idx = np.random.randint(0, 1+d_batch_list[i]['seq_len']-s_batch_len[i])
 			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
 		d_batch_len = s_batch_len
-		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, end_idx-start_idx) 
+		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
