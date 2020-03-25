@@ -1,4 +1,40 @@
 #!/bin/bash
+
+PROJ_DIR='deepxi'
+
+NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
+
+case `hostname` in
+"fist")  echo "Running on fist."
+	SET_PATH='/mnt/ssd'
+	DATA_PATH='/mnt/ssd/data/'$PROJ_DIR
+	TEST_X_PATH=''
+	OUT_PATH=''
+	MODEL_PATH='/home/aaron/model/'$PROJ_DIR
+	;;
+"pinky-jnr")  echo "Running on pinky-jnr."
+	SET_PATH='/home/aaron/set/SE_TRAIN_V2'
+	DATA_PATH='/home/aaron/data/'$PROJ_DIR
+	TEST_X_PATH=''
+	OUT_PATH=''
+	MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
+	;;
+"stink")  echo "Running on stink." 
+	SET_PATH='/mnt/ssd'
+	DATA_PATH='/home/aaron/data/'$PROJ_DIR
+	TEST_X_PATH=''
+	OUT_PATH=''
+	MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
+	;;
+*) echo "This workstation is not known. Using default paths."
+	SET_PATH='set'
+	DATA_PATH='data'
+	TEST_X_PATH='set/test_noisy_speech'
+	OUT_PATH='out'
+	MODEL_PATH='model'
+   ;;
+esac
+
 get_free_gpu () {
 	if [ $2 -eq 1 ]
 	then
@@ -33,16 +69,17 @@ T_W=32
 T_S=16
 MIN_SNR=-10
 MAX_SNR=20
-SET_PATH='/home/aaron/set/SE_TRAIN_V1_VLIGHT'
-DATA_PATH='/media/aaron/Filesystem/data'
-TEST_X_PATH='set/test_noisy_speech'
-OUT_PATH='out'
-MODEL_PATH='/media/aaron/Filesystem/model/'
 WAIT=0
 NUM_GPU=2
 
-GPU=0
-python3 main.py --ver '3f' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
+if [ -z $2 ]
+then		
+	get_free_gpu $NUM_GPU $WAIT
+	GPU=$?
+else
+	GPU=$2
+fi
+python3 main.py --ver 'VER_NAME' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
 	--gpu $GPU --mbatch_size $MBATCH_SIZE --sample_size $SAMPLE_SIZE --set_path $SET_PATH --data_path $DATA_PATH \
 	--T_w $T_W --T_s $T_S --min_snr $MIN_SNR --max_snr $MAX_SNR --test_x_path $TEST_X_PATH \
 	--out_path $OUT_PATH --model_path $MODEL_PATH --out_type $OUT_TYPE --gain $GAIN
