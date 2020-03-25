@@ -67,5 +67,15 @@ if __name__ == '__main__':
 	deepxi = DeepXi(args.N_w, args.N_s, args.NFFT, args.f_s, min_snr=args.min_snr, 
 		max_snr=args.max_snr, save_dir=args.model_path)
 
-	if args.train: deepxi.train(args.train_s_list, args.train_d_list, stats_path=args.data_path, sample_size=1000)
+	if args.train: deepxi.train(
+		args.train_s_list, 
+		args.train_d_list, 
+		stats_path=args.data_path, 
+		sample_size=args.sample_size
+		mbatch_size=args.mbatch_size, 
+		max_epochs=args.max_epochs, 
+		ver=args.ver,
+		resume=args.cont,
+		start_epoch=args.epoch
+		)
 	if args.infer: deepxi.infer()
