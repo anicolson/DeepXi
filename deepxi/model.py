@@ -103,7 +103,7 @@ class DeepXi(DeepXiInput):
 			print('Finding sample statistics...')
 			s_sample_list = random.sample(self.train_s_list, sample_size)
 			d_sample_list = random.sample(self.train_d_list, sample_size)
-			s_sample, d_mbatch, s_sample_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_sample_list, d_sample_list)
+			s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
 			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
 			samples = []
 			for i in tqdm(range(s_sample.shape[0])):
