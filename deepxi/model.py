@@ -214,12 +214,12 @@ class DeepXi(DeepXiInput):
 			s_batch_len[i] = s_batch_list[i]['seq_len'] 
 			flag = True
 			while flag:
-				if d_batch_list[i]['seq_len'] < s_mbatch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
+				if d_batch_list[i]['seq_len'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
 				else: flag = False
 			(wav, _) = read_wav(d_batch_list[i]['file_path']) 
-			rand_idx = np.random.randint(0, 1+d_batch_list[i]['seq_len']-s_mbatch_len[i])
-			d_mbatch[i,:s_mbatch_len[i]] = wav[rand_idx:rand_idx+s_mbatch_len[i]]
-		d_mbatch_len = s_mbatch_len
-		snr_mbatch = np.random.randint(self.min_snr, self.max_snr+1, end_idx-start_idx) 
+			rand_idx = np.random.randint(0, 1+d_batch_list[i]['seq_len']-s_batch_len[i])
+			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
+		d_batch_len = s_batch_len
+		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, end_idx-start_idx) 
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
