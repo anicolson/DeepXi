@@ -63,10 +63,9 @@ class DeepXi(DeepXiInput):
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 
-
-# tf.keras.layers.Masking(
-#     mask_value=0.0, **kwargs
-# )
+		# tf.keras.layers.Masking(
+		#     mask_value=0.0, **kwargs
+		# )
 
 		if network == 'TCN': self.network = TCN(self.inp, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16, softmax=False)
 		else: raise ValueError('Invalid network type.')
@@ -129,7 +128,6 @@ class DeepXi(DeepXiInput):
 		# 		history.history['loss'][0], val_loss, 100*cer,
 		# 		datetime.now().strftime('%Y-%m-%d/%H:%M:%S')))
 		# model.save_weights(args.model_path, i)
-			
 
 	def infer(): 
 		"""
@@ -180,16 +178,17 @@ class DeepXi(DeepXiInput):
 	def mbatch_gen(self): 
 		"""
 		"""
-		random.shuffle(self.train_s_list)
-		start_idx, end_idx = 0, self.mbatch_size
-		for _ in range(self.n_iter):
-			s_mbatch_list = self.train_s_list[start_idx:end_idx]
-			d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
-			s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
-			x_STMS, xi_bar, _ = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
-			start_idx += self.mbatch_size; end_idx += self.mbatch_size
-			if end_idx > self.n_examples: end_idx = self.n_examples
-			yield x_STMS, xi_bar
+		while True:
+			random.shuffle(self.train_s_list)
+			start_idx, end_idx = 0, self.mbatch_size
+			for _ in range(self.n_iter):
+				s_mbatch_list = self.train_s_list[start_idx:end_idx]
+				d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
+				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
+				x_STMS, xi_bar, _ = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
+				start_idx += self.mbatch_size; end_idx += self.mbatch_size
+				if end_idx > self.n_examples: end_idx = self.n_examples
+				yield x_STMS, xi_bar
 
 	def wav_batch(self, s_batch_list, d_batch_list):
 		"""
