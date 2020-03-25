@@ -101,14 +101,14 @@ class DeepXi(DeepXiInput):
 			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.p.')
 		else:
 			print('Finding sample statistics...')
-			random.shuffle(train_s_list) # shuffle list.
-			s_sample, s_sample_seq_len = batch.Clean_mbatch(train_s_list, sample_size, 0, sample_size) 
-			d_sample, d_sample_seq_len = batch.Noise_mbatch(train_d_list, sample_size, s_sample_seq_len) 
+			s_sample_list = random.sample(self.train_s_list, sample_size)
+			d_sample_list = random.sample(self.train_d_list, sample_size)
+			s_sample, d_mbatch, s_sample_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_sample_list, d_sample_list)
 			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
 			samples = []
 			for i in tqdm(range(s_sample.shape[0])):
-				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_seq_len[i:i+1], 
-					d_sample_seq_len[i:i+1], snr_sample[i:i+1])
+				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1], 
+					d_sample_len[i:i+1], snr_sample[i:i+1])
 				samples.append(xi.numpy())
 			samples = np.vstack(samples)
 			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
@@ -193,59 +193,33 @@ class DeepXi(DeepXiInput):
 		random.shuffle(self.train_s_list)
 		start_idx, end_idx = 0, self.mbatch_size
 		for _ in range(self.n_iter):
-			s_mbatch_list = self.train_s_list[start_idx:end_idx] # get mini-batch list from training list.
-			d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx) # get mini-batch list from training list.
-			max_len = max([dic['seq_len'] for dic in s_mbatch_list]) # find maximum length wav in mini-batch.
-			s_mbatch = np.zeros([len(s_mbatch_list), max_len], np.int16) # numpy array for wav matrix.
-			d_mbatch = np.zeros([len(s_mbatch_list), max_len], np.int16) # numpy array for wav matrix.
-			s_mbatch_len = np.zeros(len(s_mbatch_list), np.int32) # list of the wavs lengths.
-			for i in range(len(s_mbatch_list)):
-				(wav, _) = read_wav(s_mbatch_list[i]['file_path']) # read wav from given file path.		
-				s_mbatch[i,:s_mbatch_list[i]['seq_len']] = wav # add wav to numpy array.
-				s_mbatch_len[i] = s_mbatch_list[i]['seq_len'] # append length of wav to list.
-				flag = True
-				while flag:
-					if d_mbatch_list[i]['seq_len'] < s_mbatch_len[i]: d_mbatch_list[i] = random.choice(self.train_d_list)
-					else: flag = False
-				(wav, _) = read_wav(d_mbatch_list[i]['file_path']) # read wav from given file path.
-				rand_idx = np.random.randint(0, 1+d_mbatch_list[i]['seq_len']-s_mbatch_len[i])
-				d_mbatch[i,:s_mbatch_len[i]] = wav[rand_idx:rand_idx+s_mbatch_len[i]] # add wav to numpy array.
-			d_mbatch_len = s_mbatch_len
-			snr_mbatch = np.random.randint(self.min_snr, self.max_snr+1, end_idx-start_idx) # generate mini-batch of SNR levels.
+			s_mbatch_list = self.train_s_list[start_idx:end_idx]
+			d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
+			s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
 			x_STMS, xi_bar, _ = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
 			start_idx += self.mbatch_size; end_idx += self.mbatch_size
 			if end_idx > self.n_examples: end_idx = self.n_examples
 			yield x_STMS, xi_bar
 
-	def Clean_mbatch(clean_list, mbatch_size, start_idx, end_idx):
-		'''
-		Creates a padded mini-batch of clean speech wavs.
+	def wav_batch(self, s_batch_list, d_batch_list):
+		"""
+		"""
+		max_len = max([dic['seq_len'] for dic in s_batch_list]) 
+		s_batch = np.zeros([len(s_batch_list), max_len], np.int16)
+		d_batch = np.zeros([len(s_batch_list), max_len], np.int16)
+		s_batch_len = np.zeros(len(s_batch_list), np.int32) 
+		for i in range(len(s_batch_list)):
+			(wav, _) = read_wav(s_batch_list[i]['file_path'])		
+			s_batch[i,:s_batch_list[i]['seq_len']] = wav
+			s_batch_len[i] = s_batch_list[i]['seq_len'] 
+			flag = True
+			while flag:
+				if d_batch_list[i]['seq_len'] < s_mbatch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
+				else: flag = False
+			(wav, _) = read_wav(d_batch_list[i]['file_path']) 
+			rand_idx = np.random.randint(0, 1+d_batch_list[i]['seq_len']-s_mbatch_len[i])
+			d_mbatch[i,:s_mbatch_len[i]] = wav[rand_idx:rand_idx+s_mbatch_len[i]]
+		d_mbatch_len = s_mbatch_len
+		snr_mbatch = np.random.randint(self.min_snr, self.max_snr+1, end_idx-start_idx) 
+		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
-		Inputs:
-			clean_list - training list for the clean speech files.
-			mbatch_size - size of the mini-batch.
-			version - version name.
-
-		Outputs:
-			mbatch - matrix of paded wavs stored as a numpy array.
-			seq_len - length of each wavs strored as a numpy array.
-			clean_list - training list for the clean files.
-		'''
-
-		return mbatch, np.array(seq_len, np.int32)
-
-	def Noise_mbatch(noise_list, mbatch_size, clean_seq_len):
-		'''
-		Creates a padded mini-batch of noise speech wavs.
-
-		Inputs:
-			noise_list - training list for the noise files.
-			mbatch_size - size of the mini-batch.
-			clean_seq_len - sequence length of each clean speech file in the mini-batch.
-
-		Outputs:
-			mbatch - matrix of paded wavs stored as a numpy array.
-			seq_len - length of each wavs strored as a numpy array.
-		'''
-		
-		return mbatch, np.array(seq_len, np.int32)
