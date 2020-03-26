@@ -63,11 +63,9 @@ class DeepXi(DeepXiInput):
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 
-		# tf.keras.layers.Masking(
-		#     mask_value=0.0, **kwargs
-		# )
+		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
 
-		if network == 'TCN': self.network = TCN(self.inp, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16, softmax=False)
+		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16, softmax=False)
 		else: raise ValueError('Invalid network type.')
 
 		self.opt = Adam()
@@ -80,7 +78,14 @@ class DeepXi(DeepXiInput):
 	def train(
 		self, 
 		train_s_list, 
-		train_d_list, 
+		train_d_list,
+		val_s=None,
+		val_d=None,
+		val_s_len=None,
+		val_d_len=None,
+		val_snr=None, 
+		val_flag=True,
+		val_save_path=None,
 		mbatch_size=8, 
 		max_epochs=200, 
 		ver='VERSION_NAME',
@@ -106,24 +111,30 @@ class DeepXi(DeepXiInput):
 		if not os.path.exists("log/" + ver + ".csv"):
 			with open("log/" + ver + ".csv", "a") as results:
 				results.write("Epoch, Train loss, Val. loss, D/T\n")
-
-		# pbar = tqdm(total=args.max_epochs, desc='Training E' + str(start_epoch))
-		# pbar.update(start_epoch-1)
-		# for i in range(start_epoch, args.max_epochs+1):
 			
 		train_dataset = self.dataset(max_epochs-start_epoch)
 
+		if val_flag: val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
+		else: val_set = None
+
+
+		print(val_set[0].shape, val_set[1].shape)
+
 		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
 
-		history = self.model.fit(train_dataset, initial_epoch=start_epoch, epochs=max_epochs, steps_per_epoch=self.n_iter)
-		
+		history = self.model.fit(
+			train_dataset, 
+			initial_epoch=start_epoch, 
+			epochs=max_epochs, 
+			steps_per_epoch=self.n_iter,
+			validation_data=[val_set[0], val_set[1]], 
+			validation_steps=2
+			)
 
-		# val_loss = model.loss(x_val, y_val, x_val_len, y_val_len, batch_size=args.mbatch_size)
-		# likelihood = model.output([x_val], batch_size=args.mbatch_size)
-		# _, cer = model.greedy_decode_metrics(likelihood, y_val, x_val_len, y_val_len, args.idx2char)
-		# pbar.set_description_str("E%d train|val loss: %.2f|%.2f, val CER: %.2f%%" % (i, 
-		# 	history.history['loss'][0], val_loss, 100*cer))
-		# pbar.update(); pbar.refresh()
+		print(history.history.keys())		
+		print(history.history['loss'])
+		print(history.history['val_loss'])
+
 		# with open("log/" + args.ver + ".csv", "a") as results:
 		# 	results.write("%d, %.2f, %.2f, %.2f, %s\n" % (i, 
 		# 		history.history['loss'][0], val_loss, 100*cer,
@@ -177,6 +188,21 @@ class DeepXi(DeepXiInput):
 		dataset = dataset.prefetch(buffer_size) 
 		return dataset
 
+	def val_batch(self, save_path='data', val_s=None, val_d=None, val_s_len=None, val_d_len=None, val_snr=None):
+		"""
+		"""
+		if not os.path.exists(save_path): os.makedirs(save_path)
+		if os.path.exists(save_path + '/val_batch.npz'):
+			print('Loading validation batch...')
+			with np.load(save_path + '/val_batch.npz') as data:
+				val_inp = data['val_inp']
+				val_tgt = data['val_tgt']
+		else:
+			print('Creating validation batch...')
+			val_inp, val_tgt = self.example_batch(val_s, val_d, val_s_len, val_d_len, val_snr)
+			np.savez(save_path + '/val_batch.npz', val_inp=val_inp, val_tgt=val_tgt)
+		return val_inp, val_tgt
+
 	def mbatch_gen(self, n_epochs): 
 		"""
 		"""
@@ -191,6 +217,21 @@ class DeepXi(DeepXiInput):
 				start_idx += self.mbatch_size; end_idx += self.mbatch_size
 				if end_idx > self.n_examples: end_idx = self.n_examples
 				yield x_STMS, xi_bar
+
+	def example_batch(self, s_batch, d_batch, s_batch_len, d_batch_len, snr_batch): 
+		"""
+		"""
+		batch_size = len(s_batch)
+		max_n_frames = self.n_frames(max(s_batch_len))
+		inp_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+		tgt_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+		for i in tqdm(range(batch_size)):
+			x_STMS, xi_bar, _ = self.training_example(s_batch[i:i+1], d_batch[i:i+1], 
+				s_batch_len[i:i+1], d_batch_len[i:i+1], snr_batch[i:i+1])
+			n_frames = self.n_frames(s_batch_len[i])
+			inp_batch[i,:n_frames,:] = x_STMS.numpy()
+			tgt_batch[i,:n_frames,:] = xi_bar.numpy()
+		return inp_batch, tgt_batch
 
 	def wav_batch(self, s_batch_list, d_batch_list):
 		"""

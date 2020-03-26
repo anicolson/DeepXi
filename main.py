@@ -29,8 +29,6 @@ import os
 def add_args(args):
 	"""
 	"""
-
-	## DEPENDANT OPTIONS
 	args.model_path = args.model_path + '/' + args.ver # model save path.
 	args.train_s_path = args.set_path + '/train_clean_speech' # path to the clean speech training set.
 	args.train_d_path = args.set_path + '/train_noise' # path to the noise training set.
@@ -41,20 +39,16 @@ def add_args(args):
 	args.N_s = int(args.f_s*args.T_s*0.001) # window shift (samples).
 	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_w)))) # number of DFT components.
 
-	## DATASETS
-	if args.train: ## TRAINING AND VALIDATION CLEAN SPEECH AND NOISE SET
+	if args.train:
 		args.train_s_list = Batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # clean speech training list.
 		args.train_d_list = Batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # noise training list.
 		if not os.path.exists(args.model_path): os.makedirs(args.model_path) # make model path directory.
-		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path,  
-			list(range(args.min_snr, args.max_snr + 1))) # clean validation waveforms and lengths.
-		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, 
-			list(range(args.min_snr, args.max_snr + 1))) # noise validation waveforms and lengths.
+		
+		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path, list(range(args.min_snr, args.max_snr + 1))) # clean validation waveforms and lengths.
+		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, list(range(args.min_snr, args.max_snr + 1))) # noise validation waveforms and lengths.
 		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))
 		args.val_steps=int(np.ceil(args.val_s.shape[0]/args.mbatch_size))
 
-	## INFERENCE
-	# if args.infer: args.test_x, args.test_x_len, args.test_snr, args.test_fnames = Batch(args.test_x_path, '*', []) # noisy speech test waveforms and lengths.
 	if args.infer: args.test_x_list = Batch_list(args.test_x_path, 'test_x', args.data_path, make_new=True)
 	return args
 
@@ -68,8 +62,14 @@ if __name__ == '__main__':
 		max_snr=args.max_snr, save_dir=args.model_path)
 
 	if args.train: deepxi.train(
-		args.train_s_list, 
-		args.train_d_list, 
+		args.train_s_list[0:1000], 
+		args.train_d_list[0:1000], 
+		val_s=args.val_s,
+		val_d=args.val_d,
+		val_s_len=args.val_s_len,
+		val_d_len=args.val_d_len,
+		val_snr=args.val_snr, 
+		val_save_path=args.data_path,
 		stats_path=args.data_path, 
 		sample_size=args.sample_size,
 		mbatch_size=args.mbatch_size, 

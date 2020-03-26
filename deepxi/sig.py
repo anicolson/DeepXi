@@ -92,7 +92,7 @@ class DeepXiInput(STFT):
 		x_STMS, x_STPS = self.polar_analysis(z)
 		return x_STMS, n_frames, x_STPS
 
-	def training_example(self, s, d, s_len, d_len, snr):
+	def training_example(self, s, d, s_len, d_len, snr): ## RENAME TO EXAMPLE.
 		"""
 		Compute training example for Deep Xi, i.e. observation (noisy-speech STMS) 
 		and target (mapped a priori SNR).
@@ -113,7 +113,7 @@ class DeepXiInput(STFT):
 		xi_bar = self.xi_bar(s_STMS, d_STMS)
 		return x_STMS, xi_bar, n_frames
 
-	def instantaneous_a_priori_snr_db(self, s, d, s_len, d_len, snr):
+	def instantaneous_a_priori_snr_db(self, s, d, s_len, d_len, snr): ## RENAME
 		"""
 	    Instantaneous a priori SNR in dB.
 
