@@ -16,12 +16,13 @@ from deepxi.network.cnn import TCN
 from deepxi.sig import DeepXiInput
 from deepxi.utils import read_wav
 from scipy.io import savemat
+from tensorflow.keras.callbacks import CSVLogger, ModelCheckpoint
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 import deepxi.se_batch as batch
-import math, os, pickle, random
+import csv, math, os, pickle, random
 import numpy as np
 import tensorflow as tf
 
@@ -40,7 +41,6 @@ class DeepXi(DeepXiInput):
 		network='TCN', 
 		min_snr=None, 
 		max_snr=None, 
-		save_dir=None
 		):
 		"""
 		Argument/s
@@ -53,32 +53,28 @@ class DeepXi(DeepXiInput):
 			network - network type.
 			min_snr - minimum SNR level for training.
 			max_snr - maximum SNR level for training.
-			save_dir - directory to save model.
 		"""
 		super().__init__(N_w, N_s, NFFT, f_s, mu, sigma)
 		self.min_snr = min_snr
 		self.max_snr = max_snr
-		self.save_dir = save_dir
 		self.n_feat = math.ceil(self.NFFT/2 + 1)
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
 
-		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16, softmax=False)
+		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
 		else: raise ValueError('Invalid network type.')
 
 		self.opt = Adam()
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
-		if self.save_dir == None: self.save_dir = 'model'
-		if not os.path.exists(self.save_dir): os.makedirs(self.save_dir)
-		with open(self.save_dir + "/model.json", "w") as json_file: json_file.write(self.model.to_json())
 
 	def train(
 		self, 
 		train_s_list, 
 		train_d_list,
+		model_path='model',
 		val_s=None,
 		val_d=None,
 		val_s_len=None,
@@ -103,48 +99,71 @@ class DeepXi(DeepXiInput):
 		self.n_iter = math.ceil(self.n_examples/mbatch_size)
 
 		self.get_stats(stats_path, sample_size, train_s_list, train_d_list)
-
-		if resume: self.load_weights(self.save_dir, start_epoch)
-		else: start_epoch = 0
-
-		if not os.path.exists("log"): os.makedirs("log") # create log directory.
-		if not os.path.exists("log/" + ver + ".csv"):
-			with open("log/" + ver + ".csv", "a") as results:
-				results.write("Epoch, Train loss, Val. loss, D/T\n")
-			
 		train_dataset = self.dataset(max_epochs-start_epoch)
-
 		if val_flag: val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
 		else: val_set = None
+		
+		if not os.path.exists(model_path): os.makedirs(model_path)
+		if not os.path.exists("log"): os.makedirs("log")
+		if not os.path.exists("log/" + ver + ".csv"):
+			with open("log/" + ver + ".csv", "w") as f: 
+				f.write("Epoch, Train loss, Val. loss\n")
 
+		callbacks = []
+		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
+		callbacks.append(ModelCheckpoint(model_path + '/', save_weights_only=True))
 
-		print(val_set[0].shape, val_set[1].shape)
+		if resume: pass # self.load_weights(save_dir, start_epoch)
+		else: start_epoch = 0
 
 		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
-
-		history = self.model.fit(
+		self.model.fit(
 			train_dataset, 
 			initial_epoch=start_epoch, 
 			epochs=max_epochs, 
 			steps_per_epoch=self.n_iter,
 			validation_data=[val_set[0], val_set[1]], 
-			validation_steps=2
+			validation_steps=len(val_set[0]),
+			callbacks=callbacks
 			)
-
-		print(history.history.keys())		
-		print(history.history['loss'])
-		print(history.history['val_loss'])
-
-		# with open("log/" + args.ver + ".csv", "a") as results:
-		# 	results.write("%d, %.2f, %.2f, %.2f, %s\n" % (i, 
-		# 		history.history['loss'][0], val_loss, 100*cer,
-		# 		datetime.now().strftime('%Y-%m-%d/%H:%M:%S')))
-		# model.save_weights(args.model_path, i)
 
 	def infer(): 
 		"""
 		"""
-		pass
+		net.saver.restore(sess, args.model_path + '/epoch-' + str(args.epoch)) # load model from epoch.
+		
+		if args.out_type == 'xi_hat': args.out_path = args.out_path + '/xi_hat'
+		elif args.out_type == 'y': args.out_path = args.out_path + '/' + args.gain + '/y'
+		elif args.out_type == 'ibm_hat': args.out_path = args.out_path + '/ibm_hat'
+		else: ValueError('Incorrect output type.')
+
+		if not os.path.exists(args.out_path): os.makedirs(args.out_path) # make output directory.
+
+		for j in tqdm(args.test_x_list):
+			(wav, _) = read_wav(j['file_path']) # read wav from given file path.		
+			input_feat = sess.run(net.infer_feat, feed_dict={net.s_ph: [wav], net.s_len_ph: [j['seq_len']]}) # sample of training set.
+			xi_bar_hat = sess.run(net.infer_output, feed_dict={net.input_ph: input_feat[0], 
+				net.nframes_ph: input_feat[1], net.training_ph: False}) # output of network.
+			xi_hat = xi.xi_hat(xi_bar_hat, args.stats['mu_hat'], args.stats['sigma_hat'])
+
+			file_name = j['file_path'].rsplit('/',1)[1].split('.')[0]
+
+			if args.out_type == 'xi_hat':
+				spio.savemat(args.out_path + '/' + file_name + '.mat', {'xi_hat':xi_hat})
+
+			elif args.out_type == 'y':
+				y_MAG = np.multiply(input_feat[0], gain.gfunc(xi_hat, xi_hat+1, gtype=args.gain))
+				y = np.squeeze(sess.run(net.y, feed_dict={net.y_MAG_ph: y_MAG, 
+					net.x_PHA_ph: input_feat[2], net.nframes_ph: input_feat[1], net.training_ph: False})) # output of network.
+				if np.isnan(y).any(): ValueError('NaN values found in enhanced speech.')
+				if np.isinf(y).any(): ValueError('Inf values found in enhanced speech.')
+				utils.save_wav(args.out_path + '/' + file_name + '.wav', args.f_s, y)
+
+			elif args.out_type == 'ibm_hat':
+				ibm_hat = np.greater(xi_hat, 1.0)
+				spio.savemat(args.out_path + '/' + file_name + '.mat', {'ibm_hat':ibm_hat})
+
+		print('Inference complete.')
 
 	def get_stats(self, stats_path, sample_size, train_s_list, train_d_list):
 		"""
@@ -256,12 +275,7 @@ class DeepXi(DeepXiInput):
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
-	def save_weights(self, epoch):
-		""" 
-		"""
-		self.model.save_weights(self.save_dir + "/epoch-" + str(epoch))
-
-	def load_weights(self, epoch):
-		""" 
-		"""
-		self.model.load_weights(self.save_dir + "/epoch-" + str(epoch))
+	# def load_weights(self, epoch):
+	# 	""" 
+	# 	"""
+	# 	self.model.load_weights(self.save_dir + "/epoch-" + str(epoch))

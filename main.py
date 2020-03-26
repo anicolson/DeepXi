@@ -5,20 +5,6 @@
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# import os, sys 
-# sys.path.insert(0, 'lib')
-# from dev.args import add_args, get_args
-# from dev.infer import infer
-# from dev.sample_stats import get_stats
-# from dev.train import train
-# import dev.deepxi_net as deepxi_net
-# import numpy as np
-# import tensorflow as tf
-# import dev.utils as utils
-# np.set_printoptions(threshold=1e6)
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
 from deepxi.args import get_args
 from deepxi.model import DeepXi
 from deepxi.se_batch import Batch, Batch_list
@@ -58,12 +44,19 @@ if __name__ == '__main__':
 	args = add_args(args)
 	config = utils.gpu_config(args.gpu)
 
-	deepxi = DeepXi(args.N_w, args.N_s, args.NFFT, args.f_s, min_snr=args.min_snr, 
-		max_snr=args.max_snr, save_dir=args.model_path)
+	deepxi = DeepXi(
+		args.N_w, 
+		args.N_s, 
+		args.NFFT, 
+		args.f_s, 
+		min_snr=args.min_snr, 
+		max_snr=args.max_snr
+		)
 
 	if args.train: deepxi.train(
 		args.train_s_list[0:1000], 
 		args.train_d_list[0:1000], 
+		save_dir=args.model_path,
 		val_s=args.val_s,
 		val_d=args.val_d,
 		val_s_len=args.val_s_len,

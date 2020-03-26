@@ -6,16 +6,24 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Add, Conv1D, Conv2D, Dense, Dropout, \
-	Flatten, LayerNormalization, MaxPooling2D, ReLU, Softmax
+from tensorflow.keras.layers import Activation, Add, Conv1D, Conv2D, Dense, Dropout, \
+	Flatten, LayerNormalization, MaxPooling2D, ReLU
 import numpy as np
 
 class TCN:
 	"""
 	Temporal convolutional network using bottlekneck residual blocks and cyclic dilation rate.
 	"""
-	def __init__(self, inp, n_outp, B=40, d_model=256, d_f=64, k=3, 
-			max_d_rate=16, softmax=False):
+	def __init__(
+		self, 
+		inp, 
+		n_outp, 
+		B=40, 
+		d_model=256, 
+		d_f=64, 
+		k=3, 
+		max_d_rate=16
+		):
 		"""
 		Argument/s:
 			inp - input placeholder.
@@ -35,8 +43,7 @@ class TCN:
 		self.layer_list = [self.first_layer]
 		for i in range(B): self.layer_list.append(self.block(self.layer_list[-1], int(2**(i%(np.log2(max_d_rate)+1)))))
 		self.logits = Conv1D(self.n_outp, 1, dilation_rate=1, use_bias=True)(self.layer_list[-1])
-		if softmax: self.outp = Softmax()(self.logits)
-		else: self.outp = self.logits
+		self.outp = Activation('sigmoid')(self.logits)
 
 	def feedforward(self, inp):
 		"""
