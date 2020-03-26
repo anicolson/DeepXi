@@ -98,7 +98,6 @@ class DeepXi(DeepXiInput):
 		self.n_iter = math.ceil(self.n_examples/mbatch_size)
 
 		self.get_stats(stats_path, sample_size, train_s_list, train_d_list)
-		train_dataset = self.dataset()
 
 		if resume: self.load_weights(self.save_dir, start_epoch)
 		else: start_epoch = 0
@@ -112,6 +111,8 @@ class DeepXi(DeepXiInput):
 		# pbar.update(start_epoch-1)
 		# for i in range(start_epoch, args.max_epochs+1):
 			
+		train_dataset = self.dataset(max_epochs-start_epoch)
+
 		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
 
 		history = self.model.fit(train_dataset, initial_epoch=start_epoch, epochs=max_epochs, steps_per_epoch=self.n_iter)
@@ -164,23 +165,22 @@ class DeepXi(DeepXiInput):
 			savemat(stats_path + '/stats.m', mdict={'mu_hat': stats['mu_hat'], 'sigma_hat': stats['sigma_hat']})
 			print('Sample statistics saved to pickle file.')
 
-	def dataset(self, buffer_size=16):
+	def dataset(self, n_epochs, buffer_size=16):
 		"""
 		"""
 		dataset = tf.data.Dataset.from_generator(
 			self.mbatch_gen, 
 			(tf.float32, tf.float32), 
-			(tf.TensorShape([None, None, self.n_feat]), 
-			tf.TensorShape([None, None, self.n_outp])))
+			(tf.TensorShape([None, None, self.n_feat]), tf.TensorShape([None, None, self.n_outp])),
+			[tf.constant(n_epochs)]
+			)
 		dataset = dataset.prefetch(buffer_size) 
 		return dataset
 
-	def mbatch_gen(self): 
+	def mbatch_gen(self, n_epochs): 
 		"""
 		"""
-
-		## MAY NEED TO SET THIS TO FOR _ IN TOTAL_EPOCHS OR SOMETHING, AS an error may be thrown after max_epochs are completed.
-		while True:
+		for _ in range(n_epochs):
 			random.shuffle(self.train_s_list)
 			start_idx, end_idx = 0, self.mbatch_size
 			for _ in range(self.n_iter):

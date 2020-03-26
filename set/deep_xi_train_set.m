@@ -1,12 +1,14 @@
-%% FILE:           SE_TRAIN_V2.m 
-%% DATE:           2019
-%% AUTHOR:         Aaron Nicolson
-%% AFFILIATION:    Signal Processing Laboratory, Griffith University
-%% BRIEF:          Creates speech enhancement training and validation sets.
+% AUTHOR:         Aaron Nicolson
+% AFFILIATION:    Signal Processing Laboratory, Griffith University
+%
+% This Source Code Form is subject to the terms of the Mozilla Public
+% License, v. 2.0. If a copy of the MPL was not distributed with this
+% file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 clear all; close all; clc;
 
 %% SAVE PATH
-save_path = './'; % save path.
+save_path = '~/set/SE_TRAIN'; % save path.
 
 %% OPTIONS
 num_val_files = 1000; % number of files validation set.
@@ -17,10 +19,8 @@ max_len = 30; % maximum length for noise signals (seconds).
 min_len = 2; % minimum length for noise signals (seconds).
 
 %% CLEAN SPEECH PATHS
-s.paths = dir('/media/aaron/Filesystem/speech/timit/timit/train/*/*/si*.wav'); % TIMIT training files.
-s.paths = [s.paths; dir('/media/aaron/Filesystem/speech/timit/timit/train/*/*/sx*.wav')]; % TIMIT training files.
-s.paths = [s.paths; dir('/media/aaron/Filesystem/speech/VCTK/wav48/*/*.wav')]; % VCTK training files.
-s.paths = [s.paths; dir('/media/aaron/Filesystem/speech/librispeech/LibriSpeech/train-clean-100/*/*/*.flac')]; % Librispeech training files.
+s.paths = dir('/media/aaron/Filesystem/speech/VCTK/wav48/*/*.wav'); % VCTK files.
+s.paths = [s.paths; dir('/media/aaron/Filesystem/speech/librispeech/LibriSpeech/train-clean-100/*/*/*.flac')]; % Librispeech files.
 
 %% NOISE PATHS
 d.paths = dir('/media/aaron/Filesystem/noise/VAD-dataset/*/*.wav'); % VAD noise dataset.
@@ -43,9 +43,8 @@ excluded = {'/media/aaron/Filesystem/noise/RSG-10/16kHz/SIGNAL019.wav', ... % vo
     '/media/aaron/Filesystem/noise/RSG-10/16kHz/SIGNAL021.wav',... % factory (welding) from RSG-10 (for testing).
     };
 
-
 %% CLEAN SPEECH FILE EXCLUSION
-excluded_speakers = {'p232', 'p257'};
+excluded_speakers = {'p232', 'p257'}; % these speakers are in the test set of the DEMAND VOICE BANK CORPUS.
 fprintf('Number of clean speech files before exclusion %i.\n', length(s.paths));
 count = 0;
 for i = 1:length(s.paths)
