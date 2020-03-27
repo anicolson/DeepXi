@@ -17,8 +17,8 @@ Wich ML library should Deep Xi be available in? Please vote:
 [![](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Upgrade%20to%20TensorFlow%202)](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Upgrade%20to%20TensorFlow%202/vote)
 [![](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Switch%20to%20PyTorch)](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Switch%20to%20PyTorch/vote)
 
-export PATH=/usr/local/cuda-10.0/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export PATH=/usr/local/cuda-10.1/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
 -->
 
