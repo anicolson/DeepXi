@@ -51,7 +51,7 @@ def Batch_list(file_dir, list_name, data_path=None, make_new=False):
 	print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
 	return batch_list
 
-def Batch(fdir, snr_l):
+def Batch(fdir, snr_l=[]):
 	'''
 	REQUIRES REWRITING.
 

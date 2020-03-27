@@ -12,22 +12,36 @@
 # import tensorflow as tf
 # import soundfile as sf
 
+from scipy.io import loadmat, savemat
 import numpy as np
 import os
 import soundfile as sf
 import tensorflow as tf
 
-def save_wav(save_path, f_s, wav):
+def save_wav(path, wav, f_s):
 	"""
 	"""
+	wav = np.squeeze(wav)
 	if isinstance(wav[0], np.float32): wav = np.asarray(np.multiply(wav, 32768.0), dtype=np.int16)
-	wav_write(save_path, f_s, wav)
+	sf.write(path, wav, f_s)
 
 def read_wav(path):
 	"""
 	"""
 	wav, f_s = sf.read(path, dtype='int16')
 	return wav, f_s
+
+def save_mat(path, data, name):
+	"""
+	"""
+	if not path.endswith('.mat'): path = path + '.mat'
+	savemat(path, {name:data})
+
+def read_mat(path):
+	"""
+	"""
+	if not path.endswith('.mat'): path = path + '.mat'
+	return loadmat(path)
 
 def gpu_config(gpu_selection, log_device_placement=False):
 	"""

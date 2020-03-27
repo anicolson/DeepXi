@@ -26,16 +26,15 @@ def add_args(args):
 	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_w)))) # number of DFT components.
 
 	if args.train:
-		args.train_s_list = Batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # clean speech training list.
-		args.train_d_list = Batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path) # noise training list.
-		if not os.path.exists(args.model_path): os.makedirs(args.model_path) # make model path directory.
-		
-		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path, list(range(args.min_snr, args.max_snr + 1))) # clean validation waveforms and lengths.
-		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, list(range(args.min_snr, args.max_snr + 1))) # noise validation waveforms and lengths.
+		args.train_s_list = Batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
+		args.train_d_list = Batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
+		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path, list(range(args.min_snr, args.max_snr + 1)))
+		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, list(range(args.min_snr, args.max_snr + 1)))
 		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))
 		args.val_steps=int(np.ceil(args.val_s.shape[0]/args.mbatch_size))
 
-	if args.infer: args.test_x_list = Batch_list(args.test_x_path, 'test_x', args.data_path, make_new=True)
+	if args.infer: args.test_x, args.test_x_len, _, args.test_x_base_names = Batch(args.test_x_path)
+
 	return args
 
 if __name__ == '__main__':
@@ -54,9 +53,9 @@ if __name__ == '__main__':
 		)
 
 	if args.train: deepxi.train(
-		args.train_s_list[0:1000], 
-		args.train_d_list[0:1000], 
-		save_dir=args.model_path,
+		args.train_s_list, 
+		args.train_d_list, 
+		model_path=args.model_path,
 		val_s=args.val_s,
 		val_d=args.val_d,
 		val_s_len=args.val_s_len,
@@ -67,8 +66,17 @@ if __name__ == '__main__':
 		sample_size=args.sample_size,
 		mbatch_size=args.mbatch_size, 
 		max_epochs=args.max_epochs, 
-		ver=args.ver,
-		resume=args.cont,
-		start_epoch=args.epoch
+		resume_epoch=args.resume_epoch,
+		ver=args.ver
 		)
-	if args.infer: deepxi.infer()
+	if args.infer: deepxi.infer(
+		args.test_x[0:10], 
+		args.test_x_len[0:10],
+		args.test_x_base_names[0:10],
+		args.epoch,
+		model_path=args.model_path,
+		out_type=args.out_type,
+		gain=args.gain,
+		out_path=args.out_path,
+		stats_path=args.data_path
+		)

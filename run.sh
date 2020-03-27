@@ -6,8 +6,9 @@ case `hostname` in
 "fist")  echo "Running on fist."
 	SET_PATH='/mnt/ssd/SE_TRAIN_V2'
 	DATA_PATH='/home/aaron/data/'$PROJ_DIR
-	TEST_X_PATH='/home/aaron/mnt/aaron/set/SE_TEST'
-	OUT_PATH='/home/aaron/out'$PROJ_DIR
+	TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
+	OUT_PATH='out/'$PROJ_DIR
+	# OUT_PATH='/home/aaron/out/'$PROJ_DIR
 	MODEL_PATH='/home/aaron/model/'$PROJ_DIR
 	;;
 "pinky-jnr")  echo "Running on pinky-jnr."
@@ -58,18 +59,6 @@ get_free_gpu () {
 	done
 }
 
-TRAIN=1
-MAX_EPOCHS=4
-INFER=0
-EPOCH=175
-MBATCH_SIZE=10
-SAMPLE_SIZE=1000
-OUT_TYPE='y'
-GAIN='mmse-lsa' # if OUT_TYPE is 'y'.
-T_W=32
-T_S=16
-MIN_SNR=-10
-MAX_SNR=20
 WAIT=0
 
 if [ -z $1 ]
@@ -79,8 +68,26 @@ then
 else
 	GPU=$1
 fi
-python3 main.py --ver 'VER_NAME' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
-	--gpu $GPU --mbatch_size $MBATCH_SIZE --sample_size $SAMPLE_SIZE --set_path $SET_PATH --data_path $DATA_PATH \
-	--T_w $T_W --T_s $T_S --min_snr $MIN_SNR --max_snr $MAX_SNR --test_x_path $TEST_X_PATH \
-	--out_path $OUT_PATH --model_path $MODEL_PATH --out_type $OUT_TYPE --gain $GAIN
+
+python3 main.py --ver 			'tcn-1a'		\
+				--train 		1 				\
+				--max_epochs 	200				\
+				--resume_epoch 	0 				\
+				--infer 		0 				\
+				--epoch 		0 				\
+				--mbatch_size 	8 				\
+				--sample_size 	1000 			\
+				--T_w 			32 				\
+				--T_s 			16 				\
+				--min_snr 		-10 			\
+				--max_snr 		20 				\
+				--out_type 		'y' 			\
+				--gain 			'mmse-lsa' 		\
+				--gpu 			$GPU 			\
+				--set_path 		$SET_PATH 		\
+				--data_path 	$DATA_PATH 		\
+				--test_x_path 	$TEST_X_PATH 	\
+				--out_path 		$OUT_PATH 		\
+				--model_path 	$MODEL_PATH 	
+
 

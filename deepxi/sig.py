@@ -74,7 +74,7 @@ class DeepXiInput(STFT):
 		self.mu = mu
 		self.sigma = sigma
 
-	def observation(self, x, x_len):
+	def observation(self, x):
 		"""
 	    An observation for Deep Xi (noisy-speech STMS).
 
@@ -84,13 +84,11 @@ class DeepXiInput(STFT):
 
 		Output/s:
 			x_STMS - speech magnitude spectrum.
-			n_frames - number of time-domain frames.
 			x_STPS - speech phase spectrum.
 		"""
-		x = self.normalisation(x)
-		n_frames = self.n_frames(x_len)
-		x_STMS, x_STPS = self.polar_analysis(z)
-		return x_STMS, n_frames, x_STPS
+		x = self.normalise(x)
+		x_STMS, x_STPS = self.polar_analysis(x)
+		return x_STMS, x_STPS
 
 	def training_example(self, s, d, s_len, d_len, snr): ## RENAME TO EXAMPLE.
 		"""

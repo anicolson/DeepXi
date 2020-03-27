@@ -12,17 +12,17 @@
 # import numpy as np
 # import tensorflow as tf
 
+from deepxi.gain import gfunc
 from deepxi.network.cnn import TCN
 from deepxi.sig import DeepXiInput
-from deepxi.utils import read_wav
-from scipy.io import savemat
-from tensorflow.keras.callbacks import CSVLogger, ModelCheckpoint
+from deepxi.utils import read_wav, save_wav, save_mat
+from tensorflow.keras.callbacks import Callback, CSVLogger, ModelCheckpoint
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 import deepxi.se_batch as batch
-import csv, math, os, pickle, random
+import csv, math, os, random
 import numpy as np
 import tensorflow as tf
 
@@ -84,13 +84,16 @@ class DeepXi(DeepXiInput):
 		val_save_path=None,
 		mbatch_size=8, 
 		max_epochs=200, 
+		resume_epoch=0,
 		ver='VERSION_NAME',
 		stats_path=None, 
 		sample_size=None,
-		resume=False,
-		start_epoch=None
 		):
 		"""
+
+		Argument/s:
+
+		Output/s:
 		"""
 		self.train_s_list = train_s_list
 		self.train_d_list = train_d_list
@@ -98,8 +101,8 @@ class DeepXi(DeepXiInput):
 		self.n_examples = len(self.train_s_list)
 		self.n_iter = math.ceil(self.n_examples/mbatch_size)
 
-		self.get_stats(stats_path, sample_size, train_s_list, train_d_list)
-		train_dataset = self.dataset(max_epochs-start_epoch)
+		self.sample_stats(stats_path, sample_size, train_s_list, train_d_list)
+		train_dataset = self.dataset(max_epochs-resume_epoch)
 		if val_flag: val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
 		else: val_set = None
 		
@@ -111,71 +114,94 @@ class DeepXi(DeepXiInput):
 
 		callbacks = []
 		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
-		callbacks.append(ModelCheckpoint(model_path + '/', save_weights_only=True))
+		callbacks.append(SaveWeights(model_path))
 
-		if resume: pass # self.load_weights(save_dir, start_epoch)
-		else: start_epoch = 0
+		if resume_epoch > 0: self.model.load_weights(model_path + '/epoch-' + str(resume_epoch-1) + 
+			'/variables/variables' )
 
 		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
 		self.model.fit(
 			train_dataset, 
-			initial_epoch=start_epoch, 
+			initial_epoch=resume_epoch, 
 			epochs=max_epochs, 
 			steps_per_epoch=self.n_iter,
-			validation_data=[val_set[0], val_set[1]], 
+			validation_data=val_set, 
 			validation_steps=len(val_set[0]),
 			callbacks=callbacks
 			)
 
-	def infer(): 
+	def infer(
+		self,
+		test_x,
+		test_x_len,
+		test_x_base_names,
+		epoch,
+		model_path='model',
+		out_type='y',
+		gain='mmse-lsa',
+		out_path='out',
+		stats_path=None 
+		): 
 		"""
+
+		Argument/s:
+
+		Output/s:
 		"""
-		net.saver.restore(sess, args.model_path + '/epoch-' + str(args.epoch)) # load model from epoch.
+		if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
+		elif out_type == 'y': out_path = out_path + '/' + gain + '/y'
+		elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
+		else: raise ValueError('Invalid output type.')
+		if not os.path.exists(out_path): os.makedirs(out_path)
 		
-		if args.out_type == 'xi_hat': args.out_path = args.out_path + '/xi_hat'
-		elif args.out_type == 'y': args.out_path = args.out_path + '/' + args.gain + '/y'
-		elif args.out_type == 'ibm_hat': args.out_path = args.out_path + '/ibm_hat'
-		else: ValueError('Incorrect output type.')
+		self.sample_stats(stats_path)
+		self.model.load_weights(model_path + '/epoch-' + str(epoch-1) + 
+			'/variables/variables' )
 
-		if not os.path.exists(args.out_path): os.makedirs(args.out_path) # make output directory.
+		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
+		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1) 
 
-		for j in tqdm(args.test_x_list):
-			(wav, _) = read_wav(j['file_path']) # read wav from given file path.		
-			input_feat = sess.run(net.infer_feat, feed_dict={net.s_ph: [wav], net.s_len_ph: [j['seq_len']]}) # sample of training set.
-			xi_bar_hat = sess.run(net.infer_output, feed_dict={net.input_ph: input_feat[0], 
-				net.nframes_ph: input_feat[1], net.training_ph: False}) # output of network.
-			xi_hat = xi.xi_hat(xi_bar_hat, args.stats['mu_hat'], args.stats['sigma_hat'])
-
-			file_name = j['file_path'].rsplit('/',1)[1].split('.')[0]
-
-			if args.out_type == 'xi_hat':
-				spio.savemat(args.out_path + '/' + file_name + '.mat', {'xi_hat':xi_hat})
-
-			elif args.out_type == 'y':
-				y_MAG = np.multiply(input_feat[0], gain.gfunc(xi_hat, xi_hat+1, gtype=args.gain))
-				y = np.squeeze(sess.run(net.y, feed_dict={net.y_MAG_ph: y_MAG, 
-					net.x_PHA_ph: input_feat[2], net.nframes_ph: input_feat[1], net.training_ph: False})) # output of network.
-				if np.isnan(y).any(): ValueError('NaN values found in enhanced speech.')
-				if np.isinf(y).any(): ValueError('Inf values found in enhanced speech.')
-				utils.save_wav(args.out_path + '/' + file_name + '.wav', args.f_s, y)
-
-			elif args.out_type == 'ibm_hat':
+		batch_size = len(test_x_len)
+		for i in tqdm(range(batch_size)):
+			base_name = test_x_base_names[i]
+			x_STMS = x_STMS_batch[i,:n_frames[i],:]
+			x_STPS = x_STPS_batch[i,:n_frames[i],:]
+			xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
+			xi_hat = self.xi_hat(xi_bar_hat)
+			if out_type == 'xi_hat': save_mat(args.out_path + '/' + base_name + '.mat', xi_hat, 'xi_hat')
+			elif out_type == 'y':
+				y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=gain))
+				y = self.polar_synthesis(y_STMS, x_STPS).numpy()
+				save_wav(out_path + '/' + base_name + '.wav', y, self.f_s)
+			elif out_type == 'ibm_hat':
 				ibm_hat = np.greater(xi_hat, 1.0)
-				spio.savemat(args.out_path + '/' + file_name + '.mat', {'ibm_hat':ibm_hat})
+				save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
+			else: raise ValueError('Invalid output type.')
 
-		print('Inference complete.')
+	def sample_stats(
+		self, 
+		stats_path='data', 
+		sample_size=1000, 
+		train_s_list=None, 
+		train_d_list=None
+		):
+		"""
+		Computes statistics for each frequency component of the instantaneous a priori SNR
+		in dB over a sample of the training set. The statistics are then used to map the 
+		instantaneous a priori SNR in dB between 0 and 1 using its cumulative distribution
+		function. This forms the mapped a priori SNR (the training target).
 
-	def get_stats(self, stats_path, sample_size, train_s_list, train_d_list):
+		Argument/s:
+
+		Output/s:
 		"""
-		"""
-		if os.path.exists(stats_path + '/stats.p'):
+		if os.path.exists(stats_path + '/stats.npz'):
 			print('Loading sample statistics...')
-			with open(stats_path + '/stats.p', 'rb') as f:
-				stats = pickle.load(f)
+			with np.load(stats_path + '/stats.npz') as stats:
 				self.mu = stats['mu_hat']
 				self.sigma = stats['sigma_hat']
 		elif train_s_list == None:
-			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.p.')
+			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.npz.')
 		else:
 			print('Finding sample statistics...')
 			s_sample_list = random.sample(self.train_s_list, sample_size)
@@ -190,13 +216,18 @@ class DeepXi(DeepXiInput):
 			samples = np.vstack(samples)
 			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
 			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
+			self.mu, self.sigma = stats['mu_hat'], stats['sigma_hat']
 			if not os.path.exists(stats_path): os.makedirs(stats_path)
-			with open(stats_path + '/stats.p', 'wb') as f: pickle.dump(stats, f)
-			savemat(stats_path + '/stats.m', mdict={'mu_hat': stats['mu_hat'], 'sigma_hat': stats['sigma_hat']})
-			print('Sample statistics saved to pickle file.')
+			np.savez(stats_path + '/stats.npz', mu_hat=stats['mu_hat'], sigma_hat=stats['sigma_hat'])
+			save_mat(stats_path + '/stats.m', stats, 'stats')
+			print('Sample statistics saved.')
 
 	def dataset(self, n_epochs, buffer_size=16):
 		"""
+
+		Argument/s:
+
+		Output/s:
 		"""
 		dataset = tf.data.Dataset.from_generator(
 			self.mbatch_gen, 
@@ -209,6 +240,10 @@ class DeepXi(DeepXiInput):
 
 	def val_batch(self, save_path='data', val_s=None, val_d=None, val_s_len=None, val_d_len=None, val_snr=None):
 		"""
+
+		Argument/s:
+
+		Output/s:
 		"""
 		if not os.path.exists(save_path): os.makedirs(save_path)
 		if os.path.exists(save_path + '/val_batch.npz'):
@@ -224,6 +259,11 @@ class DeepXi(DeepXiInput):
 
 	def mbatch_gen(self, n_epochs): 
 		"""
+		Used to create tf.data.Dataset for training.
+
+		Argument/s:
+
+		Output/s:
 		"""
 		for _ in range(n_epochs):
 			random.shuffle(self.train_s_list)
@@ -239,6 +279,11 @@ class DeepXi(DeepXiInput):
 
 	def example_batch(self, s_batch, d_batch, s_batch_len, d_batch_len, snr_batch): 
 		"""
+
+
+		Argument/s:
+
+		Output/s:
 		"""
 		batch_size = len(s_batch)
 		max_n_frames = self.n_frames(max(s_batch_len))
@@ -252,8 +297,33 @@ class DeepXi(DeepXiInput):
 			tgt_batch[i,:n_frames,:] = xi_bar.numpy()
 		return inp_batch, tgt_batch
 
+	def observation_batch(self, x_batch, x_batch_len): 
+		"""
+		Computes observations (noisy-speech STMS) from noisy speech recordings.
+
+		Argument/s:
+
+		Output/s:
+		"""
+		batch_size = len(x_batch)
+		max_n_frames = self.n_frames(max(x_batch_len))
+		x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+		x_STPS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+		for i in tqdm(range(batch_size)):
+			x_STMS, x_STPS = self.observation(x_batch[i,:x_batch_len[i]])
+			n_frames = self.n_frames(x_batch_len[i])
+			x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
+			x_STPS_batch[i,:n_frames,:] = x_STPS.numpy()
+		n_frames = [self.n_frames(i) for i in x_batch_len]
+		return x_STMS_batch, x_STPS_batch, n_frames
+
 	def wav_batch(self, s_batch_list, d_batch_list):
 		"""
+		Loads .wav files into batches.
+
+		Argument/s:
+
+		Output/s:
 		"""
 		batch_size = len(s_batch_list)
 		max_len = max([dic['seq_len'] for dic in s_batch_list]) 
@@ -275,7 +345,17 @@ class DeepXi(DeepXiInput):
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
-	# def load_weights(self, epoch):
-	# 	""" 
-	# 	"""
-	# 	self.model.load_weights(self.save_dir + "/epoch-" + str(epoch))
+class SaveWeights(Callback):
+	"""
+	"""
+	def __init__(self, model_path):
+		"""
+		"""
+		super(SaveWeights, self).__init__()
+		self.model_path = model_path
+
+	def on_epoch_end(self, epoch, logs=None):
+		"""
+		"""
+		self.model.save(self.model_path + "/epoch-" + str(epoch))
+

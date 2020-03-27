@@ -26,6 +26,7 @@ def get_args():
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
 	parser.add_argument('--model', default='ResNet', type=str, help='Model type')
+	parser.add_argument('--resume_epoch', type=int, help='Epoch to resume training from')
 
 	## OPTIONS (TRAIN)
 	parser.add_argument('--cont', default=False, type=str2bool, help='Continue testing from last epoch')
