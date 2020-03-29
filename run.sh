@@ -69,7 +69,7 @@ else
 	GPU=$1
 fi
 
-python3 main.py --ver 			'tcn-1h'		\
+python3 main.py --ver 			'tcn-1i'		\
 				--network		'ResLSTM'		\
 				--train 		1 				\
 				--max_epochs 	200				\

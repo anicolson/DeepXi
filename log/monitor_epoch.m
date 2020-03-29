@@ -7,12 +7,13 @@
 
 clear all; close all; clc
 
-ver = {'tcn-1e'};
+ver = {'tcn-1g', 'tcn-1h'};
 
 for i = 1:length(ver)
     T = readtable([ver{i}, '.csv']);
     epoch = 1:height(T);
-    plot(epoch, T.loss, epoch, T.val_loss);
+    subplot(1,2,1); plot(epoch, T.loss); hold on;
+    subplot(1,2,2); plot(epoch, T.val_loss); hold on;
     xlabel('Epoch');
     ylabel('Loss');
 end
