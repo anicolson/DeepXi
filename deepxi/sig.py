@@ -108,7 +108,9 @@ class DeepXiInput(STFT):
 			n_frames - number of time-domain frames.
 		"""
 		s_STMS, d_STMS, x_STMS, n_frames = self.mix(s, d, s_len, d_len, snr)
-		xi_bar = self.xi_bar(s_STMS, d_STMS)
+		mask = tf.expand_dims(tf.cast(tf.sequence_mask(n_frames), tf.float32), 2)
+		xi_bar = tf.multiply(self.xi_bar(s_STMS, d_STMS), mask) 
+		# xi_bar = self.xi_bar(s_STMS, d_STMS)
 		return x_STMS, xi_bar, n_frames
 
 	def instantaneous_a_priori_snr_db(self, s, d, s_len, d_len, snr): ## RENAME

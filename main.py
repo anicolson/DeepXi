@@ -43,11 +43,14 @@ if __name__ == '__main__':
 	args = add_args(args)
 	config = utils.gpu_config(args.gpu)
 
+	print("Version: %s." % (args.ver))
+
 	deepxi = DeepXi(
 		args.N_w, 
 		args.N_s, 
 		args.NFFT, 
 		args.f_s, 
+		network=args.network,
 		min_snr=args.min_snr, 
 		max_snr=args.max_snr
 		)
@@ -67,7 +70,9 @@ if __name__ == '__main__':
 		mbatch_size=args.mbatch_size, 
 		max_epochs=args.max_epochs, 
 		resume_epoch=args.resume_epoch,
-		ver=args.ver
+		ver=args.ver,
+		save_example=True,
+		log_iter=True
 		)
 	if args.infer: deepxi.infer(
 		args.test_x[0:10], 
@@ -80,3 +85,4 @@ if __name__ == '__main__':
 		out_path=args.out_path,
 		stats_path=args.data_path
 		)
+

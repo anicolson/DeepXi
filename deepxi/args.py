@@ -25,7 +25,7 @@ def get_args():
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
-	parser.add_argument('--model', default='ResNet', type=str, help='Model type')
+	parser.add_argument('--network', default='TCN', type=str, help='Network type')
 	parser.add_argument('--resume_epoch', type=int, help='Epoch to resume training from')
 
 	## OPTIONS (TRAIN)

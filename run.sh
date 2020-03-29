@@ -1,4 +1,4 @@
-#!/bin/bash
+z#!/bin/bash
 
 PROJ_DIR='deepxi'
 
@@ -69,7 +69,8 @@ else
 	GPU=$1
 fi
 
-python3 main.py --ver 			'tcn-1a'		\
+python3 main.py --ver 			'tcn-1h'		\
+				--network		'ResLSTM'		\
 				--train 		1 				\
 				--max_epochs 	200				\
 				--resume_epoch 	0 				\

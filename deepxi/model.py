@@ -14,15 +14,18 @@
 
 from deepxi.gain import gfunc
 from deepxi.network.cnn import TCN
+from deepxi.network.rnn import ResLSTM
 from deepxi.sig import DeepXiInput
 from deepxi.utils import read_wav, save_wav, save_mat
 from tensorflow.keras.callbacks import Callback, CSVLogger, ModelCheckpoint
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from tensorflow.python.lib.io import file_io
+from tensorflow.python.util.compat import collections_abc
 from tqdm import tqdm
 import deepxi.se_batch as batch
-import csv, math, os, random
+import collections, csv, io, math, os, random, six
 import numpy as np
 import tensorflow as tf
 
@@ -60,13 +63,16 @@ class DeepXi(DeepXiInput):
 		self.n_feat = math.ceil(self.NFFT/2 + 1)
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
+		# self.seq_len = Input(name='seq_len', shape=[], dtype='int32')
 
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
 
 		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
+		if network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_layers=3, d_model=256)
 		else: raise ValueError('Invalid network type.')
 
-		self.opt = Adam()
+		# xi_bar_hat = tf.boolean_mask(self.network.outp, tf.sequence_mask(self.seq_len))
+
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
 
@@ -88,12 +94,14 @@ class DeepXi(DeepXiInput):
 		ver='VERSION_NAME',
 		stats_path=None, 
 		sample_size=None,
+		save_example=False,
+		log_iter=False
 		):
 		"""
+		Deep Xi training.
 
 		Argument/s:
 
-		Output/s:
 		"""
 		self.train_s_list = train_s_list
 		self.train_d_list = train_d_list
@@ -105,21 +113,36 @@ class DeepXi(DeepXiInput):
 		train_dataset = self.dataset(max_epochs-resume_epoch)
 		if val_flag: val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
 		else: val_set = None
-		
+
+		if save_example:
+			s_batch, d_batch, s_batch_len, d_batch_len, snr_batch = self.wav_batch(self.train_s_list[0:self.mbatch_size], self.train_d_list[0:self.mbatch_size])
+			x_STMS, xi_bar, n_frames = self.training_example(s_batch, d_batch, s_batch_len, d_batch_len, snr_batch)
+			print(x_STMS.shape, xi_bar.shape, n_frames.shape)
+
+		 # 	# x_STMS_batch, xi_bar_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
+			# tmp = list(train_dataset.take(1).as_numpy_iterator())[0]
+			# print(tmp)
+			# 	save_mat('./x_STMS_batch.mat', x_STMS_batch, 'x_STMS_batch')
+			# 	save_mat('./xi_bar_batch.mat', xi_bar_batch, 'xi_bar_batch')
+
 		if not os.path.exists(model_path): os.makedirs(model_path)
 		if not os.path.exists("log"): os.makedirs("log")
-		if not os.path.exists("log/" + ver + ".csv"):
-			with open("log/" + ver + ".csv", "w") as f: 
-				f.write("Epoch, Train loss, Val. loss\n")
+		if not os.path.exists("log/iter"): os.makedirs("log/iter")
 
 		callbacks = []
-		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
 		callbacks.append(SaveWeights(model_path))
+		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
+		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + ver + ".csv", separator=',', append=True))
 
-		if resume_epoch > 0: self.model.load_weights(model_path + '/epoch-' + str(resume_epoch-1) + 
-			'/variables/variables' )
+		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" + str(resume_epoch-1) + 
+			"/variables/variables" )
 
-		self.model.compile(loss='binary_crossentropy', optimizer=self.opt)
+		opt = Adam(lr=0.001)
+		self.model.compile(
+			sample_weight_mode="temporal", 
+			loss="binary_crossentropy", 
+			optimizer=opt
+			)
 		self.model.fit(
 			train_dataset, 
 			initial_epoch=resume_epoch, 
@@ -129,6 +152,17 @@ class DeepXi(DeepXiInput):
 			validation_steps=len(val_set[0]),
 			callbacks=callbacks
 			)
+
+		# self.model.fit(
+		# 	x=[x_STMS, n_frames], 
+		# 	y=xi_bar,
+		# 	initial_epoch=resume_epoch, 
+		# 	epochs=max_epochs, 
+		# 	steps_per_epoch=self.n_iter,
+		# 	validation_data=val_set, 
+		# 	callbacks=callbacks,
+		# 	# validation_steps=len(val_set[0]),
+		# 	)
 
 	def infer(
 		self,
@@ -219,7 +253,7 @@ class DeepXi(DeepXiInput):
 			self.mu, self.sigma = stats['mu_hat'], stats['sigma_hat']
 			if not os.path.exists(stats_path): os.makedirs(stats_path)
 			np.savez(stats_path + '/stats.npz', mu_hat=stats['mu_hat'], sigma_hat=stats['sigma_hat'])
-			save_mat(stats_path + '/stats.m', stats, 'stats')
+			save_mat(stats_path + '/stats.mat', stats, 'stats')
 			print('Sample statistics saved.')
 
 	def dataset(self, n_epochs, buffer_size=16):
@@ -229,33 +263,24 @@ class DeepXi(DeepXiInput):
 
 		Output/s:
 		"""
+		# dataset = tf.data.Dataset.from_generator(
+		# 	self.mbatch_gen, 
+		# 	({'inp': tf.float32, 'seq_len': tf.int32}, tf.float32), 
+		# 	({'inp': tf.TensorShape([None, None, self.n_feat]), 
+		# 		'seq_len': tf.TensorShape([None])}, 
+		# 		tf.TensorShape([None, self.n_outp])),
+		# 	[tf.constant(n_epochs)]
+		# 	)
 		dataset = tf.data.Dataset.from_generator(
 			self.mbatch_gen, 
-			(tf.float32, tf.float32), 
-			(tf.TensorShape([None, None, self.n_feat]), tf.TensorShape([None, None, self.n_outp])),
+			(tf.float32, tf.float32, tf.float32), 
+			(tf.TensorShape([None, None, self.n_feat]), 
+				tf.TensorShape([None, None, self.n_outp]), 
+				tf.TensorShape([None, None])),
 			[tf.constant(n_epochs)]
 			)
 		dataset = dataset.prefetch(buffer_size) 
 		return dataset
-
-	def val_batch(self, save_path='data', val_s=None, val_d=None, val_s_len=None, val_d_len=None, val_snr=None):
-		"""
-
-		Argument/s:
-
-		Output/s:
-		"""
-		if not os.path.exists(save_path): os.makedirs(save_path)
-		if os.path.exists(save_path + '/val_batch.npz'):
-			print('Loading validation batch...')
-			with np.load(save_path + '/val_batch.npz') as data:
-				val_inp = data['val_inp']
-				val_tgt = data['val_tgt']
-		else:
-			print('Creating validation batch...')
-			val_inp, val_tgt = self.example_batch(val_s, val_d, val_s_len, val_d_len, val_snr)
-			np.savez(save_path + '/val_batch.npz', val_inp=val_inp, val_tgt=val_tgt)
-		return val_inp, val_tgt
 
 	def mbatch_gen(self, n_epochs): 
 		"""
@@ -272,30 +297,39 @@ class DeepXi(DeepXiInput):
 				s_mbatch_list = self.train_s_list[start_idx:end_idx]
 				d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
 				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
-				x_STMS, xi_bar, _ = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
+				x_STMS, xi_bar, n_frames = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
+				seq_mask = tf.cast(tf.sequence_mask(n_frames), tf.float32)
 				start_idx += self.mbatch_size; end_idx += self.mbatch_size
 				if end_idx > self.n_examples: end_idx = self.n_examples
-				yield x_STMS, xi_bar
+				yield x_STMS, xi_bar, seq_mask
 
-	def example_batch(self, s_batch, d_batch, s_batch_len, d_batch_len, snr_batch): 
+	def val_batch(self, save_path='data', val_s=None, val_d=None, val_s_len=None, val_d_len=None, val_snr=None):
 		"""
-
 
 		Argument/s:
 
 		Output/s:
 		"""
-		batch_size = len(s_batch)
-		max_n_frames = self.n_frames(max(s_batch_len))
-		inp_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
-		tgt_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
-		for i in tqdm(range(batch_size)):
-			x_STMS, xi_bar, _ = self.training_example(s_batch[i:i+1], d_batch[i:i+1], 
-				s_batch_len[i:i+1], d_batch_len[i:i+1], snr_batch[i:i+1])
-			n_frames = self.n_frames(s_batch_len[i])
-			inp_batch[i,:n_frames,:] = x_STMS.numpy()
-			tgt_batch[i,:n_frames,:] = xi_bar.numpy()
-		return inp_batch, tgt_batch
+		if not os.path.exists(save_path): os.makedirs(save_path)
+		if os.path.exists(save_path + '/val_batch.npz'):
+			print('Loading validation batch...')
+			with np.load(save_path + '/val_batch.npz') as data:
+				val_inp = data['val_inp']
+				val_tgt = data['val_tgt']
+		else:
+			print('Creating validation batch...')
+			batch_size = len(val_s)
+			max_n_frames = self.n_frames(max(val_s_len))
+			x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+			xi_bar_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+			for i in tqdm(range(batch_size)):
+				x_STMS, xi_bar, _ = self.training_example(val_s[i:i+1], val_d[i:i+1], 
+					val_s_len[i:i+1], val_d_len[i:i+1], val_snr[i:i+1])
+				n_frames = self.n_frames(val_s_len[i])
+				x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
+				xi_bar_batch[i,:n_frames,:] = xi_bar.numpy()
+			np.savez(save_path + '/val_batch.npz', val_inp=x_STMS_batch, val_tgt=xi_bar_batch)
+		return val_inp, val_tgt
 
 	def observation_batch(self, x_batch, x_batch_len): 
 		"""
@@ -359,3 +393,83 @@ class SaveWeights(Callback):
 		"""
 		self.model.save(self.model_path + "/epoch-" + str(epoch))
 
+class CSVLoggerIter(Callback):
+	"""
+	for each training iteration
+	"""
+	def __init__(self, filename, separator=',', append=False):
+		"""
+		"""
+		self.sep = separator
+		self.filename = filename
+		self.append = append
+		self.writer = None
+		self.keys = None
+		self.append_header = True
+		if six.PY2:
+			self.file_flags = 'b'
+			self._open_args = {}
+		else:
+			self.file_flags = ''
+			self._open_args = {'newline': '\n'}
+		super(CSVLoggerIter, self).__init__()
+
+	def on_train_begin(self, logs=None):
+		"""
+		"""
+		if self.append:
+			if file_io.file_exists(self.filename):
+				with open(self.filename, 'r' + self.file_flags) as f:
+					self.append_header = not bool(len(f.readline()))
+			mode = 'a'
+		else:
+			mode = 'w'
+		self.csv_file = io.open(self.filename, mode + self.file_flags,
+			**self._open_args)
+
+	def on_train_batch_end(self, batch, logs=None):
+		"""
+		"""
+		logs = logs or {}
+
+		def handle_value(k):
+			is_zero_dim_ndarray = isinstance(k, np.ndarray) and k.ndim == 0
+			if isinstance(k, six.string_types):
+				return k
+			elif isinstance(k, collections_abc.Iterable) and not is_zero_dim_ndarray:
+				return '"[%s]"' % (', '.join(map(str, k)))
+			else:
+				return k
+
+		if self.keys is None:
+			self.keys = sorted(logs.keys())
+
+		if self.model.stop_training:
+			# We set NA so that csv parsers do not fail for this last batch.
+			logs = dict([(k, logs[k]) if k in logs else (k, 'NA') for k in self.keys])
+
+		if not self.writer:
+
+			class CustomDialect(csv.excel):
+				delimiter = self.sep
+
+			fieldnames = self.keys
+			if six.PY2:
+				fieldnames = [unicode(x) for x in fieldnames]
+
+			self.writer = csv.DictWriter(
+				self.csv_file,
+				fieldnames=fieldnames,
+				dialect=CustomDialect)
+			if self.append_header:
+				self.writer.writeheader()
+
+		row_dict = collections.OrderedDict({'batch': batch})
+		row_dict.update((key, handle_value(logs[key])) for key in self.keys)
+
+		self.writer.writerow(row_dict)
+		self.csv_file.flush()
+
+	def on_train_end(self, logs=None):
+		self.csv_file.close()
+		self.writer = None
