@@ -29,10 +29,6 @@ class ResLSTM:
 			n_outp - number of output nodes.
 			n_blocks - number of residual blocks.
 			d_model - model size.
-			d_f - bottlekneck size.
-			k - kernel size.
-			max_d_rate - maximum dilation rate.
-			softmax - softmax output flag.
 		"""
 		self.n_outp = n_outp
 		self.d_model = d_model

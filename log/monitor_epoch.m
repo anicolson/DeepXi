@@ -7,15 +7,13 @@
 
 clear all; close all; clc
 
-ver = {'tcn-1g', 'tcn-1h'};
+ver = {'reslstm-0a'};
 
 for i = 1:length(ver)
     T = readtable([ver{i}, '.csv']);
     epoch = 1:height(T);
-    subplot(1,2,1); plot(epoch, T.loss); hold on;
-    subplot(1,2,2); plot(epoch, T.val_loss); hold on;
-    xlabel('Epoch');
-    ylabel('Loss');
+    subplot(1,2,1); plot(epoch, T.loss); xlabel('Epoch'); ylabel('Training loss'); hold on;
+    subplot(1,2,2); plot(epoch, T.val_loss); xlabel('Epoch'); ylabel('Validation loss'); hold on;
 end
 legend(ver);
 hold off;

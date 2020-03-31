@@ -14,6 +14,7 @@ clear all; close all; clc
 
 load('x_STMS_batch.mat')
 load('xi_bar_batch.mat')
+load('seq_mask_batch.mat')
 
 for i = 1:size(x_STMS_batch, 1)
     figure (i)
@@ -25,17 +26,25 @@ for i = 1:size(x_STMS_batch, 1)
     % Target: mapped a priori SNR. 
     xi_bar = rot90(squeeze(xi_bar_batch(i,:,:)));
 
-    subplot(3,1,1); imagesc(x_STMS); colorbar;
+    % Sequence mask.
+    seq_mask = seq_mask_batch(i,:,:);
+    
+    subplot(2,2,1); imagesc(x_STMS); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
     title('Noisy-speech short-time magnitude spectrum')
 
-    subplot(3,1,2); imagesc(x_STMS_dB); colorbar;
+    subplot(2,2,2); imagesc(x_STMS_dB); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
     title('Noisy-speech short-time magnitude spectrum in dB')
 
-    subplot(3,1,3); imagesc(xi_bar); colorbar;
+    subplot(2,2,3); imagesc(seq_mask); colorbar;
+    xlabel('Time-frame bin')
+    ylabel('Frequency bin')
+    title('Sequence mask')
+    
+    subplot(2,2,4); imagesc(xi_bar); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
     title('Mapped {\it a priori} SNR')

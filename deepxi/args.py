@@ -21,19 +21,19 @@ def get_args():
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
 	parser.add_argument('--ver', type=str, help='Model version')
-	parser.add_argument('--epoch', type=int, help='Epoch to use/retrain from')
+	parser.add_argument('--epoch', type=int, help='Epoch to use')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
 	parser.add_argument('--network', default='TCN', type=str, help='Network type')
-	parser.add_argument('--resume_epoch', type=int, help='Epoch to resume training from')
 
 	## OPTIONS (TRAIN)
-	parser.add_argument('--cont', default=False, type=str2bool, help='Continue testing from last epoch')
 	parser.add_argument('--mbatch_size', default=10, type=int, help='Mini-batch size')
 	parser.add_argument('--sample_size', default=1000, type=int, help='Sample size')
 	parser.add_argument('--max_epochs', default=250, type=int, help='Maximum number of epochs')
-	parser.add_argument('--grad_clip', default=True, type=str2bool, help='Gradient clipping')
+	parser.add_argument('--resume_epoch', type=int, help='Epoch to resume training from')
+	parser.add_argument('--save_example', default=False, type=str2bool, help='Save training example')
+	parser.add_argument('--log_iter', default=False, type=str2bool, help='Log loss per training iteration')
 
 	# TEST OUTPUT TYPE
 	# 'xi_hat' - a priori SNR estimate (.mat),

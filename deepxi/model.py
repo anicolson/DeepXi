@@ -5,13 +5,6 @@
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# from dev.acoustic.analysis_synthesis.polar import synthesis
-# from dev.acoustic.feat import polar
-# from dev.ResNet import ResNet
-# import dev.optimisation as optimisation
-# import numpy as np
-# import tensorflow as tf
-
 from deepxi.gain import gfunc
 from deepxi.network.cnn import TCN
 from deepxi.network.rnn import ResLSTM
@@ -29,9 +22,13 @@ import collections, csv, io, math, os, random, six
 import numpy as np
 import tensorflow as tf
 
+# [1] Nicolson, A. and Paliwal, K.K., 2019. Deep learning for 
+# minimum mean-square error approaches to speech enhancement. 
+# Speech Communication, 111, pp.44-55.
+
 class DeepXi(DeepXiInput):
 	"""
-	Deep Xi
+	Deep Xi model from [1].
 	"""
 	def __init__(
 		self, 
@@ -63,16 +60,11 @@ class DeepXi(DeepXiInput):
 		self.n_feat = math.ceil(self.NFFT/2 + 1)
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
-		# self.seq_len = Input(name='seq_len', shape=[], dtype='int32')
-
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
 
 		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
-		if network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_layers=3, d_model=256)
+		if network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_blocks=3, d_model=256)
 		else: raise ValueError('Invalid network type.')
-
-		# xi_bar_hat = tf.boolean_mask(self.network.outp, tf.sequence_mask(self.seq_len))
-
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
 
@@ -101,7 +93,24 @@ class DeepXi(DeepXiInput):
 		Deep Xi training.
 
 		Argument/s:
-
+			train_s_list - clean-speech training list.
+			train_d_list - noise training list.
+			model_path - model save path.
+			val_s - clean-speech validation batch.
+			val_d - noise validation batch.
+			val_s_len - clean-speech validation sequence length batch.
+			val_d_len - noise validation sequence length batch.
+			val_snr - SNR validation batch. 
+			val_flag - perform validation.
+			val_save_path - validation batch save path.
+			mbatch_size - mini-batch size. 
+			max_epochs - maximum number of epochs.
+			resume_epoch - epoch to resume training from.
+			ver - version name.
+			stats_path - path to save sample statistics. 
+			sample_size - sample size.
+			save_example - save a training example for evaluation.
+			log_iter - log training loss for each training iteration.
 		"""
 		self.train_s_list = train_s_list
 		self.train_d_list = train_d_list
@@ -115,15 +124,10 @@ class DeepXi(DeepXiInput):
 		else: val_set = None
 
 		if save_example:
-			s_batch, d_batch, s_batch_len, d_batch_len, snr_batch = self.wav_batch(self.train_s_list[0:self.mbatch_size], self.train_d_list[0:self.mbatch_size])
-			x_STMS, xi_bar, n_frames = self.training_example(s_batch, d_batch, s_batch_len, d_batch_len, snr_batch)
-			print(x_STMS.shape, xi_bar.shape, n_frames.shape)
-
-		 # 	# x_STMS_batch, xi_bar_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
-			# tmp = list(train_dataset.take(1).as_numpy_iterator())[0]
-			# print(tmp)
-			# 	save_mat('./x_STMS_batch.mat', x_STMS_batch, 'x_STMS_batch')
-			# 	save_mat('./xi_bar_batch.mat', xi_bar_batch, 'xi_bar_batch')
+			x_STMS_batch, xi_bar_batch, seq_mask_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
+			save_mat('./x_STMS_batch.mat', x_STMS_batch, 'x_STMS_batch')
+			save_mat('./xi_bar_batch.mat', xi_bar_batch, 'xi_bar_batch')
+			save_mat('./seq_mask.mat', seq_mask_batch, 'seq_mask_batch')
 
 		if not os.path.exists(model_path): os.makedirs(model_path)
 		if not os.path.exists("log"): os.makedirs("log")
@@ -134,15 +138,17 @@ class DeepXi(DeepXiInput):
 		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
 		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + ver + ".csv", separator=',', append=True))
 
-		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" + str(resume_epoch-1) + 
-			"/variables/variables" )
+		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" + 
+			str(resume_epoch-1) + "/variables/variables" )
 
-		opt = Adam(lr=0.001)
+		opt = Adam(lr=0.001, clipvalue=1.0)
+
 		self.model.compile(
 			sample_weight_mode="temporal", 
 			loss="binary_crossentropy", 
 			optimizer=opt
 			)
+
 		self.model.fit(
 			train_dataset, 
 			initial_epoch=resume_epoch, 
@@ -152,17 +158,6 @@ class DeepXi(DeepXiInput):
 			validation_steps=len(val_set[0]),
 			callbacks=callbacks
 			)
-
-		# self.model.fit(
-		# 	x=[x_STMS, n_frames], 
-		# 	y=xi_bar,
-		# 	initial_epoch=resume_epoch, 
-		# 	epochs=max_epochs, 
-		# 	steps_per_epoch=self.n_iter,
-		# 	validation_data=val_set, 
-		# 	callbacks=callbacks,
-		# 	# validation_steps=len(val_set[0]),
-		# 	)
 
 	def infer(
 		self,
@@ -177,6 +172,7 @@ class DeepXi(DeepXiInput):
 		stats_path=None 
 		): 
 		"""
+		Deep Xi inference. The specified 'out_type' is saved.
 
 		Argument/s:
 

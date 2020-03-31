@@ -71,9 +71,10 @@ if __name__ == '__main__':
 		max_epochs=args.max_epochs, 
 		resume_epoch=args.resume_epoch,
 		ver=args.ver,
-		save_example=True,
-		log_iter=True
+		save_example=args.save_example,
+		log_iter=args.log_iter
 		)
+	
 	if args.infer: deepxi.infer(
 		args.test_x[0:10], 
 		args.test_x_len[0:10],
