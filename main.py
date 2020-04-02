@@ -51,10 +51,10 @@ if __name__ == '__main__':
 		prelim.train(mbatch_size=args.mbatch_size, max_epochs=args.max_epochs)
 	else:
 		deepxi = DeepXi(
-			args.N_w, 
-			args.N_s,   
-			args.NFFT, 
-			args.f_s, 
+			N_w=args.N_w, 
+			N_s=args.N_s,   
+			NFFT=args.NFFT, 
+			f_s=args.f_s, 
 			network=args.network,
 			min_snr=args.min_snr, 
 			max_snr=args.max_snr
