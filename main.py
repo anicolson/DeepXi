@@ -7,6 +7,7 @@
 
 from deepxi.args import get_args
 from deepxi.model import DeepXi
+from deepxi.prelim import Prelim
 from deepxi.se_batch import Batch, Batch_list
 import deepxi.utils as utils
 import numpy as np
@@ -45,45 +46,49 @@ if __name__ == '__main__':
 
 	print("Version: %s." % (args.ver))
 
-	deepxi = DeepXi(
-		args.N_w, 
-		args.N_s, 
-		args.NFFT, 
-		args.f_s, 
-		network=args.network,
-		min_snr=args.min_snr, 
-		max_snr=args.max_snr
-		)
+	if args.prelim: # this is used for initial testing. 
+		prelim = Prelim(n_feat=10, network=args.network)
+		prelim.train(mbatch_size=args.mbatch_size, max_epochs=args.max_epochs)
+	else:
+		deepxi = DeepXi(
+			args.N_w, 
+			args.N_s,   
+			args.NFFT, 
+			args.f_s, 
+			network=args.network,
+			min_snr=args.min_snr, 
+			max_snr=args.max_snr
+			)
 
-	if args.train: deepxi.train(
-		args.train_s_list, 
-		args.train_d_list, 
-		model_path=args.model_path,
-		val_s=args.val_s,
-		val_d=args.val_d,
-		val_s_len=args.val_s_len,
-		val_d_len=args.val_d_len,
-		val_snr=args.val_snr, 
-		val_save_path=args.data_path,
-		stats_path=args.data_path, 
-		sample_size=args.sample_size,
-		mbatch_size=args.mbatch_size, 
-		max_epochs=args.max_epochs, 
-		resume_epoch=args.resume_epoch,
-		ver=args.ver,
-		save_example=args.save_example,
-		log_iter=args.log_iter
-		)
-	
-	if args.infer: deepxi.infer(
-		args.test_x[0:10], 
-		args.test_x_len[0:10],
-		args.test_x_base_names[0:10],
-		args.epoch,
-		model_path=args.model_path,
-		out_type=args.out_type,
-		gain=args.gain,
-		out_path=args.out_path,
-		stats_path=args.data_path
-		)
+		if args.train: deepxi.train(
+			args.train_s_list, 
+			args.train_d_list, 
+			model_path=args.model_path,
+			val_s=args.val_s,
+			val_d=args.val_d,
+			val_s_len=args.val_s_len,
+			val_d_len=args.val_d_len,
+			val_snr=args.val_snr, 
+			val_save_path=args.data_path,
+			stats_path=args.data_path, 
+			sample_size=args.sample_size,
+			mbatch_size=args.mbatch_size, 
+			max_epochs=args.max_epochs, 
+			resume_epoch=args.resume_epoch,
+			ver=args.ver,
+			save_example=args.save_example,
+			log_iter=args.log_iter
+			)
+		
+		if args.infer: deepxi.infer(
+			args.test_x[0:10], 
+			args.test_x_len[0:10],
+			args.test_x_base_names[0:10],
+			args.epoch,
+			model_path=args.model_path,
+			out_type=args.out_type,
+			gain=args.gain,
+			out_path=args.out_path,
+			stats_path=args.data_path
+			)
 

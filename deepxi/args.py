@@ -24,6 +24,7 @@ def get_args():
 	parser.add_argument('--epoch', type=int, help='Epoch to use')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
+	parser.add_argument('--prelim', default=False, type=str2bool, help='Preliminary flag')
 	parser.add_argument('--verbose', default=False, type=str2bool, help='Verbose')
 	parser.add_argument('--network', default='TCN', type=str, help='Network type')
 

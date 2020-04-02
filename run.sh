@@ -69,9 +69,9 @@ else
 	GPU=$1
 fi
 
-python3 main.py --ver 			'reslstm-0a'	\
-				--network		'ResLSTM'		\
-				--train 		1 				\
+python3 main.py --ver 			'tcn-0a'	\
+				--network		'TCN'		\
+				--train 		0 				\
 				--max_epochs 	50				\
 				--resume_epoch 	0 				\
 				--infer 		0 				\
@@ -86,6 +86,7 @@ python3 main.py --ver 			'reslstm-0a'	\
 				--gain 			'mmse-lsa' 		\
 				--save_example	1				\
 				--log_iter		0 				\
+				--prelim 		1 				\
 				--gpu 			$GPU 			\
 				--set_path 		$SET_PATH 		\
 				--data_path 	$DATA_PATH 		\

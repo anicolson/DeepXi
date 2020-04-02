@@ -63,7 +63,7 @@ class DeepXi(DeepXiInput):
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
 
 		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
-		if network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_blocks=3, d_model=256)
+		elif network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_blocks=3, d_model=256)
 		else: raise ValueError('Invalid network type.')
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
