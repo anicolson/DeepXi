@@ -8,7 +8,7 @@
 from deepxi.args import get_args
 from deepxi.model import DeepXi
 from deepxi.prelim import Prelim
-from deepxi.se_batch import Batch, Batch_list
+from deepxi.se_batch import Batch
 import deepxi.utils as utils
 import numpy as np
 import os
@@ -27,8 +27,8 @@ def add_args(args):
 	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_w)))) # number of DFT components.
 
 	if args.train:
-		args.train_s_list = Batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
-		args.train_d_list = Batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
+		args.train_s_list = utils.batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
+		args.train_d_list = utils.batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
 		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path, list(range(args.min_snr, args.max_snr + 1)))
 		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, list(range(args.min_snr, args.max_snr + 1)))
 		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))

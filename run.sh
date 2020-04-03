@@ -1,4 +1,4 @@
-z#!/bin/bash
+#!/bin/bash
 
 PROJ_DIR='deepxi'
 
@@ -69,10 +69,10 @@ else
     GPU=$1
 fi
 
-python3 main.py --ver           'reslstm-0a'    \
+python3 main.py --ver           'reslstm-0c'    \
                 --network       'ResLSTM'       \
-                --train         0               \
-                --max_epochs    50              \
+                --train         1               \
+                --max_epochs    5000            \
                 --resume_epoch  0               \
                 --infer         0               \
                 --epoch         0               \
@@ -86,7 +86,7 @@ python3 main.py --ver           'reslstm-0a'    \
                 --gain          'mmse-lsa'      \
                 --save_example  1               \
                 --log_iter      0               \
-                --prelim        1               \
+                --prelim        0               \
                 --gpu           $GPU            \
                 --set_path      $SET_PATH       \
                 --data_path     $DATA_PATH      \

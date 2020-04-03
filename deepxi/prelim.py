@@ -82,10 +82,10 @@ class Prelim():
 				min_seq_len = 45
 				x_train = np.random.rand(self.mbatch_size, max_seq_len, self.n_feat)
 				y_frame = np.zeros(self.n_feat)
-				y_frame[0] = 0.75
-				y_frame[1] = 1.0
+				y_frame[0] = 0.05
+				y_frame[1] = 0.99
 				y_frame[2] = 0.5
-				y_frame[3] = 0.25
+				y_frame[3] = 0.01
 				y_frame[4] = 0.75
 				y_train = np.tile(y_frame, (self.mbatch_size, max_seq_len, 1))
 				seq_len = np.random.randint(min_seq_len, max_seq_len+1, self.mbatch_size)

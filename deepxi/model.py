@@ -126,7 +126,7 @@ class DeepXi(DeepXiInput):
 			x_STMS_batch, xi_bar_batch, seq_mask_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
 			save_mat('./x_STMS_batch.mat', x_STMS_batch, 'x_STMS_batch')
 			save_mat('./xi_bar_batch.mat', xi_bar_batch, 'xi_bar_batch')
-			save_mat('./seq_mask.mat', seq_mask_batch, 'seq_mask_batch')
+			save_mat('./seq_mask_batch.mat', seq_mask_batch, 'seq_mask_batch')
 
 		if not os.path.exists(model_path): os.makedirs(model_path)
 		if not os.path.exists("log"): os.makedirs("log")
@@ -140,22 +140,27 @@ class DeepXi(DeepXiInput):
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" + 
 			str(resume_epoch-1) + "/variables/variables" )
 
-		opt = Adam(lr=0.001, clipvalue=1.0)
-
 		self.model.compile(
 			sample_weight_mode="temporal", 
 			loss="binary_crossentropy", 
-			optimizer=opt
+			optimizer=Adam(lr=0.001, clipvalue=1.0)
 			)
 
+		self.mbatch_size = 100
+		x_train, y_train, sample_mask = list(train_dataset.take(1).as_numpy_iterator())[0]
+
+		print(x_train.shape, y_train.shape)
+
 		self.model.fit(
-			train_dataset, 
+			x=x_train, 
+			y=y_train, 
+			sample_weight=sample_mask,
 			initial_epoch=resume_epoch, 
 			epochs=max_epochs, 
-			steps_per_epoch=25 # self.n_iter,
+			# steps_per_epoch=25, # self.n_iter,
+			callbacks=callbacks
 			# validation_data=val_set, 
 			# validation_steps=len(val_set[0]),
-			# callbacks=callbacks
 			)
 
 		x_test, y_test, _ = list(train_dataset.take(1).as_numpy_iterator())[0]
@@ -323,8 +328,8 @@ class DeepXi(DeepXiInput):
 		if os.path.exists(save_path + '/val_batch.npz'):
 			print('Loading validation batch...')
 			with np.load(save_path + '/val_batch.npz') as data:
-				val_inp = data['val_inp']
-				val_tgt = data['val_tgt']
+				x_STMS_batch = data['val_inp']
+				xi_bar_batch = data['val_tgt']
 		else:
 			print('Creating validation batch...')
 			batch_size = len(val_s)
@@ -338,7 +343,7 @@ class DeepXi(DeepXiInput):
 				x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
 				xi_bar_batch[i,:n_frames,:] = xi_bar.numpy()
 			np.savez(save_path + '/val_batch.npz', val_inp=x_STMS_batch, val_tgt=xi_bar_batch)
-		return val_inp, val_tgt
+		return x_STMS_batch, xi_bar_batch
 
 	def observation_batch(self, x_batch, x_batch_len): 
 		"""
@@ -369,20 +374,20 @@ class DeepXi(DeepXiInput):
 		Output/s:
 		"""
 		batch_size = len(s_batch_list)
-		max_len = max([dic['seq_len'] for dic in s_batch_list]) 
+		max_len = max([dic['n_samples'] for dic in s_batch_list]) 
 		s_batch = np.zeros([batch_size, max_len], np.int16)
 		d_batch = np.zeros([batch_size, max_len], np.int16)
 		s_batch_len = np.zeros(batch_size, np.int32) 
 		for i in range(batch_size):
 			(wav, _) = read_wav(s_batch_list[i]['file_path'])		
-			s_batch[i,:s_batch_list[i]['seq_len']] = wav
-			s_batch_len[i] = s_batch_list[i]['seq_len'] 
+			s_batch[i,:s_batch_list[i]['n_samples']] = wav
+			s_batch_len[i] = s_batch_list[i]['n_samples'] 
 			flag = True
 			while flag:
-				if d_batch_list[i]['seq_len'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
+				if d_batch_list[i]['n_samples'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
 				else: flag = False
 			(wav, _) = read_wav(d_batch_list[i]['file_path']) 
-			rand_idx = np.random.randint(0, 1+d_batch_list[i]['seq_len']-s_batch_len[i])
+			rand_idx = np.random.randint(0, 1+d_batch_list[i]['n_samples']-s_batch_len[i])
 			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
 		d_batch_len = s_batch_len
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 

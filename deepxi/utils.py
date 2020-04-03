@@ -13,8 +13,9 @@
 # import soundfile as sf
 
 from scipy.io import loadmat, savemat
+from soundfile import SoundFile, SEEK_END
 import numpy as np
-import os
+import glob, os, pickle, platform
 import soundfile as sf
 import tensorflow as tf
 
@@ -51,3 +52,45 @@ def gpu_config(gpu_selection, log_device_placement=False):
 	gpus = tf.config.experimental.list_physical_devices('GPU')
 	for gpu in gpus:
 		tf.config.experimental.set_memory_growth(gpu, True)
+
+def batch_list(file_dir, list_name, data_path='data', make_new=False):
+	"""
+	Places the file paths and wav lengths of an audio file into a dictionary, which 
+	is then appended to a list. 'glob' is used to support Unix style pathname 
+	pattern expansions. Checks if the training list has already been saved, and loads 
+	it.
+
+	Argument/s:
+		file_dir - directory containing the audio files.
+		list_name - name for the list.
+		data_path - path to store pickle files.
+		make_new - re-create list.
+
+	Outputs:
+		batch_list - list of file paths and wav length.
+	"""
+	extension = ['*.wav', '*.flac', '*.mp3']
+	if not make_new:
+		if os.path.exists(data_path + '/' + list_name + '_list_' + platform.node() + '.p'):
+			print('Loading ' + list_name + ' list...')
+			with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'rb') as f:
+				batch_list = pickle.load(f)
+			if batch_list[0]['file_path'].find(file_dir) != -1: 
+				print(list_name + ' list has a total of %i entries.' % (len(batch_list)))
+				return batch_list
+
+	print('Creating ' + list_name + ' list...')
+	batch_list = []
+	for i in extension:
+		for j in glob.glob(os.path.join(file_dir, i)):
+			f = SoundFile(j)
+			n_samples = f.seek(0, SEEK_END)
+			if n_samples == -1: 
+				wav, _ = read_wav(path)
+				n_samples = len(wav)
+			batch_list.append({'file_path': j, 'n_samples': n_samples}) # append dictionary.
+	if not os.path.exists(data_path): os.makedirs(data_path) # make directory.
+	with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'wb') as f: 		
+		pickle.dump(batch_list, f)
+	print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
+	return batch_list

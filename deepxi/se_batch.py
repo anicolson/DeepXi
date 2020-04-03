@@ -10,7 +10,7 @@ import numpy as np
 from deepxi.utils import read_wav
 from scipy.io.wavfile import read
 
-def Batch_list(file_dir, list_name, data_path=None, make_new=False):
+def Batch_list_DEPRECIATED(file_dir, list_name, data_path=None, make_new=False):
 	from soundfile import SoundFile, SEEK_END
 	'''
 	Places the file paths and wav lengths of an audio file into a dictionary, which 
@@ -44,6 +44,9 @@ def Batch_list(file_dir, list_name, data_path=None, make_new=False):
 		for file_path in glob.glob(os.path.join(file_dir, fn)):
 			f = SoundFile(file_path)
 			seq_len = f.seek(0, SEEK_END)
+			if seq_len == -1: 
+				wav, _ = read_wav(path)
+				seq_len = len(wav)
 			batch_list.append({'file_path': file_path, 'seq_len': seq_len}) # append dictionary.
 	if not os.path.exists(data_path): os.makedirs(data_path) # make directory.
 	with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'wb') as f: 		
