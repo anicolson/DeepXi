@@ -21,7 +21,7 @@ def get_args():
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
 	parser.add_argument('--ver', type=str, help='Model version')
-	parser.add_argument('--epoch', type=int, help='Epoch to use')
+	parser.add_argument('--test_epoch', type=int, help='Epoch to test')
 	parser.add_argument('--train', default=False, type=str2bool, help='Training flag')
 	parser.add_argument('--infer', default=False, type=str2bool, help='Inference flag')
 	parser.add_argument('--prelim', default=False, type=str2bool, help='Preliminary flag')
@@ -34,18 +34,19 @@ def get_args():
 	parser.add_argument('--max_epochs', default=250, type=int, help='Maximum number of epochs')
 	parser.add_argument('--resume_epoch', type=int, help='Epoch to resume training from')
 	parser.add_argument('--save_example', default=False, type=str2bool, help='Save training example')
+	parser.add_argument('--save_model', default=False, type=str2bool, help='Save architecture, weights, and training configuration')
 	parser.add_argument('--log_iter', default=False, type=str2bool, help='Log loss per training iteration')
 
 	# TEST OUTPUT TYPE
-	# 'xi_hat' - a priori SNR estimate (.mat),
-	# 'y' - enhanced speech (.wav).
+	# 'raw' - output from network (.mat), 'xi_hat' - a priori SNR estimate (.mat),
+	# 'gain' - gain function (.mat), 'y' - enhanced speech (.wav).
 	parser.add_argument('--out_type', default='y', type=str, help='Output type for testing')
 
 	## GAIN FUNCTION
 	# 'ibm' - Ideal Binary Mask (IBM), 'wf' - Wiener Filter (WF), 'srwf' - Square-Root Wiener Filter (SRWF),
 	# 'cwf' - Constrained Wiener Filter (cWF), 'mmse-stsa' - Minimum-Mean Square Error - Short-Time Spectral Amplitude (MMSE-STSA) estimator,
 	# 'mmse-lsa' - Minimum-Mean Square Error - Log-Spectral Amplitude (MMSE-LSA) estimator.
-	parser.add_argument('--gain', default='srwf', type=str, help='Gain function for testing')
+	parser.add_argument('--gain', default='wf', type=str, help='Gain function for testing')
 
 	## PATHS
 	parser.add_argument('--model_path', default='model', type=str, help='Model save path')

@@ -69,13 +69,13 @@ else
     GPU=$1
 fi
 
-python3 main.py --ver           'reslstm-0c'    \
+python3 main.py --ver           'reslstm-0e'    \
                 --network       'ResLSTM'       \
                 --train         1               \
-                --max_epochs    5000            \
+                --max_epochs    100             \
                 --resume_epoch  0               \
                 --infer         0               \
-                --epoch         0               \
+                --test_epoch    0               \
                 --mbatch_size   8               \
                 --sample_size   1000            \
                 --T_w           32              \
@@ -85,6 +85,7 @@ python3 main.py --ver           'reslstm-0c'    \
                 --out_type      'y'             \
                 --gain          'mmse-lsa'      \
                 --save_example  1               \
+                --save_model    0               \
                 --log_iter      0               \
                 --prelim        0               \
                 --gpu           $GPU            \

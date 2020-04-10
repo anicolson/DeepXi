@@ -86,6 +86,7 @@ class DeepXi(DeepXiInput):
 		stats_path=None, 
 		sample_size=None,
 		save_example=False,
+		save_model=True,
 		log_iter=False
 		):
 		"""
@@ -109,6 +110,7 @@ class DeepXi(DeepXiInput):
 			stats_path - path to save sample statistics. 
 			sample_size - sample size.
 			save_example - save a training example for evaluation.
+			save_model - save architecture, weights, and training configuration. 
 			log_iter - log training loss for each training iteration.
 		"""
 		self.train_s_list = train_s_list
@@ -133,8 +135,8 @@ class DeepXi(DeepXiInput):
 		if not os.path.exists("log/iter"): os.makedirs("log/iter")
 
 		callbacks = []
-		callbacks.append(SaveWeights(model_path))
 		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
+		if save_model: callbacks.append(SaveWeights(model_path))
 		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + ver + ".csv", separator=',', append=True))
 
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" + 
@@ -146,22 +148,35 @@ class DeepXi(DeepXiInput):
 			optimizer=Adam(lr=0.001, clipvalue=1.0)
 			)
 
-		self.mbatch_size = 100
-		x_train, y_train, sample_mask = list(train_dataset.take(1).as_numpy_iterator())[0]
-
-		print(x_train.shape, y_train.shape)
-
 		self.model.fit(
-			x=x_train, 
-			y=y_train, 
-			sample_weight=sample_mask,
+			x=train_dataset, 
 			initial_epoch=resume_epoch, 
 			epochs=max_epochs, 
-			# steps_per_epoch=25, # self.n_iter,
+			steps_per_epoch=self.n_iter,
 			callbacks=callbacks
 			# validation_data=val_set, 
 			# validation_steps=len(val_set[0]),
 			)
+
+
+
+
+		# self.mbatch_size = 100
+		# x_train, y_train, sample_mask = list(train_dataset.take(1).as_numpy_iterator())[0]
+
+		# print(x_train.shape, y_train.shape)
+
+		# self.model.fit(
+		# 	x=x_train, 
+		# 	y=y_train, 
+		# 	sample_weight=sample_mask,
+		# 	initial_epoch=resume_epoch, 
+		# 	epochs=max_epochs, 
+		# 	# steps_per_epoch=25, # self.n_iter,
+		# 	callbacks=callbacks
+		# 	# validation_data=val_set, 
+		# 	# validation_steps=len(val_set[0]),
+		# 	)
 
 		x_test, y_test, _ = list(train_dataset.take(1).as_numpy_iterator())[0]
 		y_hat = self.model.predict(x_test[0:1])
@@ -177,7 +192,7 @@ class DeepXi(DeepXiInput):
 		test_x,
 		test_x_len,
 		test_x_base_names,
-		epoch,
+		test_epoch,
 		model_path='model',
 		out_type='y',
 		gain='mmse-lsa',
@@ -198,7 +213,7 @@ class DeepXi(DeepXiInput):
 		if not os.path.exists(out_path): os.makedirs(out_path)
 		
 		self.sample_stats(stats_path)
-		self.model.load_weights(model_path + '/epoch-' + str(epoch-1) + 
+		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) + 
 			'/variables/variables' )
 
 		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
@@ -300,14 +315,9 @@ class DeepXi(DeepXiInput):
 		Output/s:
 		"""
 		for _ in range(n_epochs):
-			# random.shuffle(self.train_s_list)
+			random.shuffle(self.train_s_list)
 			start_idx, end_idx = 0, self.mbatch_size
 			for _ in range(self.n_iter):		
-
-
-				start_idx, end_idx = 0, self.mbatch_size
-
-
 				s_mbatch_list = self.train_s_list[start_idx:end_idx]
 				d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
 				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
@@ -374,26 +384,26 @@ class DeepXi(DeepXiInput):
 		Output/s:
 		"""
 		batch_size = len(s_batch_list)
-		max_len = max([dic['n_samples'] for dic in s_batch_list]) 
+		max_len = max([dic['wav_len'] for dic in s_batch_list]) 
 		s_batch = np.zeros([batch_size, max_len], np.int16)
 		d_batch = np.zeros([batch_size, max_len], np.int16)
 		s_batch_len = np.zeros(batch_size, np.int32) 
 		for i in range(batch_size):
 			(wav, _) = read_wav(s_batch_list[i]['file_path'])		
-			s_batch[i,:s_batch_list[i]['n_samples']] = wav
-			s_batch_len[i] = s_batch_list[i]['n_samples'] 
+			s_batch[i,:s_batch_list[i]['wav_len']] = wav
+			s_batch_len[i] = s_batch_list[i]['wav_len'] 
 			flag = True
 			while flag:
-				if d_batch_list[i]['n_samples'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
+				if d_batch_list[i]['wav_len'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
 				else: flag = False
 			(wav, _) = read_wav(d_batch_list[i]['file_path']) 
-			rand_idx = np.random.randint(0, 1+d_batch_list[i]['n_samples']-s_batch_len[i])
+			rand_idx = np.random.randint(0, 1+d_batch_list[i]['wav_len']-s_batch_len[i])
 			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
 		d_batch_len = s_batch_len
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
-class SaveWeights(Callback):
+class SaveWeights(Callback):  ### RENAME TO SaveModel
 	"""
 	"""
 	def __init__(self, model_path):

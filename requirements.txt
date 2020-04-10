@@ -2,3 +2,6 @@ numpy
 scipy
 tqdm
 pysoundfile
+libspn_keras
+colorlover
+plotly

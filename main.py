@@ -21,7 +21,6 @@ def add_args(args):
 	args.train_d_path = args.set_path + '/train_noise' # path to the noise training set.
 	args.val_s_path = args.set_path + '/val_clean_speech' # path to the clean speech validation set.
 	args.val_d_path = args.set_path + '/val_noise' # path to the noise validation set.
-	args.out_path = args.out_path + '/' + args.ver + '/' + 'e' + str(args.epoch) # output path.
 	args.N_w = int(args.f_s*args.T_w*0.001) # window length (samples).
 	args.N_s = int(args.f_s*args.T_s*0.001) # window shift (samples).
 	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_w)))) # number of DFT components.
@@ -34,7 +33,9 @@ def add_args(args):
 		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))
 		args.val_steps=int(np.ceil(args.val_s.shape[0]/args.mbatch_size))
 
-	if args.infer: args.test_x, args.test_x_len, _, args.test_x_base_names = Batch(args.test_x_path)
+	if args.infer: 
+		args.out_path = args.out_path + '/' + args.ver + '/' + 'e' + str(args.test_epoch) # output path.
+		args.test_x, args.test_x_len, _, args.test_x_base_names = Batch(args.test_x_path)
 
 	return args
 
@@ -61,8 +62,8 @@ if __name__ == '__main__':
 			)
 
 		if args.train: deepxi.train(
-			args.train_s_list, 
-			args.train_d_list, 
+			train_s_list=args.train_s_list, 
+			train_d_list=args.train_d_list, 
 			model_path=args.model_path,
 			val_s=args.val_s,
 			val_d=args.val_d,
@@ -81,10 +82,10 @@ if __name__ == '__main__':
 			)
 		
 		if args.infer: deepxi.infer(
-			args.test_x[0:10], 
-			args.test_x_len[0:10],
-			args.test_x_base_names[0:10],
-			args.epoch,
+			test_x=args.test_x[0:10], 
+			test_x_len=args.test_x_len[0:10],
+			test_x_base_names=args.test_x_base_names[0:10],
+			test_epoch=args.test_epoch,
 			model_path=args.model_path,
 			out_type=args.out_type,
 			gain=args.gain,

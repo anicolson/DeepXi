@@ -28,6 +28,7 @@ class STFT:
 		self.NFFT = NFFT
 		self.f_s = f_s
 		self.W = functools.partial(window_ops.hamming_window, periodic=False)
+		self.ten = tf.cast(10.0, tf.float32)
 
 	def polar_analysis(self, x):
 		"""
@@ -61,6 +62,7 @@ class DeepXiInput(STFT):
 	Input for Deep Xi.
 	"""
 	def __init__(self, N_w, N_s, NFFT, f_s, mu=None, sigma=None):
+		super().__init__(N_w, N_s, NFFT, f_s)
 		"""
 		Argument/s
 			Nw - window length (samples).
@@ -70,7 +72,6 @@ class DeepXiInput(STFT):
 			mu - sample mean of each instantaneous a priori SNR in dB frequency component.
 			sigma - sample standard deviation of each instantaneous a priori SNR in dB frequency component.
 		"""
-		super().__init__(N_w, N_s, NFFT, f_s)
 		self.mu = mu
 		self.sigma = sigma
 
@@ -238,19 +239,25 @@ class DeepXiInput(STFT):
 			d - noise (dtype=tf.float32).
 			s_len - clean-speech length without padding (samples).
 			d_len - noise length without padding (samples).
-			snr - SNR level.
+			snr - SNR level (dB).
 
 		Outputs:
 			x - noisy speech waveform.
 			d - truncated and scaled noise waveform.
 		"""
 		snr = tf.cast(snr, tf.float32)
+		snr = tf.pow(self.ten, tf.truediv(snr, self.ten)) # inverse of dB.
 		i = tf.random.uniform([1], 0, tf.add(1, tf.subtract(d_len, s_len)), tf.int32)
 		d = tf.slice(d, [i[0]], [s_len])
-		d = tf.multiply(tf.truediv(d, tf.norm(d)), tf.truediv(tf.norm(s), 
-			tf.pow(tf.cast(10.0, tf.float32), tf.multiply(tf.cast(0.05, tf.float32), snr))))
-		x = tf.add(s, d)
+		P_s = tf.reduce_mean(tf.math.square(s), 0) # average power.
+		P_d = tf.reduce_mean(tf.math.square(d), 0) # average power.
+		alpha = tf.math.sqrt(tf.truediv(P_s, 
+			tf.maximum(tf.multiply(P_d, snr), 1e-12))) # scaling factor.
+		x = tf.add(s, tf.multiply(d, alpha))
 		return (x, d)
+
+		# d = tf.multiply(tf.truediv(d, tf.norm(d)), tf.truediv(tf.norm(s), 
+		# 	tf.pow(tf.cast(10.0, tf.float32), tf.multiply(tf.cast(0.05, tf.float32), snr))))
 
 	def log10(self, x):
 		"""

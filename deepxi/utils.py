@@ -84,11 +84,11 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 	for i in extension:
 		for j in glob.glob(os.path.join(file_dir, i)):
 			f = SoundFile(j)
-			n_samples = f.seek(0, SEEK_END)
-			if n_samples == -1: 
+			wav_len = f.seek(0, SEEK_END)
+			if wav_len == -1: 
 				wav, _ = read_wav(path)
-				n_samples = len(wav)
-			batch_list.append({'file_path': j, 'n_samples': n_samples}) # append dictionary.
+				wav_len = len(wav)
+			batch_list.append({'file_path': j, 'wav_len': wav_len}) # append dictionary.
 	if not os.path.exists(data_path): os.makedirs(data_path) # make directory.
 	with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'wb') as f: 		
 		pickle.dump(batch_list, f)

@@ -7,7 +7,7 @@
 
 clear all; close all; clc
 
-ver = {'reslstm-0c'};
+ver = {'reslstm-0c', 'reslstm-0d', 'reslstm-0e'};
 
 for i = 1:length(ver)
     T = readtable([ver{i}, '.csv']);
