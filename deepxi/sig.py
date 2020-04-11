@@ -217,8 +217,8 @@ class DeepXiInput(STFT):
 			pad_len - padded length.
 
 		Outputs:
-			s - padded clean speech waveform.
-			x - padded noisy speech waveform.
+			s - padded clean-speech waveform.
+			x - padded noisy-speech waveform.
 			d - truncated, scaled, and padded noise waveform.
 		"""
 		s, d = s[:s_len], d[:d_len]
@@ -242,15 +242,15 @@ class DeepXiInput(STFT):
 			snr - SNR level (dB).
 
 		Outputs:
-			x - noisy speech waveform.
+			x - noisy-speech waveform.
 			d - truncated and scaled noise waveform.
 		"""
 		snr = tf.cast(snr, tf.float32)
 		snr = tf.pow(self.ten, tf.truediv(snr, self.ten)) # inverse of dB.
 		i = tf.random.uniform([1], 0, tf.add(1, tf.subtract(d_len, s_len)), tf.int32)
 		d = tf.slice(d, [i[0]], [s_len])
-		P_s = tf.reduce_mean(tf.math.square(s), 0) # average power.
-		P_d = tf.reduce_mean(tf.math.square(d), 0) # average power.
+		P_s = tf.reduce_mean(tf.math.square(s), 0) # average power of clean speech.
+		P_d = tf.reduce_mean(tf.math.square(d), 0) # average power of noise.
 		alpha = tf.math.sqrt(tf.truediv(P_s, 
 			tf.maximum(tf.multiply(P_d, snr), 1e-12))) # scaling factor.
 		x = tf.add(s, tf.multiply(d, alpha))

@@ -18,7 +18,7 @@ case `hostname` in
     OUT_PATH=''
     MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
     ;;
-"stink")  echo "Running on stink." 
+"stink")  echo "Running on stink."
     SET_PATH='/mnt/ssd'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
     TEST_X_PATH=''
@@ -69,7 +69,7 @@ else
     GPU=$1
 fi
 
-python3 main.py --ver           'reslstm-0e'    \
+python3 main.py --ver           'reslstm-0f'    \
                 --network       'ResLSTM'       \
                 --train         1               \
                 --max_epochs    100             \
@@ -87,12 +87,9 @@ python3 main.py --ver           'reslstm-0e'    \
                 --save_example  1               \
                 --save_model    0               \
                 --log_iter      0               \
-                --prelim        0               \
                 --gpu           $GPU            \
                 --set_path      $SET_PATH       \
                 --data_path     $DATA_PATH      \
                 --test_x_path   $TEST_X_PATH    \
                 --out_path      $OUT_PATH       \
-                --model_path    $MODEL_PATH     
-
-
+                --model_path    $MODEL_PATH

@@ -22,8 +22,8 @@ import collections, csv, io, math, os, random, six
 import numpy as np
 import tensorflow as tf
 
-# [1] Nicolson, A. and Paliwal, K.K., 2019. Deep learning for 
-# minimum mean-square error approaches to speech enhancement. 
+# [1] Nicolson, A. and Paliwal, K.K., 2019. Deep learning for
+# minimum mean-square error approaches to speech enhancement.
 # Speech Communication, 111, pp.44-55.
 
 class DeepXi(DeepXiInput):
@@ -31,16 +31,16 @@ class DeepXi(DeepXiInput):
 	Deep Xi model from [1].
 	"""
 	def __init__(
-		self, 
-		N_w, 
-		N_s, 
-		NFFT, 
-		f_s, 
-		mu=None, 
-		sigma=None, 
-		network='TCN', 
-		min_snr=None, 
-		max_snr=None, 
+		self,
+		N_w,
+		N_s,
+		NFFT,
+		f_s,
+		mu=None,
+		sigma=None,
+		network='TCN',
+		min_snr=None,
+		max_snr=None,
 		):
 		"""
 		Argument/s
@@ -68,22 +68,22 @@ class DeepXi(DeepXiInput):
 		self.model.summary()
 
 	def train(
-		self, 
-		train_s_list, 
+		self,
+		train_s_list,
 		train_d_list,
 		model_path='model',
 		val_s=None,
 		val_d=None,
 		val_s_len=None,
 		val_d_len=None,
-		val_snr=None, 
+		val_snr=None,
 		val_flag=True,
 		val_save_path=None,
-		mbatch_size=8, 
-		max_epochs=200, 
+		mbatch_size=8,
+		max_epochs=200,
 		resume_epoch=0,
 		ver='VERSION_NAME',
-		stats_path=None, 
+		stats_path=None,
 		sample_size=None,
 		save_example=False,
 		save_model=True,
@@ -100,17 +100,17 @@ class DeepXi(DeepXiInput):
 			val_d - noise validation batch.
 			val_s_len - clean-speech validation sequence length batch.
 			val_d_len - noise validation sequence length batch.
-			val_snr - SNR validation batch. 
+			val_snr - SNR validation batch.
 			val_flag - perform validation.
 			val_save_path - validation batch save path.
-			mbatch_size - mini-batch size. 
+			mbatch_size - mini-batch size.
 			max_epochs - maximum number of epochs.
 			resume_epoch - epoch to resume training from.
 			ver - version name.
-			stats_path - path to save sample statistics. 
+			stats_path - path to save sample statistics.
 			sample_size - sample size.
 			save_example - save a training example for evaluation.
-			save_model - save architecture, weights, and training configuration. 
+			save_model - save architecture, weights, and training configuration.
 			log_iter - log training loss for each training iteration.
 		"""
 		self.train_s_list = train_s_list
@@ -139,44 +139,26 @@ class DeepXi(DeepXiInput):
 		if save_model: callbacks.append(SaveWeights(model_path))
 		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + ver + ".csv", separator=',', append=True))
 
-		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" + 
+		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" +
 			str(resume_epoch-1) + "/variables/variables" )
 
 		self.model.compile(
-			sample_weight_mode="temporal", 
-			loss="binary_crossentropy", 
+			sample_weight_mode="temporal",
+			loss="binary_crossentropy",
 			optimizer=Adam(lr=0.001, clipvalue=1.0)
 			)
 
 		self.model.fit(
-			x=train_dataset, 
-			initial_epoch=resume_epoch, 
-			epochs=max_epochs, 
+			x=x_train,
+			y=y_train,
+			sample_weight=sample_mask,
+			initial_epoch=resume_epoch,
+			epochs=max_epochs,
 			steps_per_epoch=self.n_iter,
 			callbacks=callbacks
-			# validation_data=val_set, 
-			# validation_steps=len(val_set[0]),
+			validation_data=val_set,
+			validation_steps=len(val_set[0]),
 			)
-
-
-
-
-		# self.mbatch_size = 100
-		# x_train, y_train, sample_mask = list(train_dataset.take(1).as_numpy_iterator())[0]
-
-		# print(x_train.shape, y_train.shape)
-
-		# self.model.fit(
-		# 	x=x_train, 
-		# 	y=y_train, 
-		# 	sample_weight=sample_mask,
-		# 	initial_epoch=resume_epoch, 
-		# 	epochs=max_epochs, 
-		# 	# steps_per_epoch=25, # self.n_iter,
-		# 	callbacks=callbacks
-		# 	# validation_data=val_set, 
-		# 	# validation_steps=len(val_set[0]),
-		# 	)
 
 		x_test, y_test, _ = list(train_dataset.take(1).as_numpy_iterator())[0]
 		y_hat = self.model.predict(x_test[0:1])
@@ -197,8 +179,8 @@ class DeepXi(DeepXiInput):
 		out_type='y',
 		gain='mmse-lsa',
 		out_path='out',
-		stats_path=None 
-		): 
+		stats_path=None
+		):
 		"""
 		Deep Xi inference. The specified 'out_type' is saved.
 
@@ -211,13 +193,13 @@ class DeepXi(DeepXiInput):
 		elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
 		else: raise ValueError('Invalid output type.')
 		if not os.path.exists(out_path): os.makedirs(out_path)
-		
+
 		self.sample_stats(stats_path)
-		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) + 
+		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) +
 			'/variables/variables' )
 
 		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
-		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1) 
+		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1)
 
 		batch_size = len(test_x_len)
 		for i in tqdm(range(batch_size)):
@@ -237,15 +219,15 @@ class DeepXi(DeepXiInput):
 			else: raise ValueError('Invalid output type.')
 
 	def sample_stats(
-		self, 
-		stats_path='data', 
-		sample_size=1000, 
-		train_s_list=None, 
+		self,
+		stats_path='data',
+		sample_size=1000,
+		train_s_list=None,
 		train_d_list=None
 		):
 		"""
 		Computes statistics for each frequency component of the instantaneous a priori SNR
-		in dB over a sample of the training set. The statistics are then used to map the 
+		in dB over a sample of the training set. The statistics are then used to map the
 		instantaneous a priori SNR in dB between 0 and 1 using its cumulative distribution
 		function. This forms the mapped a priori SNR (the training target).
 
@@ -268,7 +250,7 @@ class DeepXi(DeepXiInput):
 			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
 			samples = []
 			for i in tqdm(range(s_sample.shape[0])):
-				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1], 
+				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
 					d_sample_len[i:i+1], snr_sample[i:i+1])
 				samples.append(np.squeeze(xi.numpy()))
 			samples = np.vstack(samples)
@@ -288,25 +270,25 @@ class DeepXi(DeepXiInput):
 		Output/s:
 		"""
 		# dataset = tf.data.Dataset.from_generator(
-		# 	self.mbatch_gen, 
-		# 	({'inp': tf.float32, 'seq_len': tf.int32}, tf.float32), 
-		# 	({'inp': tf.TensorShape([None, None, self.n_feat]), 
-		# 		'seq_len': tf.TensorShape([None])}, 
+		# 	self.mbatch_gen,
+		# 	({'inp': tf.float32, 'seq_len': tf.int32}, tf.float32),
+		# 	({'inp': tf.TensorShape([None, None, self.n_feat]),
+		# 		'seq_len': tf.TensorShape([None])},
 		# 		tf.TensorShape([None, self.n_outp])),
 		# 	[tf.constant(n_epochs)]
 		# 	)
 		dataset = tf.data.Dataset.from_generator(
-			self.mbatch_gen, 
-			(tf.float32, tf.float32, tf.float32), 
-			(tf.TensorShape([None, None, self.n_feat]), 
-				tf.TensorShape([None, None, self.n_outp]), 
+			self.mbatch_gen,
+			(tf.float32, tf.float32, tf.float32),
+			(tf.TensorShape([None, None, self.n_feat]),
+				tf.TensorShape([None, None, self.n_outp]),
 				tf.TensorShape([None, None])),
 			[tf.constant(n_epochs)]
 			)
-		dataset = dataset.prefetch(buffer_size) 
+		dataset = dataset.prefetch(buffer_size)
 		return dataset
 
-	def mbatch_gen(self, n_epochs): 
+	def mbatch_gen(self, n_epochs):
 		"""
 		Used to create tf.data.Dataset for training.
 
@@ -317,7 +299,7 @@ class DeepXi(DeepXiInput):
 		for _ in range(n_epochs):
 			random.shuffle(self.train_s_list)
 			start_idx, end_idx = 0, self.mbatch_size
-			for _ in range(self.n_iter):		
+			for _ in range(self.n_iter):
 				s_mbatch_list = self.train_s_list[start_idx:end_idx]
 				d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
 				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
@@ -347,7 +329,7 @@ class DeepXi(DeepXiInput):
 			x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
 			xi_bar_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
 			for i in tqdm(range(batch_size)):
-				x_STMS, xi_bar, _ = self.training_example(val_s[i:i+1], val_d[i:i+1], 
+				x_STMS, xi_bar, _ = self.training_example(val_s[i:i+1], val_d[i:i+1],
 					val_s_len[i:i+1], val_d_len[i:i+1], val_snr[i:i+1])
 				n_frames = self.n_frames(val_s_len[i])
 				x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
@@ -355,7 +337,7 @@ class DeepXi(DeepXiInput):
 			np.savez(save_path + '/val_batch.npz', val_inp=x_STMS_batch, val_tgt=xi_bar_batch)
 		return x_STMS_batch, xi_bar_batch
 
-	def observation_batch(self, x_batch, x_batch_len): 
+	def observation_batch(self, x_batch, x_batch_len):
 		"""
 		Computes observations (noisy-speech STMS) from noisy speech recordings.
 
@@ -384,23 +366,23 @@ class DeepXi(DeepXiInput):
 		Output/s:
 		"""
 		batch_size = len(s_batch_list)
-		max_len = max([dic['wav_len'] for dic in s_batch_list]) 
+		max_len = max([dic['wav_len'] for dic in s_batch_list])
 		s_batch = np.zeros([batch_size, max_len], np.int16)
 		d_batch = np.zeros([batch_size, max_len], np.int16)
-		s_batch_len = np.zeros(batch_size, np.int32) 
+		s_batch_len = np.zeros(batch_size, np.int32)
 		for i in range(batch_size):
-			(wav, _) = read_wav(s_batch_list[i]['file_path'])		
+			(wav, _) = read_wav(s_batch_list[i]['file_path'])
 			s_batch[i,:s_batch_list[i]['wav_len']] = wav
-			s_batch_len[i] = s_batch_list[i]['wav_len'] 
+			s_batch_len[i] = s_batch_list[i]['wav_len']
 			flag = True
 			while flag:
 				if d_batch_list[i]['wav_len'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
 				else: flag = False
-			(wav, _) = read_wav(d_batch_list[i]['file_path']) 
+			(wav, _) = read_wav(d_batch_list[i]['file_path'])
 			rand_idx = np.random.randint(0, 1+d_batch_list[i]['wav_len']-s_batch_len[i])
 			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
 		d_batch_len = s_batch_len
-		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size) 
+		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size)
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
 class SaveWeights(Callback):  ### RENAME TO SaveModel

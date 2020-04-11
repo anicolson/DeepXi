@@ -16,6 +16,9 @@ import numpy as np
 import tensorflow as tf
 
 class Prelim():
+	"""
+	This preliminary class was used as the basis for the DeepXi class.
+	"""
 	def __init__(
 		self,
 		n_feat,
@@ -33,17 +36,17 @@ class Prelim():
 		self.model.summary()
 
 	def train(
-		self, 
-		mbatch_size=8, 
-		max_epochs=20, 
+		self,
+		mbatch_size=8,
+		max_epochs=20,
 		):
 		self.mbatch_size=mbatch_size
 		self.max_epochs=max_epochs
 		self.batch_size=100
 
 		self.model.compile(
-			sample_weight_mode="temporal", 
-			loss="binary_crossentropy", 
+			sample_weight_mode="temporal",
+			loss="binary_crossentropy",
 			optimizer=Adam(lr=0.001, clipvalue=1.0)
 			)
 
@@ -51,7 +54,7 @@ class Prelim():
 
 		self.model.fit(
 			train_dataset,
-			epochs=max_epochs, 
+			epochs=max_epochs,
 			steps_per_epoch=math.ceil(self.batch_size/self.mbatch_size)
 			)
 
@@ -66,16 +69,16 @@ class Prelim():
 
 	def dataset(self, buffer_size=16):
 		dataset = tf.data.Dataset.from_generator(
-			self.mbatch_gen, 
-			(tf.float32, tf.float32, tf.float32), 
-			(tf.TensorShape([None, None, self.n_feat]), 
-				tf.TensorShape([None, None, self.n_outp]), 
+			self.mbatch_gen,
+			(tf.float32, tf.float32, tf.float32),
+			(tf.TensorShape([None, None, self.n_feat]),
+				tf.TensorShape([None, None, self.n_outp]),
 				tf.TensorShape([None, None]))
 			)
-		dataset = dataset.prefetch(buffer_size) 
+		dataset = dataset.prefetch(buffer_size)
 		return dataset
 
-	def mbatch_gen(self): 
+	def mbatch_gen(self):
 		for _ in range(self.max_epochs):
 			for _ in range(math.ceil(self.batch_size/self.mbatch_size)):
 				max_seq_len = 75
@@ -90,6 +93,6 @@ class Prelim():
 				y_train = np.tile(y_frame, (self.mbatch_size, max_seq_len, 1))
 				seq_len = np.random.randint(min_seq_len, max_seq_len+1, self.mbatch_size)
 				seq_mask = tf.cast(tf.sequence_mask(seq_len, maxlen=max_seq_len), tf.float32)
-				x_train = tf.multiply(x_train, tf.expand_dims(seq_mask, 2)) 
-				y_train = tf.multiply(y_train, tf.expand_dims(seq_mask, 2)) 
+				x_train = tf.multiply(x_train, tf.expand_dims(seq_mask, 2))
+				y_train = tf.multiply(y_train, tf.expand_dims(seq_mask, 2))
 				yield x_train, y_train, seq_mask
