@@ -51,7 +51,10 @@ if __name__ == '__main__':
 		min_snr=args.min_snr,
 		max_snr=args.max_snr,
 		d_model=args.d_model,
-		n_blocks=args.n_blocks
+		n_blocks=args.n_blocks,
+		d_f=args.d_f,
+		k=args.k,
+		max_d_rate=args.max_d_rate
 		)
 
 	if args.train: deepxi.train(

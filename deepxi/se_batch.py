@@ -12,7 +12,7 @@ from scipy.io.wavfile import read
 
 def Batch(fdir, snr_l=[]):
 	'''
-	REQUIRES REWRITING.
+	REQUIRES REWRITING. WILL BE MOVED TO deepxi/utils.py
 
 	Places all of the test waveforms from the list into a numpy array.
 	SPHERE format cannot be used. 'glob' is used to support Unix style pathname

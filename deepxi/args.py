@@ -31,16 +31,22 @@ def get_args():
 	parser.add_argument('--log_iter', default=False, type=str_to_bool, help='Log loss per training iteration')
 	parser.add_argument('--eval_example', default=False, type=str_to_bool, help='Evaluate a mini-batch of training examples')
 
-	# TEST OUTPUT TYPE
-	# 'raw' - output from network (.mat), 'xi_hat' - a priori SNR estimate (.mat),
-	# 'gain' - gain function (.mat), 'y' - enhanced speech (.wav).
+	# INFERENCE OUTPUT TYPE
+	# 'xi_hat' - a priori SNR estimate (.mat),
+	# 'gain' - gain function (.mat),
+	# 'deepmmse' - noise PSD estimate using DeepMMSE (.mat),
+	# 'y' - enhanced speech (.wav),
+	# 'd_hat' - noise estimate using DeepMMSE (.wav).
 	parser.add_argument('--out_type', default='y', type=str, help='Output type for testing')
 
 	## GAIN FUNCTION
-	# 'ibm' - Ideal Binary Mask (IBM), 'wf' - Wiener Filter (WF), 'srwf' - Square-Root Wiener Filter (SRWF),
-	# 'cwf' - Constrained Wiener Filter (cWF), 'mmse-stsa' - Minimum-Mean Square Error - Short-Time Spectral Amplitude (MMSE-STSA) estimator,
-	# 'mmse-lsa' - Minimum-Mean Square Error - Log-Spectral Amplitude (MMSE-LSA) estimator.
-	parser.add_argument('--gain', default='wf', type=str, help='Gain function for testing')
+	# 'ibm' - ideal binary mask (IBM),
+	# 'wf' - Wiener filter (WF),
+	# 'srwf' - square-root Wiener filter (SRWF),
+	# 'cwf' - constrained Wiener filter (cWF),
+	# 'mmse-stsa' - minimum-mean square error short-time spectral smplitude (MMSE-STSA) estimator,
+	# 'mmse-lsa' - minimum-mean square error log-spectral amplitude (MMSE-LSA) estimator.
+	parser.add_argument('--gain', default='mmse-lsa', type=str, help='Gain function for testing')
 
 	## PATHS
 	parser.add_argument('--model_path', default='model', type=str, help='Model save path')
@@ -61,9 +67,9 @@ def get_args():
 	parser.add_argument('--d_out', type=int, help='Ouput dimensionality')
 	parser.add_argument('--d_model', type=int, help='Model dimensions')
 	parser.add_argument('--n_blocks', type=int, help='Number of blocks')
-	parser.add_argument('--d_f', type=int, help='Number of filters')
-	parser.add_argument('--k', type=int, help='Kernel size')
-	parser.add_argument('--max_d_rate', type=int, help='Maximum dilation rate')
+	parser.add_argument('--d_f', default=None, type=int, help='Number of filters')
+	parser.add_argument('--k', default=None, type=int, help='Kernel size')
+	parser.add_argument('--max_d_rate', default=None, type=int, help='Maximum dilation rate')
 
 	parser.add_argument('--net_height', default=[4], type=list, help='RDL block height')
 

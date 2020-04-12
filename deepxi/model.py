@@ -180,8 +180,15 @@ class DeepXi(DeepXiInput):
 		Deep Xi inference. The specified 'out_type' is saved.
 
 		Argument/s:
-
-		Returns:
+			test_x - noisy-speech test batch.
+			test_x_len - noisy-speech test batch lengths.
+			test_x_base_names - noisy-speech base names.
+			test_epoch - epoch to test.
+			model_path - path to model directory.
+			out_type - output type (see deepxi/args.py).
+			gain - gain function (see deepxi/args.py).
+			out_path - path to save output files.
+			stats_path - path to the saved statistics.
 		"""
 		if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
 		elif out_type == 'y': out_path = out_path + '/' + gain + '/y'
@@ -227,8 +234,10 @@ class DeepXi(DeepXiInput):
 		function. This forms the mapped a priori SNR (the training target).
 
 		Argument/s:
-
-		Returns:
+			stats_path - path to the saved statistics.
+			sample_size - number of training examples to compute the statistics from.
+			train_s_list - train clean speech list.
+			train_d_list - train noise list.
 		"""
 		if os.path.exists(stats_path + '/stats.npz'):
 			print('Loading sample statistics...')
@@ -245,9 +254,10 @@ class DeepXi(DeepXiInput):
 			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
 			samples = []
 			for i in tqdm(range(s_sample.shape[0])):
-				xi, _ = self.instantaneous_a_priori_snr_db(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
+				s_STMS, d_STMS, _, _ = self.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
 					d_sample_len[i:i+1], snr_sample[i:i+1])
-				samples.append(np.squeeze(xi.numpy()))
+				xi_db = self.xi_db(s_STMS, d_STMS) # instantaneous a priori SNR (dB).
+				samples.append(np.squeeze(xi_db.numpy()))
 			samples = np.vstack(samples)
 			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
 			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
@@ -300,7 +310,7 @@ class DeepXi(DeepXiInput):
 				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = \
 					self.wav_batch(s_mbatch_list, d_mbatch_list)
 				x_STMS_mbatch, xi_bar_mbatch, n_frames_mbatch = \
-					self.training_example(s_mbatch, d_mbatch, s_mbatch_len,
+					self.example(s_mbatch, d_mbatch, s_mbatch_len,
 					d_mbatch_len, snr_mbatch)
 				seq_mask_mbatch = tf.cast(tf.sequence_mask(n_frames_mbatch), tf.float32)
 				start_idx += self.mbatch_size; end_idx += self.mbatch_size
@@ -317,7 +327,7 @@ class DeepXi(DeepXiInput):
 		val_snr
 		):
 		"""
-		Creates and saves a batch of examples from the validation set. If
+		Creates and saves the examples for the validation set. If
 		already saved, the function will load the batch of examples.
 
 		Argument/s:
@@ -331,7 +341,7 @@ class DeepXi(DeepXiInput):
 		Returns:
 			x_STMS_batch - batch of observations (noisy speech short-time magnitude spectum).
 			xi_bar_batch - batch of targets (mapped a priori SNR).
-			n_frames_batch - batch of sequence masks.
+			seq_mask_batch - batch of sequence masks.
 		"""
 		if not os.path.exists(save_path): os.makedirs(save_path)
 		if os.path.exists(save_path + '/val_batch.npz'):
@@ -348,7 +358,7 @@ class DeepXi(DeepXiInput):
 			xi_bar_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
 			seq_mask_batch = np.zeros([batch_size, max_n_frames], np.float32)
 			for i in tqdm(range(batch_size)):
-				x_STMS, xi_bar, _ = self.training_example(val_s[i:i+1], val_d[i:i+1],
+				x_STMS, xi_bar, _ = self.example(val_s[i:i+1], val_d[i:i+1],
 					val_s_len[i:i+1], val_d_len[i:i+1], val_snr[i:i+1])
 				n_frames = self.n_frames(val_s_len[i])
 				x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
@@ -363,48 +373,63 @@ class DeepXi(DeepXiInput):
 		Computes observations (noisy-speech STMS) from noisy speech recordings.
 
 		Argument/s:
+			x_batch - noisy-speech batch.
+			x_batch_len - noisy-speech batch lengths.
 
 		Returns:
+			x_STMS_batch - batch of observations (noisy-speech short-time magnitude spectrums).
+			x_STPS_batch - batch of noisy-speech short-time phase spectrums.
+			n_frames_batch - number of frames in each observation.
 		"""
 		batch_size = len(x_batch)
 		max_n_frames = self.n_frames(max(x_batch_len))
 		x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
 		x_STPS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+		n_frames_batch = [self.n_frames(i) for i in x_batch_len]
 		for i in tqdm(range(batch_size)):
 			x_STMS, x_STPS = self.observation(x_batch[i,:x_batch_len[i]])
-			n_frames = self.n_frames(x_batch_len[i])
-			x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
-			x_STPS_batch[i,:n_frames,:] = x_STPS.numpy()
-		n_frames = [self.n_frames(i) for i in x_batch_len]
-		return x_STMS_batch, x_STPS_batch, n_frames
+			x_STMS_batch[i,:n_frames_batch[i],:] = x_STMS.numpy()
+			x_STPS_batch[i,:n_frames_batch[i],:] = x_STPS.numpy()
+		return x_STMS_batch, x_STPS_batch, n_frames_batch
 
-	def wav_batch(self, s_batch_list, d_batch_list):
+	def wav_batch(self, s_list, d_batch_list):
 		"""
 		Loads .wav files into batches.
 
 		Argument/s:
+			s_list - clean-speech list.
+			d_list - noise list.
 
 		Returns:
+			s_batch - batch of clean speech.
+			d_batch - batch of noise.
+			s_batch_len - sequence length of each clean speech waveform.
+			d_batch_len - sequence length of each noise waveform.
+			snr_batch - batch of SNR levels.
 		"""
-		batch_size = len(s_batch_list)
-		max_len = max([dic['wav_len'] for dic in s_batch_list])
+		batch_size = len(s_list)
+		max_len = max([dic['wav_len'] for dic in s_list])
 		s_batch = np.zeros([batch_size, max_len], np.int16)
 		d_batch = np.zeros([batch_size, max_len], np.int16)
 		s_batch_len = np.zeros(batch_size, np.int32)
 		for i in range(batch_size):
-			(wav, _) = read_wav(s_batch_list[i]['file_path'])
-			s_batch[i,:s_batch_list[i]['wav_len']] = wav
-			s_batch_len[i] = s_batch_list[i]['wav_len']
+			(wav, _) = read_wav(s_list[i]['file_path'])
+			s_batch[i,:s_list[i]['wav_len']] = wav
+			s_batch_len[i] = s_list[i]['wav_len']
 			flag = True
 			while flag:
-				if d_batch_list[i]['wav_len'] < s_batch_len[i]: d_batch_list[i] = random.choice(self.train_d_list)
+				if d_list[i]['wav_len'] < s_batch_len[i]: d_list[i] = random.choice(self.train_d_list)
 				else: flag = False
-			(wav, _) = read_wav(d_batch_list[i]['file_path'])
-			rand_idx = np.random.randint(0, 1+d_batch_list[i]['wav_len']-s_batch_len[i])
+			(wav, _) = read_wav(d_list[i]['file_path'])
+			rand_idx = np.random.randint(0, 1+d_list[i]['wav_len']-s_batch_len[i])
 			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
 		d_batch_len = s_batch_len
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size)
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
+
+#############################################################
+## CREATE deepxi/callbacks.py AND MOVE THE CALLBACKS THERE ##
+#############################################################
 
 class SaveWeights(Callback):  ### RENAME TO SaveModel
 	"""

@@ -42,7 +42,7 @@ class TCN:
 		self.n_outp = n_outp
 		self.first_layer = self.feedforward(inp)
 		self.layer_list = [self.first_layer]
-		for i in range(B): self.layer_list.append(self.block(self.layer_list[-1], int(2**(i%(np.log2(max_d_rate)+1)))))
+		for i in range(n_blocks): self.layer_list.append(self.block(self.layer_list[-1], int(2**(i%(np.log2(max_d_rate)+1)))))
 		self.logits = Conv1D(self.n_outp, 1, dilation_rate=1, use_bias=True)(self.layer_list[-1])
 		self.outp = Activation('sigmoid')(self.logits)
 

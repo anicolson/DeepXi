@@ -17,9 +17,9 @@ class STFT:
 	"""
 	def __init__(self, N_d, N_s, NFFT, f_s):
 		"""
-		Argument/s
+		Argument/s:
 			N_d - window duration (samples).
-			N_s - window shift (samples).s
+			N_s - window shift (samples).
 			NFFT - number of DFT bins.
 			f_s - sampling frequency.
 		"""
@@ -59,7 +59,7 @@ class STFT:
 
 class DeepXiInput(STFT):
 	"""
-	Input for Deep Xi.
+	Input to Deep Xi.
 	"""
 	def __init__(self, N_d, N_s, NFFT, f_s, mu=None, sigma=None):
 		super().__init__(N_d, N_s, NFFT, f_s)
@@ -69,8 +69,8 @@ class DeepXiInput(STFT):
 			N_s - window shift (samples).
 			NFFT - number of DFT bins.
 			f_s - sampling frequency.
-			mu - sample mean of each instantaneous a priori SNR in dB frequency component.
-			sigma - sample standard deviation of each instantaneous a priori SNR in dB frequency component.
+			mu - sample mean of each instantaneous a priori SNR (dB) frequency component.
+			sigma - sample standard deviation of each instantaneous a priori SNR (dB) frequency component.
 		"""
 		self.mu = mu
 		self.sigma = sigma
@@ -91,9 +91,9 @@ class DeepXiInput(STFT):
 		x_STMS, x_STPS = self.polar_analysis(x)
 		return x_STMS, x_STPS
 
-	def training_example(self, s, d, s_len, d_len, snr): ## RENAME TO EXAMPLE.
+	def example(self, s, d, s_len, d_len, snr):
 		"""
-		Compute training example for Deep Xi, i.e. observation (noisy-speech STMS)
+		Compute example for Deep Xi, i.e. observation (noisy-speech STMS)
 		and target (mapped a priori SNR).
 
 		Argument/s:
@@ -111,27 +111,7 @@ class DeepXiInput(STFT):
 		s_STMS, d_STMS, x_STMS, n_frames = self.mix(s, d, s_len, d_len, snr)
 		mask = tf.expand_dims(tf.cast(tf.sequence_mask(n_frames), tf.float32), 2)
 		xi_bar = tf.multiply(self.xi_bar(s_STMS, d_STMS), mask)
-		# xi_bar = self.xi_bar(s_STMS, d_STMS)
 		return x_STMS, xi_bar, n_frames
-
-	def instantaneous_a_priori_snr_db(self, s, d, s_len, d_len, snr): ## RENAME
-		"""
-	    Instantaneous a priori SNR in dB.
-
-		Argument/s:
-			s - clean speech (dtype=tf.int32).
-			d - noise (dtype=tf.int32).
-			s_len - clean-speech length without padding (samples).
-			d_len - noise length without padding (samples).
-			snr - SNR level.
-
-		Returns:
-			xi_dB - instantaneous a priori SNR in dB.
-			L - number of time-domain frames for each sequence.
-		"""
-		s_STMS, d_STMS, _, n_frames = self.mix(s, d, s_len, d_len, snr)
-		xi_dB = self.xi_dB(s_STMS, d_STMS)
-		return xi_dB, n_frames
 
 	def mix(self, s, d, s_len, d_len, snr):
 		"""
@@ -154,9 +134,7 @@ class DeepXiInput(STFT):
 		n_frames = self.n_frames(s_len)
 		(x, s, d) = self.add_noise_batch(s, d, s_len, d_len, snr)
 		s_STMS, _ = self.polar_analysis(s)
-		# s_STMS = tf.boolean_mask(s_STMS, tf.sequence_mask(n_frames))
 		d_STMS, _ = self.polar_analysis(d)
-		# d_STMS = tf.boolean_mask(d_STMS, tf.sequence_mask(n_frames))
 		x_STMS, _ = self.polar_analysis(x)
 		return s_STMS, d_STMS, x_STMS, n_frames
 
@@ -205,7 +183,7 @@ class DeepXiInput(STFT):
 
 	def add_noise_pad(self, s, d, s_len, d_len, snr, pad_len):
 		"""
-		Calls addnoise() and pads the waveforms to the length given by 'pad_len'.
+		Calls add_noise() and pads the waveforms to the length given by 'pad_len'.
 		Also normalises the waveforms.
 
 		Argument/s:
@@ -231,7 +209,7 @@ class DeepXiInput(STFT):
 
 	def add_noise(self, s, d, s_len, d_len, snr):
 		"""
-		Adds noise to the clean waveform at a specific SNR value. A random section
+		Adds noise to the clean speech at a specific SNR value. A random section
 		of the noise waveform is used.
 
 		Argument/s:
@@ -257,9 +235,6 @@ class DeepXiInput(STFT):
 		x = tf.add(s, d)
 		return (x, d)
 
-		# d = tf.multiply(tf.truediv(d, tf.norm(d)), tf.truediv(tf.norm(s),
-		# 	tf.pow(tf.cast(10.0, tf.float32), tf.multiply(tf.cast(0.05, tf.float32), snr))))
-
 	def snr_db(self, s, d):
 		"""
 		Calculates the SNR (dB) between the speech and noise.
@@ -273,9 +248,9 @@ class DeepXiInput(STFT):
 		"""
 		P_s = tf.reduce_mean(tf.math.square(s), 0) # average power of clean speech.
 		P_d = tf.reduce_mean(tf.math.square(d), 0) # average power of noise.
-		return tf.multiply(self.ten, self.log10(tf.truediv(P_s, P_d)))
+		return tf.multiply(self.ten, self.log_10(tf.truediv(P_s, P_d)))
 
-	def log10(self, x):
+	def log_10(self, x):
 		"""
 		log_10(x).
 
@@ -285,7 +260,7 @@ class DeepXiInput(STFT):
 		Returns:
 			log_10(x)
 		"""
-		return tf.truediv(tf.math.log(x), tf.math.log(tf.cast(10, tf.float32)))
+		return tf.truediv(tf.math.log(x), tf.math.log(self.ten))
 
 	def xi(self, s_STMS, d_STMS):
 		"""
@@ -300,7 +275,7 @@ class DeepXiInput(STFT):
 		"""
 		return tf.truediv(tf.square(s_STMS), tf.maximum(tf.square(d_STMS), 1e-12))
 
-	def xi_dB(self, s_STMS, d_STMS):
+	def xi_db(self, s_STMS, d_STMS):
 		"""
 		Instantaneous a priori SNR in dB.
 
@@ -311,7 +286,7 @@ class DeepXiInput(STFT):
 		Returns:
 			Instantaneous a priori SNR in dB.
 		"""
-		return tf.multiply(10.0, self.log10(tf.maximum(self.xi(s_STMS, d_STMS), 1e-12)))
+		return tf.multiply(10.0, self.log_10(tf.maximum(self.xi(s_STMS, d_STMS), 1e-12)))
 
 	def xi_bar(self, s_STMS, d_STMS):
 		"""
@@ -337,6 +312,29 @@ class DeepXiInput(STFT):
 		Returns:
 			A priori SNR estimate.
 		"""
-		xi_dB_hat = np.add(np.multiply(np.multiply(self.sigma, np.sqrt(2.0)),
+		xi_db_hat = np.add(np.multiply(np.multiply(self.sigma, np.sqrt(2.0)),
 			spsp.erfinv(np.subtract(np.multiply(2.0, xi_bar_hat), 1))), self.mu)
-		return np.power(10.0, np.divide(xi_dB_hat, 10.0))
+		return np.power(10.0, np.divide(xi_db_hat, 10.0))
+
+
+
+	#
+	#
+	# def instantaneous_a_priori_snr_db_DEPRECIATED(self, s, d, s_len, d_len, snr): ## DEPRECIATED
+	# 	"""
+	#     Instantaneous a priori SNR (dB).
+	#
+	# 	Argument/s:
+	# 		s - clean speech (dtype=tf.int32).
+	# 		d - noise (dtype=tf.int32).
+	# 		s_len - clean-speech length without padding (samples).
+	# 		d_len - noise length without padding (samples).
+	# 		snr - SNR level.
+	#
+	# 	Returns:
+	# 		xi_dB - instantaneous a priori SNR in dB.
+	# 		L - number of time-domain frames for each sequence.
+	# 	"""
+	# 	s_STMS, d_STMS, _, n_frames = self.mix(s, d, s_len, d_len, snr)
+	# 	xi_dB = self.xi_dB(s_STMS, d_STMS)
+	# 	return xi_dB, n_frames

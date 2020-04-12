@@ -34,21 +34,20 @@ case `hostname` in
    ;;
 esac
 
-NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
-echo "$NUM_GPU total GPU/s."
-
 get_free_gpu () {
-    if [ $2 -eq 1 ]
+    NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
+    echo "$NUM_GPU total GPU/s."
+    if [ $1 -eq 1  ]
     then
         echo 'Sleeping'
         sleep 1m
     fi
     while true
     do
-        for (( gpu=0; gpu<$1; gpu++ ))
+        for (( gpu=0; gpu<$NUM_GPU; gpu++ ))
         do
             VAR1=$( nvidia-smi -i $gpu --query-gpu=pci.bus_id --format=csv,noheader )
-            VAR2=$( nvidia-smi -i $gpu --query-compute-apps=gpu_bus_id --format=csv,noheader )
+            VAR2=$( nvidia-smi -i $gpu --query-compute-apps=gpu_bus_id --format=csv,noheader | head -n 1)
             if [ "$VAR1" != "$VAR2" ]
             then
                 return $gpu
@@ -61,38 +60,75 @@ get_free_gpu () {
 
 WAIT=0
 
-if [ -z $1 ]
+if [ -z $2 ]
 then
-    get_free_gpu $NUM_GPU $WAIT
+    get_free_gpu $WAIT
     GPU=$?
 else
-    GPU=$1
+    GPU=$2
 fi
 
-python3 main.py --ver               'reslstm-1a'    \
-                --network           'ResLSTM'       \
-                --d_model           512             \
-                --n_blocks          5               \
-                --train             1               \
-                --max_epochs        100             \
-                --resume_epoch      0               \
-                --infer             0               \
-                --test_epoch        0               \
-                --mbatch_size       8               \
-                --sample_size       1000            \
-                --f_s               16000           \
-                --T_d               32              \
-                --T_s               16              \
-                --min_snr           -10             \
-                --max_snr           20              \
-                --out_type          'y'             \
-                --gain              'mmse-lsa'      \
-                --save_model        1               \
-                --log_iter          0               \
-                --eval_example      1               \
-                --gpu               $GPU            \
-                --set_path          $SET_PATH       \
-                --data_path         $DATA_PATH      \
-                --test_x_path       $TEST_X_PATH    \
-                --out_path          $OUT_PATH       \
-                --model_path        $MODEL_PATH
+if [ "$1" == 'ResLSTM' ]
+then
+    python3 main.py --ver               'reslstm-1a'    \
+                    --network           'ResLSTM'       \
+                    --d_model           512             \
+                    --n_blocks          5               \
+                    --train             1               \
+                    --max_epochs        100             \
+                    --resume_epoch      0               \
+                    --infer             0               \
+                    --test_epoch        0               \
+                    --mbatch_size       8               \
+                    --sample_size       1000            \
+                    --f_s               16000           \
+                    --T_d               32              \
+                    --T_s               16              \
+                    --min_snr           -10             \
+                    --max_snr           20              \
+                    --out_type          'y'             \
+                    --gain              'mmse-lsa'      \
+                    --save_model        1               \
+                    --log_iter          0               \
+                    --eval_example      1               \
+                    --gpu               $GPU            \
+                    --set_path          $SET_PATH       \
+                    --data_path         $DATA_PATH      \
+                    --test_x_path       $TEST_X_PATH    \
+                    --out_path          $OUT_PATH       \
+                    --model_path        $MODEL_PATH
+fi
+
+if [ "$1" == 'TCN' ]
+then
+    python3 main.py --ver               'TCN-1a'        \
+                    --network           'TCN'           \
+                    --d_model           256             \
+                    --n_blocks          40              \
+                    --d_f               64              \
+                    --k                 3               \
+                    --max_d_rate        16              \
+                    --train             1               \
+                    --max_epochs        200             \
+                    --resume_epoch      0               \
+                    --infer             0               \
+                    --test_epoch        0               \
+                    --mbatch_size       8               \
+                    --sample_size       1000            \
+                    --f_s               16000           \
+                    --T_d               32              \
+                    --T_s               16              \
+                    --min_snr           -10             \
+                    --max_snr           20              \
+                    --out_type          'y'             \
+                    --gain              'mmse-lsa'      \
+                    --save_model        1               \
+                    --log_iter          0               \
+                    --eval_example      1               \
+                    --gpu               $GPU            \
+                    --set_path          $SET_PATH       \
+                    --data_path         $DATA_PATH      \
+                    --test_x_path       $TEST_X_PATH    \
+                    --out_path          $OUT_PATH       \
+                    --model_path        $MODEL_PATH
+fi
