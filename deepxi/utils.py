@@ -36,7 +36,7 @@ def save_mat(path, data, name):
 	"""
 	"""
 	if not path.endswith('.mat'): path = path + '.mat'
-	savemat(path, {name:data})
+	savemat(path, {name: data})
 
 def read_mat(path):
 	"""
@@ -55,9 +55,9 @@ def gpu_config(gpu_selection, log_device_placement=False):
 
 def batch_list(file_dir, list_name, data_path='data', make_new=False):
 	"""
-	Places the file paths and wav lengths of an audio file into a dictionary, which 
-	is then appended to a list. 'glob' is used to support Unix style pathname 
-	pattern expansions. Checks if the training list has already been saved, and loads 
+	Places the file paths and wav lengths of an audio file into a dictionary, which
+	is then appended to a list. 'glob' is used to support Unix style pathname
+	pattern expansions. Checks if the training list has already been saved, and loads
 	it.
 
 	Argument/s:
@@ -66,7 +66,7 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 		data_path - path to store pickle files.
 		make_new - re-create list.
 
-	Outputs:
+	Returns:
 		batch_list - list of file paths and wav length.
 	"""
 	extension = ['*.wav', '*.flac', '*.mp3']
@@ -75,7 +75,7 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 			print('Loading ' + list_name + ' list...')
 			with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'rb') as f:
 				batch_list = pickle.load(f)
-			if batch_list[0]['file_path'].find(file_dir) != -1: 
+			if batch_list[0]['file_path'].find(file_dir) != -1:
 				print(list_name + ' list has a total of %i entries.' % (len(batch_list)))
 				return batch_list
 
@@ -85,12 +85,12 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 		for j in glob.glob(os.path.join(file_dir, i)):
 			f = SoundFile(j)
 			wav_len = f.seek(0, SEEK_END)
-			if wav_len == -1: 
+			if wav_len == -1:
 				wav, _ = read_wav(path)
 				wav_len = len(wav)
 			batch_list.append({'file_path': j, 'wav_len': wav_len}) # append dictionary.
 	if not os.path.exists(data_path): os.makedirs(data_path) # make directory.
-	with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'wb') as f: 		
+	with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'wb') as f:
 		pickle.dump(batch_list, f)
 	print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
 	return batch_list

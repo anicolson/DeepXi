@@ -16,14 +16,15 @@ import os
 if __name__ == '__main__':
 
 	args = get_args()
+
 	args.model_path = args.model_path + '/' + args.ver # model save path.
 	args.train_s_path = args.set_path + '/train_clean_speech' # path to the clean speech training set.
 	args.train_d_path = args.set_path + '/train_noise' # path to the noise training set.
 	args.val_s_path = args.set_path + '/val_clean_speech' # path to the clean speech validation set.
 	args.val_d_path = args.set_path + '/val_noise' # path to the noise validation set.
-	args.N_w = int(args.f_s*args.T_w*0.001) # window length (samples).
+	args.N_d = int(args.f_s*args.T_d*0.001) # window duration (samples).
 	args.N_s = int(args.f_s*args.T_s*0.001) # window shift (samples).
-	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_w)))) # number of DFT components.
+	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_d)))) # number of DFT components.
 
 	if args.train:
 		args.train_s_list = utils.batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
@@ -41,19 +42,16 @@ if __name__ == '__main__':
 
 	print("Version: %s." % (args.ver))
 
-	# if args.prelim: # this is used for initial testing.
-	# 	prelim = Prelim(n_feat=10, network=args.network)
-	# 	prelim.train(mbatch_size=args.mbatch_size, max_epochs=args.max_epochs)
-	# else:
-
 	deepxi = DeepXi(
-		N_w=args.N_w,
+		N_d=args.N_d,
 		N_s=args.N_s,
 		NFFT=args.NFFT,
 		f_s=args.f_s,
 		network=args.network,
 		min_snr=args.min_snr,
-		max_snr=args.max_snr
+		max_snr=args.max_snr,
+		d_model=args.d_model,
+		n_blocks=args.n_blocks
 		)
 
 	if args.train: deepxi.train(
@@ -72,8 +70,8 @@ if __name__ == '__main__':
 		max_epochs=args.max_epochs,
 		resume_epoch=args.resume_epoch,
 		ver=args.ver,
-		save_example=args.save_example,
-		log_iter=args.log_iter
+		eval_example=args.eval_example,
+		log_iter=args.log_iter,
 		)
 
 	if args.infer: deepxi.infer(

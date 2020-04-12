@@ -23,8 +23,8 @@ import numpy as np
 import tensorflow as tf
 
 # [1] Nicolson, A. and Paliwal, K.K., 2019. Deep learning for
-# minimum mean-square error approaches to speech enhancement.
-# Speech Communication, 111, pp.44-55.
+# 	  minimum mean-square error approaches to speech enhancement.
+# 	  Speech Communication, 111, pp.44-55.
 
 class DeepXi(DeepXiInput):
 	"""
@@ -32,37 +32,34 @@ class DeepXi(DeepXiInput):
 	"""
 	def __init__(
 		self,
-		N_w,
+		N_d,
 		N_s,
 		NFFT,
 		f_s,
-		mu=None,
-		sigma=None,
-		network='TCN',
-		min_snr=None,
-		max_snr=None,
+		network,
+		min_snr,
+		max_snr,
+		**kwargs
 		):
 		"""
 		Argument/s
-			Nw - window length (samples).
-			Ns - window shift (samples).
+			N_d - window duration (samples).
+			N_s - window shift (samples).
 			NFFT - number of DFT bins.
 			f_s - sampling frequency.
-			mu - sample mean of each instantaneous a priori SNR in dB frequency component.
-			sigma - sample standard deviation of each instantaneous a priori SNR in dB frequency component.
 			network - network type.
 			min_snr - minimum SNR level for training.
 			max_snr - maximum SNR level for training.
 		"""
-		super().__init__(N_w, N_s, NFFT, f_s, mu, sigma)
+		super().__init__(N_d, N_s, NFFT, f_s)
 		self.min_snr = min_snr
 		self.max_snr = max_snr
 		self.n_feat = math.ceil(self.NFFT/2 + 1)
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
-		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
-		elif network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_blocks=3, d_model=256)
+		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, **kwargs)
+		elif network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, **kwargs)
 		else: raise ValueError('Invalid network type.')
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
@@ -85,9 +82,9 @@ class DeepXi(DeepXiInput):
 		ver='VERSION_NAME',
 		stats_path=None,
 		sample_size=None,
-		save_example=False,
+		eval_example=False,
 		save_model=True,
-		log_iter=False
+		log_iter=False,
 		):
 		"""
 		Deep Xi training.
@@ -109,7 +106,7 @@ class DeepXi(DeepXiInput):
 			ver - version name.
 			stats_path - path to save sample statistics.
 			sample_size - sample size.
-			save_example - save a training example for evaluation.
+			eval_example - evaluate a mini-batch of training examples.
 			save_model - save architecture, weights, and training configuration.
 			log_iter - log training loss for each training iteration.
 		"""
@@ -120,15 +117,24 @@ class DeepXi(DeepXiInput):
 		self.n_iter = math.ceil(self.n_examples/mbatch_size)
 
 		self.sample_stats(stats_path, sample_size, train_s_list, train_d_list)
+
 		train_dataset = self.dataset(max_epochs-resume_epoch)
+
 		if val_flag: val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
 		else: val_set = None
 
-		if save_example:
+		if eval_example:
+			print("Saving a mini-batch of training examples in .mat files...")
 			x_STMS_batch, xi_bar_batch, seq_mask_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
 			save_mat('./x_STMS_batch.mat', x_STMS_batch, 'x_STMS_batch')
 			save_mat('./xi_bar_batch.mat', xi_bar_batch, 'xi_bar_batch')
 			save_mat('./seq_mask_batch.mat', seq_mask_batch, 'seq_mask_batch')
+			print("Testing if add_noise() works correctly...")
+			s, d, s_len, d_len, snr_tgt = self.wav_batch(train_s_list[0:mbatch_size], train_d_list[0:mbatch_size])
+			(_, s, d) = self.add_noise_batch(self.normalise(s), self.normalise(d), s_len, d_len, snr_tgt)
+			for (i, _) in enumerate(s):
+				snr_act = self.snr_db(s[i][0:s_len[i]], d[i][0:d_len[i]])
+				print('SNR target|actual: {:.2f}|{:.2f} (dB).'.format(snr_tgt[i], snr_act))
 
 		if not os.path.exists(model_path): os.makedirs(model_path)
 		if not os.path.exists("log"): os.makedirs("log")
@@ -149,25 +155,14 @@ class DeepXi(DeepXiInput):
 			)
 
 		self.model.fit(
-			x=x_train,
-			y=y_train,
-			sample_weight=sample_mask,
+			x=train_dataset,
 			initial_epoch=resume_epoch,
 			epochs=max_epochs,
 			steps_per_epoch=self.n_iter,
-			callbacks=callbacks
+			callbacks=callbacks,
 			validation_data=val_set,
-			validation_steps=len(val_set[0]),
+			validation_steps=len(val_set[0])
 			)
-
-		x_test, y_test, _ = list(train_dataset.take(1).as_numpy_iterator())[0]
-		y_hat = self.model.predict(x_test[0:1])
-
-		np.set_printoptions(precision=2, suppress=True)
-		print("Target:")
-		print(np.asarray(y_test[0,0:5,0:self.n_feat]))
-		print("Prediction:")
-		print(y_hat[0,0:5,0:self.n_feat])
 
 	def infer(
 		self,
@@ -186,7 +181,7 @@ class DeepXi(DeepXiInput):
 
 		Argument/s:
 
-		Output/s:
+		Returns:
 		"""
 		if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
 		elif out_type == 'y': out_path = out_path + '/' + gain + '/y'
@@ -233,7 +228,7 @@ class DeepXi(DeepXiInput):
 
 		Argument/s:
 
-		Output/s:
+		Returns:
 		"""
 		if os.path.exists(stats_path + '/stats.npz'):
 			print('Loading sample statistics...')
@@ -264,19 +259,15 @@ class DeepXi(DeepXiInput):
 
 	def dataset(self, n_epochs, buffer_size=16):
 		"""
+		Used to create a tf.data.Dataset for training.
 
 		Argument/s:
+			n_epochs - number of epochs to generate.
+			buffer_size - number of mini-batches to keep in buffer.
 
-		Output/s:
+		Returns:
+			dataset - tf.data.Dataset
 		"""
-		# dataset = tf.data.Dataset.from_generator(
-		# 	self.mbatch_gen,
-		# 	({'inp': tf.float32, 'seq_len': tf.int32}, tf.float32),
-		# 	({'inp': tf.TensorShape([None, None, self.n_feat]),
-		# 		'seq_len': tf.TensorShape([None])},
-		# 		tf.TensorShape([None, self.n_outp])),
-		# 	[tf.constant(n_epochs)]
-		# 	)
 		dataset = tf.data.Dataset.from_generator(
 			self.mbatch_gen,
 			(tf.float32, tf.float32, tf.float32),
@@ -290,11 +281,15 @@ class DeepXi(DeepXiInput):
 
 	def mbatch_gen(self, n_epochs):
 		"""
-		Used to create tf.data.Dataset for training.
+		A generator that yields a mini-batch of training examples.
 
 		Argument/s:
+			n_epochs - number of epochs to generate.
 
-		Output/s:
+		Returns:
+			x_STMS_mbatch - mini-batch of observations (noisy speech short-time magnitude spectum).
+			xi_bar_mbatch - mini-batch of targets (mapped a priori SNR).
+			seq_mask_mbatch - mini-batch of sequence masks.
 		"""
 		for _ in range(n_epochs):
 			random.shuffle(self.train_s_list)
@@ -302,19 +297,41 @@ class DeepXi(DeepXiInput):
 			for _ in range(self.n_iter):
 				s_mbatch_list = self.train_s_list[start_idx:end_idx]
 				d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
-				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = self.wav_batch(s_mbatch_list, d_mbatch_list)
-				x_STMS, xi_bar, n_frames = self.training_example(s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch)
-				seq_mask = tf.cast(tf.sequence_mask(n_frames), tf.float32)
+				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = \
+					self.wav_batch(s_mbatch_list, d_mbatch_list)
+				x_STMS_mbatch, xi_bar_mbatch, n_frames_mbatch = \
+					self.training_example(s_mbatch, d_mbatch, s_mbatch_len,
+					d_mbatch_len, snr_mbatch)
+				seq_mask_mbatch = tf.cast(tf.sequence_mask(n_frames_mbatch), tf.float32)
 				start_idx += self.mbatch_size; end_idx += self.mbatch_size
 				if end_idx > self.n_examples: end_idx = self.n_examples
-				yield x_STMS, xi_bar, seq_mask
+				yield x_STMS_mbatch, xi_bar_mbatch, seq_mask_mbatch
 
-	def val_batch(self, save_path='data', val_s=None, val_d=None, val_s_len=None, val_d_len=None, val_snr=None):
+	def val_batch(
+		self,
+		save_path,
+		val_s,
+		val_d,
+		val_s_len,
+		val_d_len,
+		val_snr
+		):
 		"""
+		Creates and saves a batch of examples from the validation set. If
+		already saved, the function will load the batch of examples.
 
 		Argument/s:
+			save_path - path to save the validation batch.
+			val_s - validation clean speech waveforms.
+			val_d - validation noise waveforms.
+			val_s_len - validation clean speech waveform lengths.
+			val_d_len - validation noise waveform lengths.
+			val_snr - validation SNR levels.
 
-		Output/s:
+		Returns:
+			x_STMS_batch - batch of observations (noisy speech short-time magnitude spectum).
+			xi_bar_batch - batch of targets (mapped a priori SNR).
+			n_frames_batch - batch of sequence masks.
 		"""
 		if not os.path.exists(save_path): os.makedirs(save_path)
 		if os.path.exists(save_path + '/val_batch.npz'):
@@ -322,20 +339,24 @@ class DeepXi(DeepXiInput):
 			with np.load(save_path + '/val_batch.npz') as data:
 				x_STMS_batch = data['val_inp']
 				xi_bar_batch = data['val_tgt']
+				seq_mask_batch =  data['val_seq_mask']
 		else:
 			print('Creating validation batch...')
 			batch_size = len(val_s)
 			max_n_frames = self.n_frames(max(val_s_len))
 			x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
 			xi_bar_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
+			seq_mask_batch = np.zeros([batch_size, max_n_frames], np.float32)
 			for i in tqdm(range(batch_size)):
 				x_STMS, xi_bar, _ = self.training_example(val_s[i:i+1], val_d[i:i+1],
 					val_s_len[i:i+1], val_d_len[i:i+1], val_snr[i:i+1])
 				n_frames = self.n_frames(val_s_len[i])
 				x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
 				xi_bar_batch[i,:n_frames,:] = xi_bar.numpy()
-			np.savez(save_path + '/val_batch.npz', val_inp=x_STMS_batch, val_tgt=xi_bar_batch)
-		return x_STMS_batch, xi_bar_batch
+				seq_mask_batch[i,:n_frames] = tf.cast(tf.sequence_mask(n_frames), tf.float32)
+			np.savez(save_path + '/val_batch.npz', val_inp=x_STMS_batch,
+				val_tgt=xi_bar_batch, val_seq_mask=seq_mask_batch)
+		return x_STMS_batch, xi_bar_batch, seq_mask_batch
 
 	def observation_batch(self, x_batch, x_batch_len):
 		"""
@@ -343,7 +364,7 @@ class DeepXi(DeepXiInput):
 
 		Argument/s:
 
-		Output/s:
+		Returns:
 		"""
 		batch_size = len(x_batch)
 		max_n_frames = self.n_frames(max(x_batch_len))
@@ -363,7 +384,7 @@ class DeepXi(DeepXiInput):
 
 		Argument/s:
 
-		Output/s:
+		Returns:
 		"""
 		batch_size = len(s_batch_list)
 		max_len = max([dic['wav_len'] for dic in s_batch_list])
@@ -451,7 +472,7 @@ class CSVLoggerIter(Callback):
 			self.keys = sorted(logs.keys())
 
 		if self.model.stop_training:
-			# We set NA so that csv parsers do not fail for this last batch.
+			# NA is set so that csv parsers do not fail for the last batch.
 			logs = dict([(k, logs[k]) if k in logs else (k, 'NA') for k in self.keys])
 
 		if not self.writer:

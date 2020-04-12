@@ -15,15 +15,15 @@ class STFT:
 	"""
 	Short-time Fourier transform.
 	"""
-	def __init__(self, N_w, N_s, NFFT, f_s):
+	def __init__(self, N_d, N_s, NFFT, f_s):
 		"""
 		Argument/s
-			Nw - window length (samples).
-			Ns - window shift (samples).
+			N_d - window duration (samples).
+			N_s - window shift (samples).s
 			NFFT - number of DFT bins.
 			f_s - sampling frequency.
 		"""
-		self.N_w = N_w
+		self.N_d = N_d
 		self.N_s = N_s
 		self.NFFT = NFFT
 		self.f_s = f_s
@@ -37,10 +37,10 @@ class STFT:
 		Argument/s:
 			x - waveform.
 
-		Output/s:
+		Returns:
 			Short-time magnitude and phase spectrums.
 		"""
-		STFT = tf.signal.stft(x, self.N_w, self.N_s, self.NFFT, window_fn=self.W, pad_end=True)
+		STFT = tf.signal.stft(x, self.N_d, self.N_s, self.NFFT, window_fn=self.W, pad_end=True)
 		return tf.abs(STFT), tf.math.angle(STFT)
 
 	def polar_synthesis(self, STMS, STPS):
@@ -51,22 +51,22 @@ class STFT:
 			STMS - short-time magnitude spectrum.
 			STPS - short-time phase spectrum.
 
-		Output/s:
+		Returns:
 			Waveform.
 		"""
 		STFT = tf.cast(STMS, tf.complex64)*tf.exp(1j*tf.cast(STPS, tf.complex64))
-		return tf.signal.inverse_stft(STFT, self.N_w, self.N_s, self.NFFT, tf.signal.inverse_stft_window_fn(self.N_s, self.W))
+		return tf.signal.inverse_stft(STFT, self.N_d, self.N_s, self.NFFT, tf.signal.inverse_stft_window_fn(self.N_s, self.W))
 
 class DeepXiInput(STFT):
 	"""
 	Input for Deep Xi.
 	"""
-	def __init__(self, N_w, N_s, NFFT, f_s, mu=None, sigma=None):
-		super().__init__(N_w, N_s, NFFT, f_s)
+	def __init__(self, N_d, N_s, NFFT, f_s, mu=None, sigma=None):
+		super().__init__(N_d, N_s, NFFT, f_s)
 		"""
 		Argument/s
-			Nw - window length (samples).
-			Ns - window shift (samples).
+			N_d - window duration (samples).
+			N_s - window shift (samples).
 			NFFT - number of DFT bins.
 			f_s - sampling frequency.
 			mu - sample mean of each instantaneous a priori SNR in dB frequency component.
@@ -83,7 +83,7 @@ class DeepXiInput(STFT):
 			x - noisy speech (dtype=tf.int32).
 			x_len - noisy speech length without padding (samples).
 
-		Output/s:
+		Returns:
 			x_STMS - speech magnitude spectrum.
 			x_STPS - speech phase spectrum.
 		"""
@@ -93,7 +93,7 @@ class DeepXiInput(STFT):
 
 	def training_example(self, s, d, s_len, d_len, snr): ## RENAME TO EXAMPLE.
 		"""
-		Compute training example for Deep Xi, i.e. observation (noisy-speech STMS) 
+		Compute training example for Deep Xi, i.e. observation (noisy-speech STMS)
 		and target (mapped a priori SNR).
 
 		Argument/s:
@@ -103,14 +103,14 @@ class DeepXiInput(STFT):
 			d_len - noise length without padding (samples).
 			snr - SNR level.
 
-		Output/s:
+		Returns:
 			x_STMS - noisy-speech short-time magnitude spectrum.
 			xi_bar - mapped a priori SNR.
 			n_frames - number of time-domain frames.
 		"""
 		s_STMS, d_STMS, x_STMS, n_frames = self.mix(s, d, s_len, d_len, snr)
 		mask = tf.expand_dims(tf.cast(tf.sequence_mask(n_frames), tf.float32), 2)
-		xi_bar = tf.multiply(self.xi_bar(s_STMS, d_STMS), mask) 
+		xi_bar = tf.multiply(self.xi_bar(s_STMS, d_STMS), mask)
 		# xi_bar = self.xi_bar(s_STMS, d_STMS)
 		return x_STMS, xi_bar, n_frames
 
@@ -125,7 +125,7 @@ class DeepXiInput(STFT):
 			d_len - noise length without padding (samples).
 			snr - SNR level.
 
-		Output/s:
+		Returns:
 			xi_dB - instantaneous a priori SNR in dB.
 			L - number of time-domain frames for each sequence.
 		"""
@@ -144,7 +144,7 @@ class DeepXiInput(STFT):
 			d_len - noise length without padding (samples).
 			snr - SNR level.
 
-		Output/s:
+		Returns:
 			s_STMS - clean-speech short-time magnitude spectrum.
 			d_STMS - noise short-time magnitude spectrum.
 			x_STMS - noisy-speech short-time magnitude spectrum.
@@ -167,7 +167,7 @@ class DeepXiInput(STFT):
 		Argument/s:
 			x - tf.int32 waveform.
 
-		Output/s:
+		Returns:
 			tf.float32 waveform between [-1.0, 1.0].
 		"""
 		return tf.truediv(tf.cast(x, tf.float32), 32768.0)
@@ -177,10 +177,10 @@ class DeepXiInput(STFT):
 		Returns the number of frames for a given sequence length, and
 		frame shift.
 
-		Inputs:
+		Argument/s:
 			N - sequence length (samples).
 
-		Output/s:
+		Returns:
 			Number of frames
 		"""
 		return tf.cast(tf.math.ceil(tf.truediv(tf.cast(N, tf.float32), tf.cast(self.N_s, tf.float32))), tf.int32)
@@ -196,7 +196,7 @@ class DeepXiInput(STFT):
 			d_len - noise length without padding (samples).
 			snr - SNR levels.
 
-		Output/s:
+		Returns:
 			tuple consisting of clean speech, noisy speech, and noise (x, s, d).
 		"""
 		return tf.map_fn(lambda z: self.add_noise_pad(z[0], z[1], z[2], z[3], z[4],
@@ -208,7 +208,7 @@ class DeepXiInput(STFT):
 		Calls addnoise() and pads the waveforms to the length given by 'pad_len'.
 		Also normalises the waveforms.
 
-		Inputs:
+		Argument/s:
 			s - clean speech (dtype=tf.float32).
 			d - noise (dtype=tf.float32).
 			s_len - clean-speech length without padding (samples).
@@ -216,7 +216,7 @@ class DeepXiInput(STFT):
 			snr - SNR level.
 			pad_len - padded length.
 
-		Outputs:
+		Returns:
 			s - padded clean-speech waveform.
 			x - padded noisy-speech waveform.
 			d - truncated, scaled, and padded noise waveform.
@@ -231,17 +231,17 @@ class DeepXiInput(STFT):
 
 	def add_noise(self, s, d, s_len, d_len, snr):
 		"""
-		Adds noise to the clean waveform at a specific SNR value. A random section 
+		Adds noise to the clean waveform at a specific SNR value. A random section
 		of the noise waveform is used.
 
-		Inputs:
+		Argument/s:
 			s - clean speech (dtype=tf.float32).
 			d - noise (dtype=tf.float32).
 			s_len - clean-speech length without padding (samples).
 			d_len - noise length without padding (samples).
 			snr - SNR level (dB).
 
-		Outputs:
+		Returns:
 			x - noisy-speech waveform.
 			d - truncated and scaled noise waveform.
 		"""
@@ -251,13 +251,29 @@ class DeepXiInput(STFT):
 		d = tf.slice(d, [i[0]], [s_len])
 		P_s = tf.reduce_mean(tf.math.square(s), 0) # average power of clean speech.
 		P_d = tf.reduce_mean(tf.math.square(d), 0) # average power of noise.
-		alpha = tf.math.sqrt(tf.truediv(P_s, 
+		alpha = tf.math.sqrt(tf.truediv(P_s,
 			tf.maximum(tf.multiply(P_d, snr), 1e-12))) # scaling factor.
-		x = tf.add(s, tf.multiply(d, alpha))
+		d =	tf.multiply(d, alpha)
+		x = tf.add(s, d)
 		return (x, d)
 
-		# d = tf.multiply(tf.truediv(d, tf.norm(d)), tf.truediv(tf.norm(s), 
+		# d = tf.multiply(tf.truediv(d, tf.norm(d)), tf.truediv(tf.norm(s),
 		# 	tf.pow(tf.cast(10.0, tf.float32), tf.multiply(tf.cast(0.05, tf.float32), snr))))
+
+	def snr_db(self, s, d):
+		"""
+		Calculates the SNR (dB) between the speech and noise.
+
+		Argument/s:
+			s - clean speech (dtype=tf.float32).
+			d - noise (dtype=tf.float32).
+
+		Returns:
+			SNR level (dB).
+		"""
+		P_s = tf.reduce_mean(tf.math.square(s), 0) # average power of clean speech.
+		P_d = tf.reduce_mean(tf.math.square(d), 0) # average power of noise.
+		return tf.multiply(self.ten, self.log10(tf.truediv(P_s, P_d)))
 
 	def log10(self, x):
 		"""
@@ -266,7 +282,7 @@ class DeepXiInput(STFT):
 		Argument/s:
 			x - input.
 
-		Output/s:
+		Returns:
 			log_10(x)
 		"""
 		return tf.truediv(tf.math.log(x), tf.math.log(tf.cast(10, tf.float32)))
@@ -279,7 +295,7 @@ class DeepXiInput(STFT):
 			s_STMS - clean-speech short-time magnitude spectrum.
 			d_STMS - noise short-time magnitude spectrum.
 
-		Output/s:
+		Returns:
 			Instantaneous a priori SNR.
 		"""
 		return tf.truediv(tf.square(s_STMS), tf.maximum(tf.square(d_STMS), 1e-12))
@@ -292,7 +308,7 @@ class DeepXiInput(STFT):
 			s_STMS - clean-speech short-time magnitude spectrum.
 			d_STMS - noise short-time magnitude spectrum.
 
-		Output/s:
+		Returns:
 			Instantaneous a priori SNR in dB.
 		"""
 		return tf.multiply(10.0, self.log10(tf.maximum(self.xi(s_STMS, d_STMS), 1e-12)))
@@ -305,10 +321,10 @@ class DeepXiInput(STFT):
 			s_STMS - clean-speech short-time magnitude spectrum.
 			d_STMS - noise short-time magnitude spectrum.
 
-		Output/s:
+		Returns:
 			Mapped a priori SNR in dB.
 		"""
-		return tf.multiply(0.5, tf.add(1.0, tf.math.erf(tf.truediv(tf.subtract(self.xi_dB(s_STMS, d_STMS), self.mu), 
+		return tf.multiply(0.5, tf.add(1.0, tf.math.erf(tf.truediv(tf.subtract(self.xi_dB(s_STMS, d_STMS), self.mu),
 			tf.multiply(self.sigma, tf.sqrt(2.0))))))
 
 	def xi_hat(self, xi_bar_hat):
@@ -318,9 +334,9 @@ class DeepXiInput(STFT):
 		Argument/s:
 			xi_bar_hat - mapped a priori SNR estimate.
 
-		Output/s:
+		Returns:
 			A priori SNR estimate.
 		"""
-		xi_dB_hat = np.add(np.multiply(np.multiply(self.sigma, np.sqrt(2.0)), 
-			spsp.erfinv(np.subtract(np.multiply(2.0, xi_bar_hat), 1))), self.mu)	
+		xi_dB_hat = np.add(np.multiply(np.multiply(self.sigma, np.sqrt(2.0)),
+			spsp.erfinv(np.subtract(np.multiply(2.0, xi_bar_hat), 1))), self.mu)
 		return np.power(10.0, np.divide(xi_dB_hat, 10.0))

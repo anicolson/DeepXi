@@ -69,27 +69,30 @@ else
     GPU=$1
 fi
 
-python3 main.py --ver           'reslstm-0f'    \
-                --network       'ResLSTM'       \
-                --train         1               \
-                --max_epochs    100             \
-                --resume_epoch  0               \
-                --infer         0               \
-                --test_epoch    0               \
-                --mbatch_size   8               \
-                --sample_size   1000            \
-                --T_w           32              \
-                --T_s           16              \
-                --min_snr       -10             \
-                --max_snr       20              \
-                --out_type      'y'             \
-                --gain          'mmse-lsa'      \
-                --save_example  1               \
-                --save_model    0               \
-                --log_iter      0               \
-                --gpu           $GPU            \
-                --set_path      $SET_PATH       \
-                --data_path     $DATA_PATH      \
-                --test_x_path   $TEST_X_PATH    \
-                --out_path      $OUT_PATH       \
-                --model_path    $MODEL_PATH
+python3 main.py --ver               'reslstm-1a'    \
+                --network           'ResLSTM'       \
+                --d_model           512             \
+                --n_blocks          5               \
+                --train             1               \
+                --max_epochs        100             \
+                --resume_epoch      0               \
+                --infer             0               \
+                --test_epoch        0               \
+                --mbatch_size       8               \
+                --sample_size       1000            \
+                --f_s               16000           \
+                --T_d               32              \
+                --T_s               16              \
+                --min_snr           -10             \
+                --max_snr           20              \
+                --out_type          'y'             \
+                --gain              'mmse-lsa'      \
+                --save_model        1               \
+                --log_iter          0               \
+                --eval_example      1               \
+                --gpu               $GPU            \
+                --set_path          $SET_PATH       \
+                --data_path         $DATA_PATH      \
+                --test_x_path       $TEST_X_PATH    \
+                --out_path          $OUT_PATH       \
+                --model_path        $MODEL_PATH

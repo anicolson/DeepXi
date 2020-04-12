@@ -5,3 +5,5 @@ pysoundfile
 libspn_keras
 colorlover
 plotly
+pesq
+pystoi

@@ -8,20 +8,19 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Activation, Add, Dense, \
 	LayerNormalization, LSTM, ReLU, TimeDistributed
-
-
 import numpy as np
 
 class ResLSTM:
 	"""
-	Temporal convolutional network using bottlekneck residual blocks and cyclic dilation rate.
+	Residual long short-term memory network. Frame-wise layer normalisation is
+	used.
 	"""
 	def __init__(
-		self, 
-		inp, 
-		n_outp, 
-		n_blocks=3, 
-		d_model=256, 
+		self,
+		inp,
+		n_outp,
+		n_blocks,
+		d_model,
 		):
 		"""
 		Argument/s:
@@ -40,10 +39,13 @@ class ResLSTM:
 
 	def feedforward(self, inp):
 		"""
-		Feedforward layer with frame-wise layer normalisation and ReLU activation.
+		Feedforward layer.
 
 		Argument/s:
 			inp - input placeholder.
+
+		Returns:
+			act - output of feedforward layer.
 		"""
 		ff = TimeDistributed(Dense(self.d_model, use_bias=False))(inp)
 		norm = LayerNormalization(axis=2, epsilon=1e-6)(ff)
@@ -52,12 +54,14 @@ class ResLSTM:
 
 	def block(self, inp):
 		"""
-		Residual block.
+		Residual LSTM block.
 
 		Argument/s:
 			inp - input placeholder.
+
+		Returns:
+			residual - output of block.
 		"""
 		lstm = LSTM(self.d_model)(inp)
-		residual = Add()([inp, lstm]) 
+		residual = Add()([inp, lstm])
 		return residual
-
