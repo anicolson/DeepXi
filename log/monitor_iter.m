@@ -7,7 +7,7 @@
 
 clear all; close all; clc
 
-ver = {'tcn-1g'};
+ver = {''};
 
 for i = 1:length(ver)
     T = readtable(['./iter/', ver{i}, '.csv']);

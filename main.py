@@ -54,7 +54,8 @@ if __name__ == '__main__':
 		n_blocks=args.n_blocks,
 		d_f=args.d_f,
 		k=args.k,
-		max_d_rate=args.max_d_rate
+		max_d_rate=args.max_d_rate,
+		ver=args.ver,
 		)
 
 	if args.train: deepxi.train(
@@ -72,7 +73,6 @@ if __name__ == '__main__':
 		mbatch_size=args.mbatch_size,
 		max_epochs=args.max_epochs,
 		resume_epoch=args.resume_epoch,
-		ver=args.ver,
 		eval_example=args.eval_example,
 		log_iter=args.log_iter,
 		)
@@ -86,5 +86,5 @@ if __name__ == '__main__':
 		out_type=args.out_type,
 		gain=args.gain,
 		out_path=args.out_path,
-		stats_path=args.data_path
+		stats_path=args.data_path,
 		)

@@ -7,7 +7,7 @@
 
 clear all; close all; clc
 
-load('/home/aaron/mnt/fist/data/deepxi/stats.m.mat')
+load(' ')
 mu = stats.mu_hat;
 sigma = stats.sigma_hat;
 

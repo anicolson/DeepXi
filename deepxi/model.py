@@ -39,6 +39,7 @@ class DeepXi(DeepXiInput):
 		network,
 		min_snr,
 		max_snr,
+		ver='VERSION_NAME',
 		**kwargs
 		):
 		"""
@@ -50,19 +51,39 @@ class DeepXi(DeepXiInput):
 			network - network type.
 			min_snr - minimum SNR level for training.
 			max_snr - maximum SNR level for training.
+			ver - version name.
 		"""
 		super().__init__(N_d, N_s, NFFT, f_s)
 		self.min_snr = min_snr
 		self.max_snr = max_snr
+		self.ver = ver
 		self.n_feat = math.ceil(self.NFFT/2 + 1)
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
-		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, **kwargs)
-		elif network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, **kwargs)
+		if network == 'TCN': self.network = TCN(
+			inp=self.mask,
+			n_outp=self.n_outp,
+			n_blocks=kwargs['n_blocks'],
+			d_model=kwargs['d_model'],
+			d_f=kwargs['d_f'],
+			k=kwargs['k'],
+			max_d_rate=kwargs['max_d_rate'],
+			)
+		elif network == 'ResLSTM': self.network = ResLSTM(
+			inp=self.mask,
+			n_outp=self.n_outp,
+			n_blocks=kwargs['n_blocks'],
+			d_model=kwargs['d_model'],
+			)
 		else: raise ValueError('Invalid network type.')
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
+		if not os.path.exists("log/summary"):
+			os.makedirs("log/summary")
+		with open("log/summary/" + self.ver + ".txt", "w") as f:
+		    self.model.summary(print_fn=lambda x: f.write(x + '\n'))
+
 
 	def train(
 		self,
@@ -79,7 +100,6 @@ class DeepXi(DeepXiInput):
 		mbatch_size=8,
 		max_epochs=200,
 		resume_epoch=0,
-		ver='VERSION_NAME',
 		stats_path=None,
 		sample_size=None,
 		eval_example=False,
@@ -103,7 +123,6 @@ class DeepXi(DeepXiInput):
 			mbatch_size - mini-batch size.
 			max_epochs - maximum number of epochs.
 			resume_epoch - epoch to resume training from.
-			ver - version name.
 			stats_path - path to save sample statistics.
 			sample_size - sample size.
 			eval_example - evaluate a mini-batch of training examples.
@@ -141,9 +160,9 @@ class DeepXi(DeepXiInput):
 		if not os.path.exists("log/iter"): os.makedirs("log/iter")
 
 		callbacks = []
-		callbacks.append(CSVLogger("log/" + ver + ".csv", separator=',', append=True))
+		callbacks.append(CSVLogger("log/" + self.ver + ".csv", separator=',', append=True))
 		if save_model: callbacks.append(SaveWeights(model_path))
-		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + ver + ".csv", separator=',', append=True))
+		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
 
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" +
 			str(resume_epoch-1) + "/variables/variables" )
@@ -392,7 +411,7 @@ class DeepXi(DeepXiInput):
 			x_STPS_batch[i,:n_frames_batch[i],:] = x_STPS.numpy()
 		return x_STMS_batch, x_STPS_batch, n_frames_batch
 
-	def wav_batch(self, s_list, d_batch_list):
+	def wav_batch(self, s_list, d_list):
 		"""
 		Loads .wav files into batches.
 

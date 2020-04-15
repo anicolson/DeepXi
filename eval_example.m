@@ -7,6 +7,9 @@
 
 clear all; close all; clc
 
+% TO DO: REVERSE Y-AXIS TICKS!
+
+
 %
 % In main.py, set deepxi.train(..., save_example=True) to get .mat training 
 % mini-batch example.
@@ -21,7 +24,7 @@ for i = 1:size(x_STMS_batch, 1)
     
     % Observation/input: noisy-speech short-time magnitude spectrum. 
     x_STMS = rot90(squeeze(x_STMS_batch(i,:,:)));
-    x_STMS_dB = 10*log10(x_STMS);
+    x_STMS_dB = 20*log10(x_STMS);
 
     % Target: mapped a priori SNR. 
     xi_bar = rot90(squeeze(xi_bar_batch(i,:,:)));
@@ -37,17 +40,20 @@ for i = 1:size(x_STMS_batch, 1)
     subplot(2,2,2); imagesc(x_STMS_dB); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
-    title('Noisy-speech short-time magnitude spectrum in dB')
+    title('Noisy-speech short-time magnitude spectrum (dB)')
 
     subplot(2,2,3); imagesc(seq_mask); colorbar;
     xlabel('Time-frame bin')
-    ylabel('Frequency bin')
     title('Sequence mask')
+    colorbar('XTick', [0, 1]);
+    set(gca,'ytick',[])
+    set(gca,'yticklabel',[])
+    
     
     subplot(2,2,4); imagesc(xi_bar); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
-    title('Mapped {\it a priori} SNR')
+    title('Mapped{\it a priori} SNR')
     
     set(gcf, 'Position', get(0, 'Screensize'));
 end

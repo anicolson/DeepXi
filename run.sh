@@ -4,25 +4,17 @@ PROJ_DIR='deepxi'
 
 case `hostname` in
 "fist")  echo "Running on fist."
-    SET_PATH='/mnt/ssd/SE_TRAIN_V2'
+    SET_PATH='/mnt/ssd/deep_xi_training_set'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
-    OUT_PATH='out/'$PROJ_DIR
-    # OUT_PATH='/home/aaron/out/'$PROJ_DIR
+    OUT_PATH='/home/aaron/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/model/'$PROJ_DIR
     ;;
 "pinky-jnr")  echo "Running on pinky-jnr."
-    SET_PATH='/home/aaron/set/SE_TRAIN_V2'
+    SET_PATH='/home/aaron/set/deep_xi_training_set'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
-    TEST_X_PATH=''
-    OUT_PATH=''
-    MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
-    ;;
-"stink")  echo "Running on stink."
-    SET_PATH='/mnt/ssd'
-    DATA_PATH='/home/aaron/data/'$PROJ_DIR
-    TEST_X_PATH=''
-    OUT_PATH=''
+    TEST_X_PATH='/home/aaron/set/deep_xi_training_set'
+    OUT_PATH='out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
     ;;
 *) echo "This workstation is not known. Using default paths."
@@ -101,7 +93,7 @@ fi
 
 if [ "$1" == 'TCN' ]
 then
-    python3 main.py --ver               'TCN-1a'        \
+    python3 main.py --ver               'tcn-1a'        \
                     --network           'TCN'           \
                     --d_model           256             \
                     --n_blocks          40              \

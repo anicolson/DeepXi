@@ -299,7 +299,7 @@ class DeepXiInput(STFT):
 		Returns:
 			Mapped a priori SNR in dB.
 		"""
-		return tf.multiply(0.5, tf.add(1.0, tf.math.erf(tf.truediv(tf.subtract(self.xi_dB(s_STMS, d_STMS), self.mu),
+		return tf.multiply(0.5, tf.add(1.0, tf.math.erf(tf.truediv(tf.subtract(self.xi_db(s_STMS, d_STMS), self.mu),
 			tf.multiply(self.sigma, tf.sqrt(2.0))))))
 
 	def xi_hat(self, xi_bar_hat):
