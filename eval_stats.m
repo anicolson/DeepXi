@@ -7,7 +7,7 @@
 
 clear all; close all; clc
 
-load(' ')
+load('data/stats.mat')
 mu = stats.mu_hat;
 sigma = stats.sigma_hat;
 
@@ -17,6 +17,7 @@ for i = 1:length(mu)
     pd = makedist('Normal','mu',mu(i),'sigma',sigma(i));
     dist = [dist; pdf(pd, xi_dB)];
 end
-imagesc(1:length(mu), xi_dB, rot90(dist)); colorbar;
+h = surf(1:length(mu), xi_dB, rot90(dist)); colorbar;
+h.EdgeColor = 'none';
 xlabel('Frequency bin')
-ylabel('Instantaneous {\it a priori} SNR (dB)')
+ylabel('Instantaneous{\it a priori} SNR (dB)')
