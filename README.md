@@ -1,4 +1,4 @@
-Deep Xi is being updated to TensorFlow 2.x! This will be made available soon. 
+Deep Xi is being updated to TensorFlow 2.x and is a few days from being ready! Please check out branch `tf2` for a preview.
 -----
 
 
