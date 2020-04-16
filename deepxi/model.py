@@ -10,6 +10,8 @@ from deepxi.network.cnn import TCN
 from deepxi.network.rnn import ResLSTM
 from deepxi.sig import DeepXiInput
 from deepxi.utils import read_wav, save_wav, save_mat
+from pesq import pesq
+from pystoi import stoi
 from tensorflow.keras.callbacks import Callback, CSVLogger, ModelCheckpoint
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
@@ -83,7 +85,6 @@ class DeepXi(DeepXiInput):
 			os.makedirs("log/summary")
 		with open("log/summary/" + self.ver + ".txt", "w") as f:
 		    self.model.summary(print_fn=lambda x: f.write(x + '\n'))
-
 
 	def train(
 		self,
@@ -183,7 +184,7 @@ class DeepXi(DeepXiInput):
 			validation_steps=len(val_set[0])
 			)
 
-	def infer(
+	def infer( ## NEED TO ADD DeepMMSE
 		self,
 		test_x,
 		test_x_len,
@@ -210,18 +211,23 @@ class DeepXi(DeepXiInput):
 			stats_path - path to the saved statistics.
 		"""
 		if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
-		elif out_type == 'y': out_path = out_path + '/' + gain + '/y'
+		elif out_type == 'y': out_path = out_path + '/y/' + gain
 		elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
 		else: raise ValueError('Invalid output type.')
 		if not os.path.exists(out_path): os.makedirs(out_path)
+
+		if test_epoch < 1: raise ValueError("test_epoch must be greater than 0.")
 
 		self.sample_stats(stats_path)
 		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) +
 			'/variables/variables' )
 
+		print("Processing observations...")
 		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
-		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1)
+		print("Performing inference...")
+		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1, verbose=1)
 
+		print("Performing synthesis...")
 		batch_size = len(test_x_len)
 		for i in tqdm(range(batch_size)):
 			base_name = test_x_base_names[i]
@@ -238,6 +244,93 @@ class DeepXi(DeepXiInput):
 				ibm_hat = np.greater(xi_hat, 1.0)
 				save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
 			else: raise ValueError('Invalid output type.')
+
+	def test(
+		self,
+		test_x,
+		test_x_len,
+		test_x_base_names,
+		test_s,
+		test_s_len,
+		test_s_base_names,
+		test_epoch,
+		model_path='model',
+		gain='mmse-lsa',
+		stats_path=None
+		):
+		"""
+		Deep Xi testing. Objective measures are used to evaluate the performance
+		of Deep Xi.
+
+		Argument/s:
+			test_x - noisy-speech test batch.
+			test_x_len - noisy-speech test batch lengths.
+			test_x_base_names - noisy-speech base names.
+			test_x - clean-speech test batch.
+			test_x_len - clean-speech test batch lengths.
+			test_x_base_names - clean-speech base names.
+			test_epoch - epoch to test.
+			model_path - path to model directory.
+			gain - gain function (see deepxi/args.py).
+			stats_path - path to the saved statistics.
+
+		"""
+		if test_epoch < 1: raise ValueError("test_epoch must be greater than 0.")
+
+		self.sample_stats(stats_path)
+		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) +
+			'/variables/variables' )
+
+		print("Processing observations...")
+		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
+		print("Performing inference...")
+		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1, verbose=1)
+
+		print("Performing synthesis and objective scoring...")
+		results = {}
+		batch_size = len(test_x_len)
+		for i in tqdm(range(batch_size)):
+			base_name = test_x_base_names[i]
+			x_STMS = x_STMS_batch[i,:n_frames[i],:]
+			x_STPS = x_STPS_batch[i,:n_frames[i],:]
+			xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
+			xi_hat = self.xi_hat(xi_bar_hat)
+			y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=gain))
+			y = self.polar_synthesis(y_STMS, x_STPS).numpy()
+
+			for (j, basename) in enumerate(test_s_base_names):
+				if basename in test_x_base_names[i]: ref_idx = j
+
+			s = self.normalise(test_s[ref_idx,0:test_s_len[ref_idx]]).numpy()
+			y = y[0:len(s)]
+
+			noise_source = test_x_base_names[i].split("_")[-2]
+			snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
+
+			results = self.append_score(results, (noise_source, snr_level, 'STOI'),
+				100*stoi(s, y, self.f_s, extended=False))
+			results = self.append_score(results, (noise_source, snr_level, 'eSTOI'),
+				100*stoi(s, y, self.f_s, extended=True))
+			results = self.append_score(results, (noise_source, snr_level, 'PESQ'),
+				pesq(self.f_s, s, y, 'nb'))
+			results = self.append_score(results, (noise_source, snr_level, 'MOS-LQO'),
+				pesq(self.f_s, s, y, 'wb'))
+
+		noise_sources, snr_levels, metrics = set(), set(), set()
+		for key, value in results.items():
+			noise_sources.add(key[0])
+			snr_levels.add(key[1])
+			metrics.add(key[2])
+
+		if not os.path.exists("log/results"): os.makedirs("log/results")
+
+		with open("log/results/" + self.ver + "_e" + str(test_epoch) + '_' + gain + ".txt", "w") as f:
+			for i in sorted(noise_sources):
+				for j in sorted(snr_levels):
+					for k in sorted(metrics):
+						if (i, j, k) in results.keys():
+							print("{}, {} dB, {}: {:.2f}.".format(i, j, k, np.mean(results[(i,j,k)])))
+							f.write("{}, {} dB, {}: {:.2f}.\n".format(i, j, k, np.mean(results[(i,j,k)])))
 
 	def sample_stats(
 		self,
@@ -445,6 +538,22 @@ class DeepXi(DeepXiInput):
 		d_batch_len = s_batch_len
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size)
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
+
+	def append_score(self, dict, key, score):
+		"""
+		Appends score to the list for the given key.
+
+		Argument/s:
+			dict - dictionary with condition as keys and objective scores as values.
+			key - noisy-speech conditions.
+			score - objective score.
+
+		Returns:
+			dict - updated dictionary.
+		"""
+		if key in dict.keys(): dict[key].append(score)
+		else: dict[key] = [score]
+		return dict
 
 #############################################################
 ## CREATE deepxi/callbacks.py AND MOVE THE CALLBACKS THERE ##

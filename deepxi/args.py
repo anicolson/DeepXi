@@ -16,8 +16,9 @@ def get_args():
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
 	parser.add_argument('--ver', type=str, help='Model version')
 	parser.add_argument('--test_epoch', type=int, help='Epoch to test')
-	parser.add_argument('--train', default=False, type=str_to_bool, help='Training flag')
-	parser.add_argument('--infer', default=False, type=str_to_bool, help='Inference flag')
+	parser.add_argument('--train', default=False, type=str_to_bool, help='Perform training')
+	parser.add_argument('--infer', default=False, type=str_to_bool, help='Perform inference and save outputs')
+	parser.add_argument('--test', default=False, type=str_to_bool, help='Evaluate using objective measures')
 	parser.add_argument('--prelim', default=False, type=str_to_bool, help='Preliminary flag')
 	parser.add_argument('--verbose', default=False, type=str_to_bool, help='Verbose')
 	parser.add_argument('--network', type=str, help='Network type')
@@ -52,7 +53,8 @@ def get_args():
 	parser.add_argument('--model_path', default='model', type=str, help='Model save path')
 	parser.add_argument('--set_path', default='set', type=str, help='Path to datasets')
 	parser.add_argument('--data_path', default='data', type=str, help='Save data path')
-	parser.add_argument('--test_x_path', default='set/test_noisy_speech', type=str, help='Path to the noisy speech test set')
+	parser.add_argument('--test_x_path', default='set/test_noisy_speech', type=str, help='Path to the noisy-speech test set')
+	parser.add_argument('--test_s_path', default='set/test_clean_speech', type=str, help='Path to the clean-speech test set')
 	parser.add_argument('--out_path', default='out', type=str, help='Output path')
 
 	## FEATURES

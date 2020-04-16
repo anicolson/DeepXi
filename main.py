@@ -12,6 +12,7 @@ from deepxi.se_batch import Batch
 import deepxi.utils as utils
 import numpy as np
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 if __name__ == '__main__':
 
@@ -34,9 +35,10 @@ if __name__ == '__main__':
 		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))
 		args.val_steps=int(np.ceil(args.val_s.shape[0]/args.mbatch_size))
 
-	if args.infer:
+	if args.infer or args.test:
 		args.out_path = args.out_path + '/' + args.ver + '/' + 'e' + str(args.test_epoch) # output path.
 		args.test_x, args.test_x_len, _, args.test_x_base_names = Batch(args.test_x_path)
+		if args.test: args.test_s, args.test_s_len, _, args.test_s_base_names = Batch(args.test_s_path)
 
 	config = utils.gpu_config(args.gpu)
 
@@ -78,13 +80,26 @@ if __name__ == '__main__':
 		)
 
 	if args.infer: deepxi.infer(
-		test_x=args.test_x[0:10],
-		test_x_len=args.test_x_len[0:10],
-		test_x_base_names=args.test_x_base_names[0:10],
+		test_x=args.test_x,
+		test_x_len=args.test_x_len,
+		test_x_base_names=args.test_x_base_names,
 		test_epoch=args.test_epoch,
 		model_path=args.model_path,
 		out_type=args.out_type,
 		gain=args.gain,
 		out_path=args.out_path,
+		stats_path=args.data_path,
+		)
+
+	if args.test: deepxi.test(
+		test_x=args.test_x,
+		test_x_len=args.test_x_len,
+		test_x_base_names=args.test_x_base_names,
+		test_s=args.test_s,
+		test_s_len=args.test_s_len,
+		test_s_base_names=args.test_s_base_names,
+		test_epoch=args.test_epoch,
+		model_path=args.model_path,
+		gain=args.gain,
 		stats_path=args.data_path,
 		)
