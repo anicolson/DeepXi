@@ -19,6 +19,35 @@ Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise
 * Estimate the ideal binary mask **(IBM)** for missing feature approaches or the ideal ratio mask **(IRM)**.
 * A **front-end for robust ASR**, as shown in **Figure 1**.
 
+How does Deep Xi work?
+----
+The input to Deep Xi 
+
+What audio do I use with Deep Xi?
+----
+Deep Xi in its current configuration operates on mono/single-channel audio. Single-channel is commonly used in speech enhancement due to most cell phone microphone configurations (single microphone).
+
+Version 3f is trained to operate on a sampling frequency of 16 kHz, which is currently the standard sampling frequency used in the speech enhancement community (previously the standard sampling frequency was 8 kHz). Deep Xi can be trained using a higher sampling frequency, but this would be unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of a sampling frequency of 16 kHz).
+
+Bit rate is different for each audio codec. As Deep Xi uses PySoundFile, a variety of audio codecs can be used (e.g. .wav, .mp3, .flac, etc). PySoundFile then converts the coded audio to 16-bit PCM (int16). Deep Xi then converts this to float32 and then normalises to [-1.0,1.0]. In short, the bit rate does not affect the performance of Deep Xi. A lossy codec may very, very slightly affect the original audio, however.
+
+Train it to have different sampling frequency and different window durations and shifts, e.g. a sampling frequency of `f_s=8000` and a window duration and shift of `T_d=20` ms and `T_s=10` ms. 
+
+Where can I get a dataset to train Deep Xi?
+----
+
+
+
+Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
+
+Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
+
+Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
+
+The MATLAB scripts used to generate these sets can be found in .
+
+
+
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
 | <p align="center"> <b>Figure 1:</b> Deep Xi used as a front-end for robust ASR. The back-end (Deep Speech) is available <a href="https://github.com/mozilla/DeepSpeech">here</a>. The noisy speech magnitude spectrogram, as shown in <b>(a)</b>, is a mixture of clean speech with <i>voice babble</i> noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the <i>a priori</i> SNR, as shown in <b>(b)</b>. The <i>a priori</i> SNR estimate is used to compute an MMSE approach gain function, which is multiplied elementwise with the noisy speech magnitude spectrum to produce the clean speech magnitude spectrum estimate, as shown in <b>(c)</b>. <a href="https://github.com/anicolson/matlab_feat">MFCCs</a> are computed from the estimated clean speech magnitude spectrogram, producing the estimated clean speech cepstrogram, as shown in <b>(d)</b>. The back-end system, Deep Speech, computes the hypothesis transcript, from the estimated clean speech cepstrogram, as shown in <b>(e)</b>. </p> |
@@ -71,17 +100,9 @@ Objective scores obtained on the test set described [here](http://ssw9.talp.cat/
 
 
 
-Deep Xi is being updated to TensorFlow 2.x! This will be made available soon.
------
 
 
-Deep Xi training and testing sets are now available! They are available on IEEE DataPort:
------
-Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
 
-Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
-
-Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 
 Installation
 -----
