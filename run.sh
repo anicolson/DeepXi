@@ -56,6 +56,7 @@ NETWORK='TCN'
 TRAIN=0
 INFER=0
 TEST=0
+GAIN='mmse-lsa'
 
 for ARGUMENT in "$@"
 do
@@ -67,6 +68,7 @@ do
             TRAIN)              TRAIN=${VALUE} ;;
             INFER)              INFER=${VALUE} ;;
             TEST)               TEST=${VALUE} ;;
+            GAIN)               GAIN=${VALUE} ;;
             *)
     esac
 done
@@ -95,10 +97,10 @@ then
                     --min_snr           -10             \
                     --max_snr           20              \
                     --out_type          'y'             \
-                    --gain              'mmse-lsa'      \
                     --save_model        1               \
                     --log_iter          0               \
                     --eval_example      1               \
+                    --gain              $GAIN           \
                     --train             $TRAIN          \
                     --infer             $INFER          \
                     --test              $TEST           \
@@ -131,10 +133,10 @@ then
                     --min_snr           -10             \
                     --max_snr           20              \
                     --out_type          'y'             \
-                    --gain              'mmse-lsa'      \
                     --save_model        1               \
                     --log_iter          0               \
                     --eval_example      1               \
+                    --gain              $GAIN           \
                     --train             $TRAIN          \
                     --infer             $INFER          \
                     --test              $TEST           \

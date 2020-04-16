@@ -2,9 +2,7 @@ numpy
 scipy
 tqdm
 pysoundfile
-libspn_keras
-colorlover
-plotly
 cython
 pesq
 pystoi
+tensorflow
