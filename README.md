@@ -9,13 +9,14 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.*
 ====
 
-Deep Xi can be used for speech enhancement, for noise estimation, and as a front-end for robust ASR.
+Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise estimation, for mask estimation, and as a front-end for robust ASR.
 ----
-[Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow](https://www.tensorflow.org/). Some of its use cases include:
+[Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow 2](https://www.tensorflow.org/). Some of its use cases include:
 
 
-* Minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator, the MMSE log-spectral amplitude (MMSE-LSA) estimator, and the Wiener filter (WF) approach.
-* Estimate the ideal ratio mask **(IRM)** and the ideal binary mask **(IBM)**.
+* It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator.
+* It can be used by minimum mean-square error (MMSE) approaches to **noise estimation**, as in *DeepMMSE* [[2]](https://ieeexplore.ieee.org/document/9066933).
+* Estimate the ideal binary mask **(IBM)** for missing feature approaches or the ideal ratio mask **(IRM)**.
 * A **front-end for robust ASR**, as shown in **Figure 1**.
 
 |![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
@@ -148,8 +149,12 @@ The following noise datasets were used:
 * The noise set from the MUSAN corpus, which can be found [here](http://www.openslr.org/17/).
 * Multiple packs from the FreeSound website, which can be found  [here](https://freesound.org/)
 
-References
+Citation guide
 -----
-Please cite the following when using Deep Xi:
+Please cite the following depending on what you are using:
+* If using Deep Xi-ResLSTM, please cite [1].
+* If using Deep Xi-TCN, please cite [1] and [2].
+* If using DeepMMSE, please cite [2].
 
 [1] [A. Nicolson, K. K. Paliwal, Deep learning for minimum mean-square error approaches to speech enhancement, Speech Communication 111 (2019) 44 - 55, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)
+[2] [Q. Zhang, A. M. Nicolson, M. Wang, K. Paliwal and C. Wang, "DeepMMSE: A Deep Learning Approach to MMSE-based Noise Power Spectral Density Estimation," in IEEE/ACM Transactions on Audio, Speech, and Language Processing.](https://ieeexplore.ieee.org/document/9066933)
