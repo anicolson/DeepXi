@@ -43,15 +43,9 @@ The **sequence mask** is used by TensorFlow to ensure that the DNN is not traine
 
 During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using Equation (12) from [2](https://ieeexplore.ieee.org/document/9066933).
 
-What audio do I use with Deep Xi?
+Which audio do I use with Deep Xi?
 ----
-Deep Xi in its current configuration operates on mono/single-channel audio. Single-channel is commonly used in speech enhancement due to most cell phone microphone configurations (single microphone).
-
-Version 3f is trained to operate on a sampling frequency of 16 kHz, which is currently the standard sampling frequency used in the speech enhancement community (previously the standard sampling frequency was 8 kHz). Deep Xi can be trained using a higher sampling frequency, but this would be unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of a sampling frequency of 16 kHz).
-
-Bit rate is different for each audio codec. As Deep Xi uses PySoundFile, a variety of audio codecs can be used (e.g. .wav, .mp3, .flac, etc). PySoundFile then converts the coded audio to 16-bit PCM (int16). Deep Xi then converts this to float32 and then normalises to [-1.0,1.0]. In short, the bit rate does not affect the performance of Deep Xi. A lossy codec may very, very slightly affect the original audio, however.
-
-Train it to have different sampling frequency and different window durations and shifts, e.g. a sampling frequency of `f_s=8000` and a window duration and shift of `T_d=20` ms and `T_s=10` ms. 
+Deep Xi operates on mono/single-channel audio. Single-channel audio is commonly due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi. 
 
 Where can I get a dataset to train Deep Xi?
 ----
