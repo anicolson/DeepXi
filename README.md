@@ -33,11 +33,11 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 
 |![](./fig_training_example.png "Deep Xi training example.")|
 |----|
-| <p align="center"> <b>Figure 2:</b> <a>A training example for Deep Xi.</a> </p> |
+| <p align="center"> <b>Figure 2:</b> <a>A training example for Deep Xi. Generated using `eval_example.m`.</a> </p> |
  
  |![](./fig_xi_dist.png "Normal distribution of the instantaneous *a priori* SNR in dB for each frequency bin.")|
 |----|
-| <p align="center"> <b>Figure 3:</b> <a>The normal distribution for each frequency bin is computed from the mean and standard deviation of the instantaneous *a priori* SNR (dB) over the sample.</a> </p> |
+| <p align="center"> <b>Figure 3:</b> <a>The normal distribution for each frequency bin is computed from the mean and standard deviation of the instantaneous *a priori* SNR (dB) over the sample. Generated using `eval_stats.m`</a> </p> |
 
 Which audio do I use with Deep Xi?
 ----
