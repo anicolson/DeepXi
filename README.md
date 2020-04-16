@@ -34,14 +34,14 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 |![](./fig_training_example.png "Deep Xi training example.")|
 |----|
 | <p align="center"> <b>Figure 2:</b> <a>A training example for Deep Xi. Generated using `eval_example.m`.</a> </p> |
- 
+
  |![](./fig_xi_dist.png "Normal distribution of the instantaneous *a priori* SNR in dB for each frequency bin.")|
 |----|
 | <p align="center"> <b>Figure 3:</b> <a>The normal distribution for each frequency bin is computed from the mean and standard deviation of the instantaneous *a priori* SNR (dB) over the sample. Generated using `eval_stats.m`</a> </p> |
 
 Which audio do I use with Deep Xi?
 ----
-Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is commonly due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi. 
+Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is commonly due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi.
 
 Where can I get a dataset for Deep Xi?
 ----
@@ -73,7 +73,7 @@ mbatch_size=8
 ```
 An example of Deep Xi-TCN is shown in **Figure 4**.
 
-**Deep Xi-ResLSTM** 
+**Deep Xi-ResLSTM**
 
 Deep Xi utilising a residual long short-term memory (ResLSTM) network was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). It uses residual blocks containing a single LSTM cell. The network comprises of approximately 10 million parameters. The configuration of `reslstm-1a` is as follows:
 ```
@@ -83,7 +83,7 @@ test_epoch=
 mbatch_size=8   
 ```
 
-|![](./Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
+|![](./fig_Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-TCN with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the TCN is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-TCN with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
 
@@ -131,21 +131,21 @@ To install:
 How to Use the Deep Xi
 -----
 
-Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure Deep Xi. 
+Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure Deep Xi.
 
 **Inference:**
 To perform inference and save the outputs, use the following:
 ```
 ./run.sh NETWORK="TCN" INFER=1 GAIN="mmse-lsa"
 ```
-Please look in [`thoth/args.py`](https://github.com/anicolson/DeepXi/blob/master/deepxi/args.py) for available gain functions and [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for further options. 
+Please look in [`thoth/args.py`](https://github.com/anicolson/DeepXi/blob/master/deepxi/args.py) for available gain functions and [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for further options.
 
 **Testing:**
 To perform testing and get objective scores, use the following:
 ```
 ./run.sh NETWORK="TCN" TEST=1 GAIN="mmse-lsa"
 ```
-Please look in [`log/results`](https://github.com/anicolson/DeepXi/blob/master/log/results) for the results. 
+Please look in [`log/results`](https://github.com/anicolson/DeepXi/blob/master/log/results) for the results.
 
 **Training:**
 ```
