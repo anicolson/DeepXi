@@ -131,7 +131,7 @@ To install:
 How to Use the Deep Xi
 -----
 
-Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure Deep Xi.
+Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure and run Deep Xi.
 
 **Inference:**
 To perform inference and save the outputs, use the following:
