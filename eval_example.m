@@ -21,7 +21,7 @@ load('seq_mask_batch.mat')
 
 for i = 1:size(x_STMS_batch, 1)
     figure (i)
-    
+       
     % Observation/input: noisy-speech short-time magnitude spectrum. 
     x_STMS = rot90(squeeze(x_STMS_batch(i,:,:)));
     x_STMS_dB = 20*log10(x_STMS);
@@ -31,16 +31,18 @@ for i = 1:size(x_STMS_batch, 1)
 
     % Sequence mask.
     seq_mask = seq_mask_batch(i,:,:);
-    
-    subplot(2,2,1); imagesc(x_STMS); colorbar;
+       
+    subplot(2,2,1); imagesc(flipud(x_STMS)); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
     title('Noisy-speech short-time magnitude spectrum')
-
-    subplot(2,2,2); imagesc(x_STMS_dB); colorbar;
+    set(gca,'YDir','normal')
+    
+    subplot(2,2,2); imagesc(flipud(x_STMS_dB)); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
     title('Noisy-speech short-time magnitude spectrum (dB)')
+    set(gca,'YDir','normal')
 
     subplot(2,2,3); imagesc(seq_mask); colorbar;
     xlabel('Time-frame bin')
@@ -49,11 +51,11 @@ for i = 1:size(x_STMS_batch, 1)
     set(gca,'ytick',[])
     set(gca,'yticklabel',[])
     
-    
-    subplot(2,2,4); imagesc(xi_bar); colorbar;
+    subplot(2,2,4); imagesc(flipud(xi_bar)); colorbar;
     xlabel('Time-frame bin')
     ylabel('Frequency bin')
     title('Mapped{\it a priori} SNR')
-    
+    set(gca,'YDir','normal')
+
     set(gcf, 'Position', get(0, 'Screensize'));
 end
