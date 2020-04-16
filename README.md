@@ -1,21 +1,5 @@
-Deep Xi is being updated to TensorFlow 2.x! This will be made available soon.
------
 
-
-Deep Xi training and testing sets are now available! They are available on IEEE DataPort:
------
-Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
-
-Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
-
-Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 <!---
-Wich ML library should Deep Xi be available in? Please vote:
------
-
-[![](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Keep%20in%20TensorFlow%201)](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Keep%20in%20TensorFlow%201/vote)
-[![](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Upgrade%20to%20TensorFlow%202)](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Upgrade%20to%20TensorFlow%202/vote)
-[![](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Switch%20to%20PyTorch)](https://api.gh-polls.com/poll/01E2RXE3BST14314HKCG7SD2NZ/Switch%20to%20PyTorch/vote)
 
 export PATH=/usr/local/cuda-10.1/bin${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
@@ -85,6 +69,18 @@ Objective scores obtained on the test set described [here](http://ssw9.talp.cat/
 | **Deep Xi (ResNet 3e, MMSE-LSA)** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
 
 
+
+Deep Xi is being updated to TensorFlow 2.x! This will be made available soon.
+-----
+
+
+Deep Xi training and testing sets are now available! They are available on IEEE DataPort:
+-----
+Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
+
+Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
+
+Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 
 Installation
 -----
