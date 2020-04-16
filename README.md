@@ -6,6 +6,9 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
+Deep Xi has been updated to Tensorflow 2!
+====
+
 Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.*
 ====
 
@@ -19,38 +22,45 @@ Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise
 * Estimate the ideal binary mask **(IBM)** for missing feature approaches or the ideal ratio mask **(IRM)**.
 * A **front-end for robust ASR**, as shown in **Figure 1**.
 
+|![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
+|----|
+| <p align="center"> <b>Figure 1:</b> Deep Xi used as a front-end for robust ASR. The back-end (Deep Speech) is available <a href="https://github.com/mozilla/DeepSpeech">here</a>. The noisy speech magnitude spectrogram, as shown in <b>(a)</b>, is a mixture of clean speech with <i>voice babble</i> noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the <i>a priori</i> SNR, as shown in <b>(b)</b>. The <i>a priori</i> SNR estimate is used to compute an MMSE approach gain function, which is multiplied elementwise with the noisy speech magnitude spectrum to produce the clean speech magnitude spectrum estimate, as shown in <b>(c)</b>. <a href="https://github.com/anicolson/matlab_feat">MFCCs</a> are computed from the estimated clean speech magnitude spectrogram, producing the estimated clean speech cepstrogram, as shown in <b>(d)</b>. The back-end system, Deep Speech, computes the hypothesis transcript, from the estimated clean speech cepstrogram, as shown in <b>(e)</b>. </p> |
+
+
 How does Deep Xi work?
 ----
-The input to Deep Xi 
+A training example is shown in **Figure 2**. FIGURE 2 NEEDS TO BE ADDED
 
-What audio do I use with Deep Xi?
+A deep neural network (DNN) within the Deep Xi framework is 
+
+The input to the DNN is the **noisy-speech short-time magnitude spectrum**
+
+The training target of th DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**)
+
+The map for a frequency component is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [1](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the statistics are shown in **Figure 3**. FIGURE THREE NEEDS TO BE ADDED
+
+The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding.
+
+During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using Equation (12) from [2](https://ieeexplore.ieee.org/document/9066933).
+
+Which audio do I use with Deep Xi?
 ----
-Deep Xi in its current configuration operates on mono/single-channel audio. Single-channel is commonly used in speech enhancement due to most cell phone microphone configurations (single microphone).
+Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is commonly due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi. 
 
-Version 3f is trained to operate on a sampling frequency of 16 kHz, which is currently the standard sampling frequency used in the speech enhancement community (previously the standard sampling frequency was 8 kHz). Deep Xi can be trained using a higher sampling frequency, but this would be unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of a sampling frequency of 16 kHz).
-
-Bit rate is different for each audio codec. As Deep Xi uses PySoundFile, a variety of audio codecs can be used (e.g. .wav, .mp3, .flac, etc). PySoundFile then converts the coded audio to 16-bit PCM (int16). Deep Xi then converts this to float32 and then normalises to [-1.0,1.0]. In short, the bit rate does not affect the performance of Deep Xi. A lossy codec may very, very slightly affect the original audio, however.
-
-Train it to have different sampling frequency and different window durations and shifts, e.g. a sampling frequency of `f_s=8000` and a window duration and shift of `T_d=20` ms and `T_s=10` ms. 
-
-Where can I get a dataset to train Deep Xi?
+Where can I get a dataset for Deep Xi?
 ----
-
-
+Open-source training and testing sets are available for Deep Xi on IEEE *DataPort*:
 
 Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
 
 Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
 
-Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
+Test set from the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 
-The MATLAB scripts used to generate these sets can be found in .
+The MATLAB scripts used to generate these sets can be found in [`set`](https://github.com/anicolson/DeepXi/tree/master/set).
 
 
 
-|![](./fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
-|----|
-| <p align="center"> <b>Figure 1:</b> Deep Xi used as a front-end for robust ASR. The back-end (Deep Speech) is available <a href="https://github.com/mozilla/DeepSpeech">here</a>. The noisy speech magnitude spectrogram, as shown in <b>(a)</b>, is a mixture of clean speech with <i>voice babble</i> noise at an SNR level of -5 dB, and is the input to Deep Xi. Deep Xi estimates the <i>a priori</i> SNR, as shown in <b>(b)</b>. The <i>a priori</i> SNR estimate is used to compute an MMSE approach gain function, which is multiplied elementwise with the noisy speech magnitude spectrum to produce the clean speech magnitude spectrum estimate, as shown in <b>(c)</b>. <a href="https://github.com/anicolson/matlab_feat">MFCCs</a> are computed from the estimated clean speech magnitude spectrogram, producing the estimated clean speech cepstrogram, as shown in <b>(d)</b>. The back-end system, Deep Speech, computes the hypothesis transcript, from the estimated clean speech cepstrogram, as shown in <b>(e)</b>. </p> |
 
 
 <!-- |![](./fig_reslstm.png "ResLSTM a priori SNR estimator.")|
