@@ -29,19 +29,15 @@ Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise
 
 How does Deep Xi work?
 ----
-A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of th DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The map for a frequency component is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [1](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the statistics for each frequency bin (mean and standard) are shown in **Figure 3**. 
-
-The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding.
-
-During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using Equation (12) from [2](https://ieeexplore.ieee.org/document/9066933).
+A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of th DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The instantaneous *a priori* SNR is mapped to the interval `[0,1]` in order to improve the rate of convergence of the used stochastic gradient descent algorith. The map is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the mean and standard deviation of the sample for for each frequency bin is shown in **Figure 3**. The training examples in each mini-batch are padded to the longest sequence length in the mini-batch. The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding. During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using the sample statistics and Equation (12) from [[2]](https://ieeexplore.ieee.org/document/9066933).
 
 |![](./fig_training_example.png "Deep Xi training example.")|
 |----|
-| <p align="center"> <b>Figure 2:</b> <a> A training example for Deep Xi.</a> </p> |
+| <p align="center"> <b>Figure 2:</b> <a>A training example for Deep Xi.</a> </p> |
  
  |![](./fig_xi_dist.png "Normal distribution of the instantaneous *a priori* SNR in dB for each frequency bin.")|
 |----|
-| <p align="center"> <b>Figure 3:</b> <a> Distribution of the instantaneous *a priori* SNR in dB for each frequency bin for the sample.</a> </p> |
+| <p align="center"> <b>Figure 3:</b> <a>The normal distribution for each frequency bin is computed from the mean and standard deviation of the instantaneous *a priori* SNR (dB) over the sample.</a> </p> |
 
 Which audio do I use with Deep Xi?
 ----
