@@ -266,9 +266,9 @@ class DeepXi(DeepXiInput):
 			test_x - noisy-speech test batch.
 			test_x_len - noisy-speech test batch lengths.
 			test_x_base_names - noisy-speech base names.
-			test_x - clean-speech test batch.
-			test_x_len - clean-speech test batch lengths.
-			test_x_base_names - clean-speech base names.
+			test_s - clean-speech test batch.
+			test_s_len - clean-speech test batch lengths.
+			test_s_base_names - clean-speech base names.
 			test_epoch - epoch to test.
 			model_path - path to model directory.
 			gain - gain function (see deepxi/args.py).
@@ -554,6 +554,8 @@ class DeepXi(DeepXiInput):
 		if key in dict.keys(): dict[key].append(score)
 		else: dict[key] = [score]
 		return dict
+
+
 
 #############################################################
 ## CREATE deepxi/callbacks.py AND MOVE THE CALLBACKS THERE ##

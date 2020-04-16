@@ -315,26 +315,3 @@ class DeepXiInput(STFT):
 		xi_db_hat = np.add(np.multiply(np.multiply(self.sigma, np.sqrt(2.0)),
 			spsp.erfinv(np.subtract(np.multiply(2.0, xi_bar_hat), 1))), self.mu)
 		return np.power(10.0, np.divide(xi_db_hat, 10.0))
-
-
-
-	#
-	#
-	# def instantaneous_a_priori_snr_db_DEPRECIATED(self, s, d, s_len, d_len, snr): ## DEPRECIATED
-	# 	"""
-	#     Instantaneous a priori SNR (dB).
-	#
-	# 	Argument/s:
-	# 		s - clean speech (dtype=tf.int32).
-	# 		d - noise (dtype=tf.int32).
-	# 		s_len - clean-speech length without padding (samples).
-	# 		d_len - noise length without padding (samples).
-	# 		snr - SNR level.
-	#
-	# 	Returns:
-	# 		xi_dB - instantaneous a priori SNR in dB.
-	# 		L - number of time-domain frames for each sequence.
-	# 	"""
-	# 	s_STMS, d_STMS, _, n_frames = self.mix(s, d, s_len, d_len, snr)
-	# 	xi_dB = self.xi_dB(s_STMS, d_STMS)
-	# 	return xi_dB, n_frames
