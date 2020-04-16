@@ -29,19 +29,19 @@ Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise
 
 How does Deep Xi work?
 ----
-A training example is shown in **Figure 2**. FIGURE 2 NEEDS TO BE ADDED
-
-A deep neural network (DNN) within the Deep Xi framework is 
-
-The input to the DNN is the **noisy-speech short-time magnitude spectrum**
-
-The training target of th DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**)
-
-The map for a frequency component is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [1](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the statistics are shown in **Figure 3**. FIGURE THREE NEEDS TO BE ADDED
+A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of th DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The map for a frequency component is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [1](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the statistics for each frequency bin (mean and standard) are shown in **Figure 3**. 
 
 The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding.
 
 During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using Equation (12) from [2](https://ieeexplore.ieee.org/document/9066933).
+
+|![](./fig_training_example.png "Deep Xi training example.")|
+|----|
+| <p align="center"> <b>Figure 2:</b> <a> A training example for Deep Xi.</a> </p> |
+ 
+ |![](./fig_xi_dist.png "Normal distribution of the instantaneous *a priori* SNR in dB for each frequency bin.")|
+|----|
+| <p align="center"> <b>Figure 3:</b> <a> Distribution of the instantaneous *a priori* SNR in dB for each frequency bin for the sample.</a> </p> |
 
 Which audio do I use with Deep Xi?
 ----
