@@ -6,7 +6,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi has been updated to Tensorflow 2!
+Deep Xi has been updated to TensorFlow 2!
 ====
 
 Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.*
@@ -57,7 +57,11 @@ The MATLAB scripts used to generate these sets can be found in [`set`](https://g
 
 Current networks
 -----
-**Deep Xi-TCN**: [[2]](https://ieeexplore.ieee.org/document/9066933) The full model comprises of 2 million parameters, utilises 40 bottlekneck blocks, and has a maximum dilation rate of 16. This provides a contextual field of approximately 8 seconds.
+The following networks are **causal**. This is facilitated by using unidirectional recurrent cells, causal convlutional kernels, and layer normalisation that does not consider future time-frames (`frame-wise layer normalisation`).
+
+**Deep Xi-TCN**
+
+Deep Xi utilising a temporal convolutional network (TCN) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. The configuration of `tcn-1a` is as follows:
 ```
 d_model=256
 n_blocks=40
@@ -67,9 +71,11 @@ max_d_rate=16
 test_epoch=
 mbatch_size=8
 ```
+An example of Deep Xi-TCN is shown in **Figure 4**.
 
-**Deep Xi-ResLSTM**: [[1]](https://doi.org/10.1016/j.specom.2019.06.002) The full model comprises of 2 million parameters, utilises 40 bottlekneck blocks, and has a maximum dilation rate of 16. This provides a contextual field of approximately 8 seconds.
+**Deep Xi-ResLSTM** 
 
+Deep Xi utilising a residual long short-term memory (ResLSTM) network was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). It uses residual blocks containing a single LSTM cell. The network comprises of approximately 10 million parameters. The configuration of `reslstm-1a` is as follows:
 ```
 d_model=512  
 n_blocks=5   
@@ -77,9 +83,9 @@ test_epoch=
 mbatch_size=8   
 ```
 
-|![](./Deep-Xi-ResNet.png "Deep Xi a priori SNR estimator.")|
+|![](./Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
 |----|
-| <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-ResNet with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the ResNet is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-ResNet with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
+| <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-TCN with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the TCN is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-TCN with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
 
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0).
@@ -87,15 +93,12 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 
 Availability
 -----
-<!--
-A trained network for version **3e** will be made available within the next couple of weeks.
--->
-
-A trained model for version **3f** can be found in the [*./model* directory](https://github.com/anicolson/DeepXi/tree/master/model).
-
+A trained model for version **tcn-1a** is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory.
 
 Results
 -----
+TO BE UPDATED
+
 Objective scores obtained on the test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
@@ -109,32 +112,21 @@ Objective scores obtained on the test set described [here](http://ssw9.talp.cat/
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf)                 | No     | 3.99 | 3.18 | 3.42 | **2.86** | --        |
 | **Deep Xi (ResNet 3e, MMSE-LSA)** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
 
-
-
-
-
-
-
 Installation
 -----
 
 Prerequisites for GPU usage:
 
-* [CUDA 10.0](https://developer.nvidia.com/cuda-10.0-download-archive)
-* [cuDNN (>= 7.4.1)](https://developer.nvidia.com/cudnn)
+* [CUDA 10.01](https://developer.nvidia.com/cuda-downloads)
+* [cuDNN (>= 7.6)](https://developer.nvidia.com/cudnn)
 
 To install:
 
 1. `git clone https://github.com/anicolson/DeepXi.git`
 2. `virtualenv --system-site-packages -p python3 ~/venv/DeepXi`
 3. `source ~/venv/DeepXi/bin/activate`
-4. `pip install --upgrade tensorflow-gpu==1.14`
-5. `cd DeepXi`
-6. `pip install -r requirements.txt`
-
-If a GPU is not to be used, step 4 should be:
-`pip install --upgrade tensorflow==1.14`
-
+4. `cd DeepXi`
+5. `pip install -r requirements.txt`
 
 How to Use the Deep Xi Scripts
 -----
