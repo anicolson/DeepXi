@@ -93,7 +93,7 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 
 Availability
 -----
-A trained model for version **tcn-1a** is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory.
+A trained model for version **tcn-1a** is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).
 
 Results
 -----
