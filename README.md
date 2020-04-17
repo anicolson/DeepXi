@@ -85,7 +85,7 @@ mbatch_size=8
 
 Availability
 -----
-A trained model for version **tcn-1a** is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).
+A trained model for version `**tcn-1a**` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).
 
 |![](./fig_Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
 |----|
