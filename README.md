@@ -37,7 +37,7 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 
  |![](./fig_xi_dist.png "Normal distribution of the instantaneous *a priori* SNR in dB for each frequency bin.")|
 |----|
-| <p align="center"> <b>Figure 3:</b> <a>The normal distribution for each frequency bin is computed from the mean and standard deviation of the instantaneous *a priori* SNR (dB) over the sample. Generated using `eval_stats.m`</a> </p> |
+| <p align="center"> <b>Figure 3:</b> <a>The normal distribution for each frequency bin is computed from the mean and standard deviation of the instantaneous *a priori* SNR (dB) over a sample of the training set. Generated using `eval_stats.m`</a> </p> |
 
 Which audio do I use with Deep Xi?
 ----
@@ -83,6 +83,10 @@ test_epoch=
 mbatch_size=8   
 ```
 
+Availability
+-----
+A trained model for version `**tcn-1a**` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).
+
 |![](./fig_Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-TCN with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the TCN is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-TCN with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
@@ -90,10 +94,6 @@ mbatch_size=8
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0).
 -->
-
-Availability
------
-A trained model for version **tcn-1a** is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory.
 
 Results
 -----
@@ -117,7 +117,7 @@ Installation
 
 Prerequisites for GPU usage:
 
-* [CUDA 10.01](https://developer.nvidia.com/cuda-downloads)
+* [CUDA 10.1](https://developer.nvidia.com/cuda-downloads)
 * [cuDNN (>= 7.6)](https://developer.nvidia.com/cudnn)
 
 To install:
@@ -131,7 +131,7 @@ To install:
 How to Use the Deep Xi
 -----
 
-Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure Deep Xi.
+Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure and run Deep Xi.
 
 **Inference:**
 To perform inference and save the outputs, use the following:
