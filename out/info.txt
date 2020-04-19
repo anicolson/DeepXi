@@ -1,1 +1,1 @@
-Outputs are found in this directory. 'y' indicates enhanced speech .wav files.
+Inference outputs are found here. See deepxi/args.py for different output types.

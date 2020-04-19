@@ -1,1 +1,1 @@
-Models are found in this directory.
+Models are saved here.

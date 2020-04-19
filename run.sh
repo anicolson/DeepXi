@@ -1,52 +1,150 @@
 #!/bin/bash
 
+PROJ_DIR='deepxi'
+
+case `hostname` in
+"fist")  echo "Running on fist."
+    SET_PATH='/mnt/ssd/deep_xi_training_set'
+    DATA_PATH='/home/aaron/data/'$PROJ_DIR
+    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
+    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
+    OUT_PATH='/home/aaron/out/'$PROJ_DIR
+    MODEL_PATH='/home/aaron/model/'$PROJ_DIR
+    ;;
+"pinky-jnr")  echo "Running on pinky-jnr."
+    SET_PATH='/home/aaron/set/deep_xi_training_set'
+    DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
+    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
+    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
+    OUT_PATH='/home/aaron/out/'$PROJ_DIR
+    MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
+    ;;
+*) echo "This workstation is not known. Using default paths."
+    SET_PATH='set'
+    DATA_PATH='data'
+    TEST_X_PATH='set/test_noisy_speech'
+    OUT_PATH='out'
+    MODEL_PATH='model'
+   ;;
+esac
+
 get_free_gpu () {
-	if [ $2 -eq 1 ]
-	then
-		echo 'Sleeping'
-	    sleep 1m
-	fi
-	while true
-	do
-		for (( gpu=0; gpu<$1; gpu++ ))
-		do
-			VAR1=$( nvidia-smi -i $gpu --query-gpu=pci.bus_id --format=csv,noheader )
-			VAR2=$( nvidia-smi -i $gpu --query-compute-apps=gpu_bus_id --format=csv,noheader )
-			if [ "$VAR1" != "$VAR2" ]
-			then
-				return $gpu
-			fi
-		done
-		echo 'Waiting for free GPU.'
-		sleep 1m
-	done
+    NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
+    echo "$NUM_GPU total GPU/s."
+    if [ $1 -eq 1  ]
+    then
+        echo 'Sleeping'
+        sleep 1m
+    fi
+    while true
+    do
+        for (( gpu=0; gpu<$NUM_GPU; gpu++ ))
+        do
+            VAR1=$( nvidia-smi -i $gpu --query-gpu=pci.bus_id --format=csv,noheader )
+            VAR2=$( nvidia-smi -i $gpu --query-compute-apps=gpu_bus_id --format=csv,noheader | head -n 1)
+            if [ "$VAR1" != "$VAR2" ]
+            then
+                return $gpu
+            fi
+        done
+        echo 'Waiting for free GPU.'
+        sleep 1m
+    done
 }
 
+NETWORK='TCN'
 TRAIN=0
-MAX_EPOCHS=200
-INFER=1
-EPOCH=175
-MBATCH_SIZE=10
-SAMPLE_SIZE=1000
-OUT_TYPE='y'
-GAIN='mmse-lsa' # if OUT_TYPE is 'y'.
-T_W=32
-T_S=16
-MIN_SNR=-10
-MAX_SNR=20
-SET_PATH='set'
-DATA_PATH='data'
-TEST_X_PATH='set/test_noisy_speech'
-OUT_PATH='out'
-MODEL_PATH='model'
-WAIT=0
-NUM_GPU=2
+INFER=0
+TEST=0
+GAIN='mmse-lsa'
 
-for EPOCH in {100..200..5}
+for ARGUMENT in "$@"
 do
-get_free_gpu $NUM_GPU $WAIT
-python3 deepxi.py --ver '3f' --train $TRAIN --max_epochs $MAX_EPOCHS --infer $INFER --epoch $EPOCH \
-	--gpu $? --mbatch_size $MBATCH_SIZE --sample_size $SAMPLE_SIZE --set_path $SET_PATH --data_path $DATA_PATH \
-	--T_w $T_W --T_s $T_S --min_snr $MIN_SNR --max_snr $MAX_SNR --test_x_path $TEST_X_PATH \
-	--out_path $OUT_PATH --model_path $MODEL_PATH --out_type $OUT_TYPE --gain $GAIN
+    KEY=$(echo $ARGUMENT | cut -f1 -d=)
+    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+    case "$KEY" in
+            NETWORK)            NETWORK=${VALUE} ;;
+            GPU)                GPU=${VALUE} ;;
+            TRAIN)              TRAIN=${VALUE} ;;
+            INFER)              INFER=${VALUE} ;;
+            TEST)               TEST=${VALUE} ;;
+            GAIN)               GAIN=${VALUE} ;;
+            *)
+    esac
 done
+
+WAIT=0
+if [ -z $GPU ]
+then
+    get_free_gpu $WAIT
+    GPU=$?
+fi
+
+if [ "$NETWORK" == 'TCN' ]
+then
+    python3 main.py --ver               'tcn-1a'        \
+                    --network           'TCN'           \
+                    --d_model           256             \
+                    --n_blocks          40              \
+                    --d_f               64              \
+                    --k                 3               \
+                    --max_d_rate        16              \
+                    --max_epochs        200             \
+                    --resume_epoch      76              \
+                    --test_epoch        "115,120,125,130,135,140,145,150,155,160,165,170,175"            \
+                    --mbatch_size       8               \
+                    --sample_size       1000            \
+                    --f_s               16000           \
+                    --T_d               32              \
+                    --T_s               16              \
+                    --min_snr           -10             \
+                    --max_snr           20              \
+                    --out_type          'y'             \
+                    --save_model        1               \
+                    --log_iter          0               \
+                    --eval_example      1               \
+                    --gain              $GAIN           \
+                    --train             $TRAIN          \
+                    --infer             $INFER          \
+                    --test              $TEST           \
+                    --gpu               $GPU            \
+                    --set_path          $SET_PATH       \
+                    --data_path         $DATA_PATH      \
+                    --test_x_path       $TEST_X_PATH    \
+                    --test_s_path       $TEST_S_PATH    \
+                    --out_path          $OUT_PATH       \
+                    --model_path        $MODEL_PATH
+fi
+
+if [ "$NETWORK" == 'ResLSTM' ]
+then
+    python3 main.py --ver               'reslstm-1a'    \
+                    --network           'ResLSTM'       \
+                    --d_model           512             \
+                    --n_blocks          5               \
+                    --max_epochs        100             \
+                    --resume_epoch      0               \
+                    --test_epoch        0               \
+                    --mbatch_size       8               \
+                    --sample_size       1000            \
+                    --f_s               16000           \
+                    --T_d               32              \
+                    --T_s               16              \
+                    --min_snr           -10             \
+                    --max_snr           20              \
+                    --out_type          'y'             \
+                    --save_model        1               \
+                    --log_iter          0               \
+                    --eval_example      1               \
+                    --gain              $GAIN           \
+                    --train             $TRAIN          \
+                    --infer             $INFER          \
+                    --test              $TEST           \
+                    --gpu               $GPU            \
+                    --set_path          $SET_PATH       \
+                    --data_path         $DATA_PATH      \
+                    --test_x_path       $TEST_X_PATH    \
+                    --test_s_path       $TEST_S_PATH    \
+                    --out_path          $OUT_PATH       \
+                    --model_path        $MODEL_PATH
+fi
