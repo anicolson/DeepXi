@@ -1,8 +1,7 @@
-Deep Xi is being updated to TensorFlow 2.x and is a few days from release! Please check out branch [`tf2`](https://github.com/anicolson/DeepXi/tree/tf2) for a preview.
+This branch containes the depreciated TensorFlow 1 implementation of Deep Xi
 -----
 
-
-Deep Xi training and testing sets are now available! They are available on IEEE DataPort:
+Deep Xi training and testing sets are available on IEEE DataPort:
 -----
 Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
 
