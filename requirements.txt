@@ -2,3 +2,7 @@ numpy
 scipy
 tqdm
 pysoundfile
+cython
+pesq
+pystoi
+tensorflow

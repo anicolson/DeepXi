@@ -1,6 +1,25 @@
-Directories used to store clean speech and noise for validation and training, as well as noisy speech for testing. 
+Directories used to store clean speech and noise for validation and training,
+as well as noisy speech for testing.
 
 For the validation set only:
 
-Identical filenames for the clean speech and noise must be placed in 'val_clean_speech' and 'val_noise', with the SNR at the end of the filename. As an example:
-'./val_clean_speech/198_19-198-0003_Machinery17_15dB.wav' contains the clean speech, and './val_noise/198_19-198-0003_Machinery17_15dB.wav' contains the noise at the same length. They will be mixed together at the SNR level specified in the filename.
+Identical filenames for the clean speech and noise must be placed in
+'val_clean_speech' and 'val_noise', with the SNR at the end of the filename. As
+an example:
+
+'./val_clean_speech/ANY_NAME_15dB.wav'
+
+contains the clean speech, and
+
+'./val_noise/ANY_NAME_15dB.wav' 
+
+contains the noise at the same length. They will be mixed together at the SNR
+level specified in the filename.
+
+Another example:
+
+'./val_clean_speech/198_19-198-0003_Machinery17_15dB.wav'
+
+and
+
+'./val_noise/198_19-198-0003_Machinery17_15dB.wav'

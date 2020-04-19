@@ -1,1 +1,1 @@
-Statistics are stored here, as well as the training lists.
+Statistics are stored here, as well as the training lists and the validation set.
