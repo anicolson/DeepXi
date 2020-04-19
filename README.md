@@ -1,13 +1,5 @@
 This branch containes the depreciated TensorFlow 1 implementation of Deep Xi
 -----
-
-Deep Xi training and testing sets are available on IEEE DataPort:
------
-Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
-
-Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
-
-Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 <!--- 
 Wich ML library should Deep Xi be available in? Please vote:
 -----
@@ -135,21 +127,13 @@ Current Issues
 -----
 * Masking may need to be performed after each instance of frame-wise layer normalisation due to the scaling and shift properties being applied to the zero padding at the end of each sequence during training. This will be looked into shortly.
 
-Datasets Used For Training
+Deep Xi training and testing sets are available on IEEE DataPort:
 -----
-The .wav files used for training are single-channel, with a sampling frequency of 16 kHz.
+Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
 
-The following speech datasets were used:
-* The *train-clean-100* set from Librispeech corpus, which can be found [here](http://www.openslr.org/12/).
-* The CSTR VCTK corpus, which can be found [here](https://datashare.is.ed.ac.uk/handle/10283/2651).
-* The *si* and *sx* training sets from the TIMIT corpus, which can be found [here](https://catalog.ldc.upenn.edu/LDC93S1) (not open source).
+Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
 
-The following noise datasets were used:
-* The QUT-NOISE dataset, which can be found [here](https://research.qut.edu.au/saivt/databases/qut-noise-databases-and-protocols/).
-* The Nonspeech dataset, which can be found [here](http://web.cse.ohio-state.edu/pnl/corpus/HuNonspeech/HuCorpus.html). 
-* The Environemental Background Noise dataset, which can be found [here](http://www.utdallas.edu/~nxk019000/VAD-dataset/).
-* The noise set from the MUSAN corpus, which can be found [here](http://www.openslr.org/17/).
-* Multiple packs from the FreeSound website, which can be found  [here](https://freesound.org/)
+Test Set From the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 
 References
 -----
