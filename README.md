@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi has been updated to TensorFlow 2!
+Deep Xi has been updated to TensorFlow 2! A trained model will be available soon.
 ====
 
 Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.*
