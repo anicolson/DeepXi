@@ -19,35 +19,36 @@ if __name__ == '__main__':
 	args = get_args()
 
 	args.model_path = args.model_path + '/' + args.ver # model save path.
-	args.train_s_path = args.set_path + '/train_clean_speech' # path to the clean speech training set.
-	args.train_d_path = args.set_path + '/train_noise' # path to the noise training set.
-	args.val_s_path = args.set_path + '/val_clean_speech' # path to the clean speech validation set.
-	args.val_d_path = args.set_path + '/val_noise' # path to the noise validation set.
-	args.N_d = int(args.f_s*args.T_d*0.001) # window duration (samples).
-	args.N_s = int(args.f_s*args.T_s*0.001) # window shift (samples).
-	args.NFFT = int(pow(2, np.ceil(np.log2(args.N_d)))) # number of DFT components.
+	if args.data_path != "set": args.data_path = args.data_path + '/' + args.set_path.rsplit('/', 1)[-1] # data path.
+	train_s_path = args.set_path + '/train_clean_speech' # path to the clean speech training set.
+	train_d_path = args.set_path + '/train_noise' # path to the noise training set.
+	val_s_path = args.set_path + '/val_clean_speech' # path to the clean speech validation set.
+	val_d_path = args.set_path + '/val_noise' # path to the noise validation set.
+	N_d = int(args.f_s*args.T_d*0.001) # window duration (samples).
+	N_s = int(args.f_s*args.T_s*0.001) # window shift (samples).
+	NFFT = int(pow(2, np.ceil(np.log2(N_d)))) # number of DFT components.
 
 	if args.train:
-		args.train_s_list = utils.batch_list(args.train_s_path, 'clean_speech_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
-		args.train_d_list = utils.batch_list(args.train_d_path, 'noise_' + args.set_path.rsplit('/', 1)[-1], args.data_path)
-		args.val_s, args.val_s_len, args.val_snr, _ = Batch(args.val_s_path, list(range(args.min_snr, args.max_snr + 1)))
-		args.val_d, args.val_d_len, _, _ = Batch(args.val_d_path, list(range(args.min_snr, args.max_snr + 1)))
-		args.train_steps=int(np.ceil(len(args.train_s_list)/args.mbatch_size))
-		args.val_steps=int(np.ceil(args.val_s.shape[0]/args.mbatch_size))
+		train_s_list = utils.batch_list(train_s_path, 'clean_speech', args.data_path)
+		train_d_list = utils.batch_list(train_d_path, 'noise', args.data_path)
+		if args.val_flag:
+			val_s, val_s_len, val_snr, _ = Batch(val_s_path, list(range(args.min_snr, args.max_snr + 1)))
+			val_d, val_d_len, _, _ = Batch(val_d_path, list(range(args.min_snr, args.max_snr + 1)))
+		else: val_s, val_d, val_s_len, val_d_len, val_snr = None, None, None, None, None
 
 	if args.infer or args.test:
 		args.out_path = args.out_path + '/' + args.ver + '/' + 'e' + str(args.test_epoch) # output path.
-		args.test_x, args.test_x_len, _, args.test_x_base_names = Batch(args.test_x_path)
-		if args.test: args.test_s, args.test_s_len, _, args.test_s_base_names = Batch(args.test_s_path)
+		test_x, test_x_len, _, test_x_base_names = Batch(args.test_x_path)
+		if args.test: test_s, test_s_len, _, test_s_base_names = Batch(args.test_s_path)
 
 	config = utils.gpu_config(args.gpu)
 
 	print("Version: %s." % (args.ver))
 
 	deepxi = DeepXi(
-		N_d=args.N_d,
-		N_s=args.N_s,
-		NFFT=args.NFFT,
+		N_d=N_d,
+		N_s=N_s,
+		NFFT=NFFT,
 		f_s=args.f_s,
 		network=args.network,
 		min_snr=args.min_snr,
@@ -61,15 +62,16 @@ if __name__ == '__main__':
 		)
 
 	if args.train: deepxi.train(
-		train_s_list=args.train_s_list,
-		train_d_list=args.train_d_list,
+		train_s_list=train_s_list,
+		train_d_list=train_d_list,
 		model_path=args.model_path,
-		val_s=args.val_s,
-		val_d=args.val_d,
-		val_s_len=args.val_s_len,
-		val_d_len=args.val_d_len,
-		val_snr=args.val_snr,
+		val_s=val_s,
+		val_d=val_d,
+		val_s_len=val_s_len,
+		val_d_len=val_d_len,
+		val_snr=val_snr,
 		val_save_path=args.data_path,
+		val_flag=args.val_flag,
 		stats_path=args.data_path,
 		sample_size=args.sample_size,
 		mbatch_size=args.mbatch_size,
@@ -80,9 +82,9 @@ if __name__ == '__main__':
 		)
 
 	if args.infer: deepxi.infer(
-		test_x=args.test_x,
-		test_x_len=args.test_x_len,
-		test_x_base_names=args.test_x_base_names,
+		test_x=test_x,
+		test_x_len=test_x_len,
+		test_x_base_names=test_x_base_names,
 		test_epoch=args.test_epoch,
 		model_path=args.model_path,
 		out_type=args.out_type,
@@ -92,12 +94,12 @@ if __name__ == '__main__':
 		)
 
 	if args.test: deepxi.test(
-		test_x=args.test_x,
-		test_x_len=args.test_x_len,
-		test_x_base_names=args.test_x_base_names,
-		test_s=args.test_s,
-		test_s_len=args.test_s_len,
-		test_s_base_names=args.test_s_base_names,
+		test_x=test_x,
+		test_x_len=test_x_len,
+		test_x_base_names=test_x_base_names,
+		test_s=test_s,
+		test_s_len=test_s_len,
+		test_s_base_names=test_s_base_names,
 		test_epoch=args.test_epoch,
 		model_path=args.model_path,
 		gain=args.gain,

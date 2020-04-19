@@ -140,8 +140,10 @@ class DeepXi(DeepXiInput):
 
 		train_dataset = self.dataset(max_epochs-resume_epoch)
 
-		if val_flag: val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
-		else: val_set = None
+		if val_flag:
+			val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
+			val_steps = len(val_set[0])
+		else: val_set, val_steps = None, None
 
 		if eval_example:
 			print("Saving a mini-batch of training examples in .mat files...")
@@ -181,7 +183,7 @@ class DeepXi(DeepXiInput):
 			steps_per_epoch=self.n_iter,
 			callbacks=callbacks,
 			validation_data=val_set,
-			validation_steps=len(val_set[0])
+			validation_steps=val_steps
 			)
 
 	def infer( ## NEED TO ADD DeepMMSE
@@ -275,62 +277,92 @@ class DeepXi(DeepXiInput):
 			stats_path - path to the saved statistics.
 
 		"""
-		if test_epoch < 1: raise ValueError("test_epoch must be greater than 0.")
+		if not isinstance(test_epoch, list): test_epoch = [test_epoch]
+		if not isinstance(gain, list): gain = [gain]
+		for e in test_epoch:
+			for g in gain:
 
-		self.sample_stats(stats_path)
-		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) +
-			'/variables/variables' )
+				if e < 1: raise ValueError("test_epoch must be greater than 0.")
 
-		print("Processing observations...")
-		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
-		print("Performing inference...")
-		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1, verbose=1)
+				self.sample_stats(stats_path)
+				self.model.load_weights(model_path + '/epoch-' + str(e-1) +
+					'/variables/variables' )
 
-		print("Performing synthesis and objective scoring...")
-		results = {}
-		batch_size = len(test_x_len)
-		for i in tqdm(range(batch_size)):
-			base_name = test_x_base_names[i]
-			x_STMS = x_STMS_batch[i,:n_frames[i],:]
-			x_STPS = x_STPS_batch[i,:n_frames[i],:]
-			xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
-			xi_hat = self.xi_hat(xi_bar_hat)
-			y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=gain))
-			y = self.polar_synthesis(y_STMS, x_STPS).numpy()
+				print("Processing observations...")
+				x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
+				print("Performing inference...")
+				xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1, verbose=1)
 
-			for (j, basename) in enumerate(test_s_base_names):
-				if basename in test_x_base_names[i]: ref_idx = j
+				print("Performing synthesis and objective scoring...")
+				results = {}
+				batch_size = len(test_x_len)
+				for i in tqdm(range(batch_size)):
+					base_name = test_x_base_names[i]
+					x_STMS = x_STMS_batch[i,:n_frames[i],:]
+					x_STPS = x_STPS_batch[i,:n_frames[i],:]
+					xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
+					xi_hat = self.xi_hat(xi_bar_hat)
+					y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=g))
+					y = self.polar_synthesis(y_STMS, x_STPS).numpy()
 
-			s = self.normalise(test_s[ref_idx,0:test_s_len[ref_idx]]).numpy()
-			y = y[0:len(s)]
+					for (j, basename) in enumerate(test_s_base_names):
+						if basename in test_x_base_names[i]: ref_idx = j
 
-			noise_source = test_x_base_names[i].split("_")[-2]
-			snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
+					s = self.normalise(test_s[ref_idx,0:test_s_len[ref_idx]]).numpy()
+					y = y[0:len(s)]
 
-			results = self.append_score(results, (noise_source, snr_level, 'STOI'),
-				100*stoi(s, y, self.f_s, extended=False))
-			results = self.append_score(results, (noise_source, snr_level, 'eSTOI'),
-				100*stoi(s, y, self.f_s, extended=True))
-			results = self.append_score(results, (noise_source, snr_level, 'PESQ'),
-				pesq(self.f_s, s, y, 'nb'))
-			results = self.append_score(results, (noise_source, snr_level, 'MOS-LQO'),
-				pesq(self.f_s, s, y, 'wb'))
+					noise_source = test_x_base_names[i].split("_")[-2]
+					snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
 
-		noise_sources, snr_levels, metrics = set(), set(), set()
-		for key, value in results.items():
-			noise_sources.add(key[0])
-			snr_levels.add(key[1])
-			metrics.add(key[2])
+					results = self.add_score(results, (noise_source, snr_level, 'STOI'),
+						100*stoi(s, y, self.f_s, extended=False))
+					results = self.add_score(results, (noise_source, snr_level, 'eSTOI'),
+						100*stoi(s, y, self.f_s, extended=True))
+					results = self.add_score(results, (noise_source, snr_level, 'PESQ'),
+						pesq(self.f_s, s, y, 'nb'))
+					results = self.add_score(results, (noise_source, snr_level, 'MOS-LQO'),
+						pesq(self.f_s, s, y, 'wb'))
 
-		if not os.path.exists("log/results"): os.makedirs("log/results")
+				noise_sources, snr_levels, metrics = set(), set(), set()
+				for key, value in results.items():
+					noise_sources.add(key[0])
+					snr_levels.add(key[1])
+					metrics.add(key[2])
 
-		with open("log/results/" + self.ver + "_e" + str(test_epoch) + '_' + gain + ".txt", "w") as f:
-			for i in sorted(noise_sources):
-				for j in sorted(snr_levels):
-					for k in sorted(metrics):
-						if (i, j, k) in results.keys():
-							print("{}, {} dB, {}: {:.2f}.".format(i, j, k, np.mean(results[(i,j,k)])))
-							f.write("{}, {} dB, {}: {:.2f}.\n".format(i, j, k, np.mean(results[(i,j,k)])))
+				if not os.path.exists("log/results"): os.makedirs("log/results")
+
+				with open("log/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
+					f.write("noise,snr_db")
+					for k in sorted(metrics): f.write(',' + k)
+					f.write('\n')
+					for i in sorted(noise_sources):
+						for j in sorted(snr_levels):
+							f.write("{},{}".format(i, j))
+							for k in sorted(metrics):
+								if (i, j, k) in results.keys():
+									f.write(",{:.2f}".format(np.mean(results[(i,j,k)])))
+							f.write('\n')
+
+				avg_results = {}
+				for i in sorted(noise_sources):
+					for j in sorted(snr_levels):
+						if (j >= self.min_snr) and (j <= self.max_snr):
+							for k in sorted(metrics):
+								if (i, j, k) in results.keys():
+									avg_results = self.add_score(avg_results, k, results[(i,j,k)])
+
+				if not os.path.exists("log/results/average.csv"):
+					with open("log/results/average.csv", "w") as f:
+						f.write("ver")
+						for i in sorted(metrics): f.write("," + i)
+						f.write('\n')
+
+				with open("log/results/average.csv", "a") as f:
+					f.write(self.ver + "_e" + str(e) + '_' + g)
+					for i in sorted(metrics):
+						if i in avg_results.keys():
+							f.write(",{:.2f}".format(np.mean(avg_results[i])))
+					f.write('\n')
 
 	def sample_stats(
 		self,
@@ -539,23 +571,26 @@ class DeepXi(DeepXiInput):
 		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size)
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
-	def append_score(self, dict, key, score):
+	def add_score(self, dict, key, score):
 		"""
-		Appends score to the list for the given key.
+		Adds score/s to the list for the given key.
 
 		Argument/s:
-			dict - dictionary with condition as keys and objective scores as values.
+			dict - dictionary with condition as keys and a list of objective
+				scores as values.
 			key - noisy-speech conditions.
 			score - objective score.
 
 		Returns:
 			dict - updated dictionary.
 		"""
-		if key in dict.keys(): dict[key].append(score)
-		else: dict[key] = [score]
+		if isinstance(score, list):
+			if key in dict.keys(): dict[key].extend(score)
+			else: dict[key] = score
+		else:
+			if key in dict.keys(): dict[key].append(score)
+			else: dict[key] = [score]
 		return dict
-
-
 
 #############################################################
 ## CREATE deepxi/callbacks.py AND MOVE THE CALLBACKS THERE ##

@@ -7,6 +7,15 @@
 
 import argparse
 
+def read_dtype(x):
+	if any(map(str.isdigit, x)):
+		if '.' in x: return float(x)
+		else: return int(x)
+	else: return x
+def str_to_list(x):
+	if (';' in x) and (',' in x): return [[read_dtype(z) for z in y.split(',')] for y in x.split(';')]
+	elif ',' in x: return [read_dtype(y) for y in x.split(',')]
+	else: return read_dtype(x)
 def str_to_bool(s): return s.lower() in ("yes", "true", "t", "1")
 
 def get_args():
@@ -15,7 +24,7 @@ def get_args():
 	## OPTIONS (GENERAL)
 	parser.add_argument('--gpu', default='0', type=str, help='GPU selection')
 	parser.add_argument('--ver', type=str, help='Model version')
-	parser.add_argument('--test_epoch', type=int, help='Epoch to test')
+	parser.add_argument('--test_epoch', type=str_to_list, help='Epoch to test')
 	parser.add_argument('--train', default=False, type=str_to_bool, help='Perform training')
 	parser.add_argument('--infer', default=False, type=str_to_bool, help='Perform inference and save outputs')
 	parser.add_argument('--test', default=False, type=str_to_bool, help='Evaluate using objective measures')
@@ -31,6 +40,7 @@ def get_args():
 	parser.add_argument('--save_model', default=False, type=str_to_bool, help='Save architecture, weights, and training configuration')
 	parser.add_argument('--log_iter', default=False, type=str_to_bool, help='Log loss per training iteration')
 	parser.add_argument('--eval_example', default=False, type=str_to_bool, help='Evaluate a mini-batch of training examples')
+	parser.add_argument('--val_flag', default=True, type=str_to_bool, help='Use validation set')
 
 	# INFERENCE OUTPUT TYPE
 	# 'xi_hat' - a priori SNR estimate (.mat),
@@ -47,7 +57,7 @@ def get_args():
 	# 'cwf' - constrained Wiener filter (cWF),
 	# 'mmse-stsa' - minimum-mean square error short-time spectral smplitude (MMSE-STSA) estimator,
 	# 'mmse-lsa' - minimum-mean square error log-spectral amplitude (MMSE-LSA) estimator.
-	parser.add_argument('--gain', default='mmse-lsa', type=str, help='Gain function for testing')
+	parser.add_argument('--gain', default='mmse-lsa', type=str_to_list, help='Gain function for testing')
 
 	## PATHS
 	parser.add_argument('--model_path', default='model', type=str, help='Model save path')

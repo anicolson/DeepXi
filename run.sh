@@ -13,9 +13,9 @@ case `hostname` in
     ;;
 "pinky-jnr")  echo "Running on pinky-jnr."
     SET_PATH='/home/aaron/set/deep_xi_training_set'
-    DATA_PATH='/home/aaron/data/'$PROJ_DIR
-    TEST_X_PATH='/home/aaron/set/deep_xi_test_set/test_noisy_speech'
-    TEST_S_PATH='/home/aaron/set/deep_xi_test_set/test_clean_speech'
+    DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
+    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
+    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
     OUT_PATH='/home/aaron/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
     ;;
@@ -80,15 +80,18 @@ then
     GPU=$?
 fi
 
-if [ "$NETWORK" == 'ResLSTM' ]
+if [ "$NETWORK" == 'TCN' ]
 then
-    python3 main.py --ver               'reslstm-1a'    \
-                    --network           'ResLSTM'       \
-                    --d_model           512             \
-                    --n_blocks          5               \
-                    --max_epochs        100             \
-                    --resume_epoch      0               \
-                    --test_epoch        0               \
+    python3 main.py --ver               'tcn-1a'        \
+                    --network           'TCN'           \
+                    --d_model           256             \
+                    --n_blocks          40              \
+                    --d_f               64              \
+                    --k                 3               \
+                    --max_d_rate        16              \
+                    --max_epochs        200             \
+                    --resume_epoch      76              \
+                    --test_epoch        "115,120,125,130,135,140,145,150,155,160,165,170,175"            \
                     --mbatch_size       8               \
                     --sample_size       1000            \
                     --f_s               16000           \
@@ -113,18 +116,15 @@ then
                     --model_path        $MODEL_PATH
 fi
 
-if [ "$NETWORK" == 'TCN' ]
+if [ "$NETWORK" == 'ResLSTM' ]
 then
-    python3 main.py --ver               'tcn-1a'        \
-                    --network           'TCN'           \
-                    --d_model           256             \
-                    --n_blocks          40              \
-                    --d_f               64              \
-                    --k                 3               \
-                    --max_d_rate        16              \
-                    --max_epochs        200             \
+    python3 main.py --ver               'reslstm-1a'    \
+                    --network           'ResLSTM'       \
+                    --d_model           512             \
+                    --n_blocks          5               \
+                    --max_epochs        100             \
                     --resume_epoch      0               \
-                    --test_epoch        20              \
+                    --test_epoch        0               \
                     --mbatch_size       8               \
                     --sample_size       1000            \
                     --f_s               16000           \

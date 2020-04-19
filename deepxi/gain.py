@@ -122,5 +122,5 @@ def gfunc(xi, gamma=None, gtype='mmse-lsa'):
 	elif gtype == 'cwf': G = cwf(xi)
 	elif gtype == 'irm': G = irm(xi)
 	elif gtype == 'ibm': G = ibm(xi)
-	else: ValueError('Gain function not available.')
+	else: raise ValueError('Invalid gain function type.')
 	return G
