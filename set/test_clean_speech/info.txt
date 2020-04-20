@@ -1,0 +1,1 @@
+Place all clean-speech .wav files for testing here. The clean-speech recordings is used as the reference for the objective measures.
