@@ -58,7 +58,7 @@ Current networks
 -----
 The following networks are **causal**. This is facilitated by using unidirectional recurrent cells, causal convlutional kernels, and layer normalisation that does not consider future time-frames (`frame-wise layer normalisation`).
 
-**Deep Xi-TCN**
+**Deep Xi-TCN (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 Deep Xi utilising a temporal convolutional network (TCN) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. The configuration of `tcn-1a` is as follows:
 ```
