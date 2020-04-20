@@ -94,7 +94,7 @@ A trained model for version `**tcn-1a**` is available in the [`model`](https://g
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0).
 -->
 
-Results
+Results for Deep Xi Test Set
 -----
 
 Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each individual condition can be found in `log/results`**
@@ -108,8 +108,9 @@ Average objective scores obtained over the conditions in the [Deep Xi Test Set](
 | Deep Xi-TCN (tcn-1a) | WF        | Yes    |   1.75|2.21|78.30|63.96|
 | Deep Xi-TCN (tcn-1a) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
 
-
-Objective scores obtained on the DEMAND--VOICE BANK test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Results for the DEMAND -- Voice Bank test set
+-----
+Objective scores obtained on the DEMAND--Voice bank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
 |----------------------------|--------|------|------|------|------|-----------|
