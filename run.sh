@@ -90,8 +90,8 @@ then
                     --k                 3               \
                     --max_d_rate        16              \
                     --max_epochs        200             \
-                    --resume_epoch      76              \
-                    --test_epoch        "115,120,125,130,135,140,145,150,155,160,165,170,175"            \
+                    --resume_epoch      0               \
+                    --test_epoch        180             \
                     --mbatch_size       8               \
                     --sample_size       1000            \
                     --f_s               16000           \
