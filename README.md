@@ -70,7 +70,7 @@ max_d_rate=16
 test_epoch=180
 mbatch_size=8
 ```
-An example of Deep Xi-TCN is shown in **Figure 4**.
+An example of Deep Xi-TCN is shown in **Figure 4**. **A trained model for version `tcn-1a` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
 
 **Deep Xi-ResLSTM**
 
@@ -82,9 +82,7 @@ test_epoch=
 mbatch_size=8   
 ```
 
-Availability
------
-A trained model for version `**tcn-1a**` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).
+
 
 |![](./fig_Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
 |----|
