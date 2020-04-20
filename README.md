@@ -28,7 +28,7 @@ Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise
 
 How does Deep Xi work?
 ----
-A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of th DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The instantaneous *a priori* SNR is mapped to the interval `[0,1]` in order to improve the rate of convergence of the used stochastic gradient descent algorith. The map is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the mean and standard deviation of the sample for for each frequency bin is shown in **Figure 3**. The training examples in each mini-batch are padded to the longest sequence length in the mini-batch. The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding. During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using the sample statistics and Equation (12) from [[2]](https://ieeexplore.ieee.org/document/9066933).
+A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of the DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The instantaneous *a priori* SNR is mapped to the interval `[0,1]` in order to improve the rate of convergence of the used stochastic gradient descent algorith. The map is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the mean and standard deviation of the sample for for each frequency bin is shown in **Figure 3**. The training examples in each mini-batch are padded to the longest sequence length in the mini-batch. The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding. During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using the sample statistics and Equation (12) from [[2]](https://ieeexplore.ieee.org/document/9066933).
 
 |![](./fig_training_example.png "Deep Xi training example.")|
 |----|
@@ -40,7 +40,7 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 
 Which audio do I use with Deep Xi?
 ----
-Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is commonly due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi.
+Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is used due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi.
 
 Where can I get a dataset for Deep Xi?
 ----
@@ -67,7 +67,7 @@ n_blocks=40
 d_f=64
 k=3
 max_d_rate=16
-test_epoch=
+test_epoch=180
 mbatch_size=8
 ```
 An example of Deep Xi-TCN is shown in **Figure 4**.
@@ -96,9 +96,20 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 
 Results
 -----
-TO BE UPDATED
 
-Objective scores obtained on the test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each individual condition can be found in `log/results`**
+
+| Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
+|------------------|-----------|--------|---------|------|------|-------|
+| Deep Xi-TCN (tcn-1a) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
+| Deep Xi-TCN (tcn-1a) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
+| Deep Xi-TCN (tcn-1a) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-TCN (tcn-1a) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
+| Deep Xi-TCN (tcn-1a) | WF        | Yes    |   1.75|2.21|78.30|63.96|
+| Deep Xi-TCN (tcn-1a) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
+
+
+Objective scores obtained on the DEMAND--VOICE BANK test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
 |----------------------------|--------|------|------|------|------|-----------|
@@ -109,7 +120,7 @@ Objective scores obtained on the test set described [here](http://ssw9.talp.cat/
 | [MMSE-GAN](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8462068)                 | No     | 3.80 | 3.12 | 3.14 | 2.53 | **93**        |
 | [Deep Feature Loss](https://arxiv.org/pdf/1806.10522.pdf)          | Yes    | 3.86 | **3.33** | 3.22 | --   | --        |
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf)                 | No     | 3.99 | 3.18 | 3.42 | **2.86** | --        |
-| **Deep Xi (ResNet 3e, MMSE-LSA)** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
+| **Deep Xi-TCN (3e) MMSE-LSA** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
 
 Installation
 -----

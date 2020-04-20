@@ -101,7 +101,7 @@ def ibm(xi):
 	Returns:
 		IBM.
 	"""
-	return np.greater(self.xi_hat_ph, 1, dtype=np.float32) # IBM (1 corresponds to 0 dB).
+	return np.greater(xi, 1, dtype=np.float32) # IBM (1 corresponds to 0 dB).
 
 def gfunc(xi, gamma=None, gtype='mmse-lsa'):
 	"""
