@@ -23,6 +23,7 @@ case `hostname` in
     SET_PATH='set'
     DATA_PATH='data'
     TEST_X_PATH='set/test_noisy_speech'
+    TEST_S_PATH='set/test_clean_speech'
     OUT_PATH='out'
     MODEL_PATH='model'
    ;;
