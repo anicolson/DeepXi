@@ -19,7 +19,7 @@ if __name__ == '__main__':
 	args = get_args()
 
 	args.model_path = args.model_path + '/' + args.ver # model save path.
-	if args.data_path != "set": args.data_path = args.data_path + '/' + args.set_path.rsplit('/', 1)[-1] # data path.
+	if args.set_path != "set": args.data_path = args.data_path + '/' + args.set_path.rsplit('/', 1)[-1] # data path.
 	train_s_path = args.set_path + '/train_clean_speech' # path to the clean speech training set.
 	train_d_path = args.set_path + '/train_noise' # path to the noise training set.
 	val_s_path = args.set_path + '/val_clean_speech' # path to the clean speech validation set.

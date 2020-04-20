@@ -389,7 +389,7 @@ class DeepXi(DeepXiInput):
 				self.mu = stats['mu_hat']
 				self.sigma = stats['sigma_hat']
 		elif train_s_list == None:
-			raise ValueError('No stats.p file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.npz.')
+			raise ValueError('No stats.npz file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.npz.')
 		else:
 			print('Finding sample statistics...')
 			s_sample_list = random.sample(self.train_s_list, sample_size)
