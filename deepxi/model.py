@@ -17,10 +17,10 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.lib.io import file_io
-from tensorflow.python.util.compat import collections_abc
+# from tensorflow.python.util.compat import collections_abc
 from tqdm import tqdm
 import deepxi.se_batch as batch
-import collections, csv, io, math, os, random, six
+import csv, math, os, random, # collections, io, six
 import numpy as np
 import tensorflow as tf
 
@@ -165,7 +165,7 @@ class DeepXi(DeepXiInput):
 		callbacks = []
 		callbacks.append(CSVLogger("log/" + self.ver + ".csv", separator=',', append=True))
 		if save_model: callbacks.append(SaveWeights(model_path))
-		if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
+		# if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
 
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" +
 			str(resume_epoch-1) + "/variables/variables" )
@@ -248,7 +248,7 @@ class DeepXi(DeepXiInput):
 				save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
 			elif out_type == 'deepmmse':
 				d_PSD_hat = np.multiply(np.square(x_STMS), gfunc(xi_hat, xi_hat+1, gtype='deepmmse'))
-				save_mat(out_path + '/' + base_name + '.mat', d_PSD_hat, 'deepmmse')
+				save_mat(out_path + '/' + base_name + '.mat', d_PSD_hat, 'd_PSD_hat')
 			else: raise ValueError('Invalid output type.')
 
 	def test(
@@ -614,83 +614,83 @@ class SaveWeights(Callback):  ### RENAME TO SaveModel
 		"""
 		self.model.save(self.model_path + "/epoch-" + str(epoch))
 
-class CSVLoggerIter(Callback):
-	"""
-	for each training iteration
-	"""
-	def __init__(self, filename, separator=',', append=False):
-		"""
-		"""
-		self.sep = separator
-		self.filename = filename
-		self.append = append
-		self.writer = None
-		self.keys = None
-		self.append_header = True
-		if six.PY2:
-			self.file_flags = 'b'
-			self._open_args = {}
-		else:
-			self.file_flags = ''
-			self._open_args = {'newline': '\n'}
-		super(CSVLoggerIter, self).__init__()
-
-	def on_train_begin(self, logs=None):
-		"""
-		"""
-		if self.append:
-			if file_io.file_exists(self.filename):
-				with open(self.filename, 'r' + self.file_flags) as f:
-					self.append_header = not bool(len(f.readline()))
-			mode = 'a'
-		else:
-			mode = 'w'
-		self.csv_file = io.open(self.filename, mode + self.file_flags,
-			**self._open_args)
-
-	def on_train_batch_end(self, batch, logs=None):
-		"""
-		"""
-		logs = logs or {}
-
-		def handle_value(k):
-			is_zero_dim_ndarray = isinstance(k, np.ndarray) and k.ndim == 0
-			if isinstance(k, six.string_types):
-				return k
-			elif isinstance(k, collections_abc.Iterable) and not is_zero_dim_ndarray:
-				return '"[%s]"' % (', '.join(map(str, k)))
-			else:
-				return k
-
-		if self.keys is None:
-			self.keys = sorted(logs.keys())
-
-		if self.model.stop_training:
-			# NA is set so that csv parsers do not fail for the last batch.
-			logs = dict([(k, logs[k]) if k in logs else (k, 'NA') for k in self.keys])
-
-		if not self.writer:
-
-			class CustomDialect(csv.excel):
-				delimiter = self.sep
-
-			fieldnames = self.keys
-			if six.PY2:
-				fieldnames = [unicode(x) for x in fieldnames]
-
-			self.writer = csv.DictWriter(
-				self.csv_file,
-				fieldnames=fieldnames,
-				dialect=CustomDialect)
-			if self.append_header:
-				self.writer.writeheader()
-
-		row_dict = collections.OrderedDict({'batch': batch})
-		row_dict.update((key, handle_value(logs[key])) for key in self.keys)
-
-		self.writer.writerow(row_dict)
-		self.csv_file.flush()
-
-	def on_train_end(self, logs=None):
-		self.csv_file.close()
-		self.writer = None
+# class CSVLoggerIter(Callback):
+# 	"""
+# 	for each training iteration
+# 	"""
+# 	def __init__(self, filename, separator=',', append=False):
+# 		"""
+# 		"""
+# 		self.sep = separator
+# 		self.filename = filename
+# 		self.append = append
+# 		self.writer = None
+# 		self.keys = None
+# 		self.append_header = True
+# 		if six.PY2:
+# 			self.file_flags = 'b'
+# 			self._open_args = {}
+# 		else:
+# 			self.file_flags = ''
+# 			self._open_args = {'newline': '\n'}
+# 		super(CSVLoggerIter, self).__init__()
+#
+# 	def on_train_begin(self, logs=None):
+# 		"""
+# 		"""
+# 		if self.append:
+# 			if file_io.file_exists(self.filename):
+# 				with open(self.filename, 'r' + self.file_flags) as f:
+# 					self.append_header = not bool(len(f.readline()))
+# 			mode = 'a'
+# 		else:
+# 			mode = 'w'
+# 		self.csv_file = io.open(self.filename, mode + self.file_flags,
+# 			**self._open_args)
+#
+# 	def on_train_batch_end(self, batch, logs=None):
+# 		"""
+# 		"""
+# 		logs = logs or {}
+#
+# 		def handle_value(k):
+# 			is_zero_dim_ndarray = isinstance(k, np.ndarray) and k.ndim == 0
+# 			if isinstance(k, six.string_types):
+# 				return k
+# 			elif isinstance(k, collections_abc.Iterable) and not is_zero_dim_ndarray:
+# 				return '"[%s]"' % (', '.join(map(str, k)))
+# 			else:
+# 				return k
+#
+# 		if self.keys is None:
+# 			self.keys = sorted(logs.keys())
+#
+# 		if self.model.stop_training:
+# 			# NA is set so that csv parsers do not fail for the last batch.
+# 			logs = dict([(k, logs[k]) if k in logs else (k, 'NA') for k in self.keys])
+#
+# 		if not self.writer:
+#
+# 			class CustomDialect(csv.excel):
+# 				delimiter = self.sep
+#
+# 			fieldnames = self.keys
+# 			if six.PY2:
+# 				fieldnames = [unicode(x) for x in fieldnames]
+#
+# 			self.writer = csv.DictWriter(
+# 				self.csv_file,
+# 				fieldnames=fieldnames,
+# 				dialect=CustomDialect)
+# 			if self.append_header:
+# 				self.writer.writeheader()
+#
+# 		row_dict = collections.OrderedDict({'batch': batch})
+# 		row_dict.update((key, handle_value(logs[key])) for key in self.keys)
+#
+# 		self.writer.writerow(row_dict)
+# 		self.csv_file.flush()
+#
+# 	def on_train_end(self, logs=None):
+# 		self.csv_file.close()
+# 		self.writer = None

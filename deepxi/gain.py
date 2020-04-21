@@ -106,7 +106,7 @@ def ibm(xi):
 
 def deepmmse(xi, gamma):
 	"""
-	Computes the MMSE-LSA gain function.
+	DeepMMSE utilises the MMSE noise periodogram estimate gain function.
 
 	Argument/s:
 		xi - a priori SNR.
@@ -115,9 +115,8 @@ def deepmmse(xi, gamma):
 	Returns:
 		MMSE-Noise_PSD gain function.
 	"""
-	return np.add(np.divide(1, np.add(1, xi)), np.divide(xi, np.multiply(gamma, np.add(1, xi))))
-	# MMSE-Noise_PSD gain function.
-
+	return np.add(np.divide(1, np.add(1, xi)),
+		np.divide(xi, np.multiply(gamma, np.add(1, xi)))) # MMSE noise periodogram estimate gain function.
 
 def gfunc(xi, gamma=None, gtype='mmse-lsa'):
 	"""
