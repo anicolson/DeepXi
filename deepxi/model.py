@@ -243,7 +243,7 @@ class DeepXi(DeepXiInput):
 				y = self.polar_synthesis(y_STMS, x_STPS).numpy()
 				save_wav(out_path + '/' + base_name + '.wav', y, self.f_s)
 			elif out_type == 'ibm_hat':
-				ibm_hat = np.greater(xi_hat, 1.0)
+				ibm_hat = np.greater(xi_hat, 1.0).astype(bool)
 				save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
 			else: raise ValueError('Invalid output type.')
 

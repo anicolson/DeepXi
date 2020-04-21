@@ -119,7 +119,7 @@ Objective scores obtained on the DEMAND--Voice bank test set described [here](ht
 | [MMSE-GAN](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8462068)                 | No     | 3.80 | 3.12 | 3.14 | 2.53 | **93**        |
 | [Deep Feature Loss](https://arxiv.org/pdf/1806.10522.pdf)          | Yes    | 3.86 | **3.33** | 3.22 | --   | --        |
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf)                 | No     | 3.99 | 3.18 | 3.42 | **2.86** | --        |
-| **Deep Xi-TCN (3e) MMSE-LSA** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
+| **Deep Xi-TCN (3e, tf1 version) MMSE-LSA** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
 
 Installation
 -----
