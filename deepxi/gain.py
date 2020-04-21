@@ -103,6 +103,22 @@ def ibm(xi):
 	"""
 	return np.greater(xi, 1, dtype=np.float32) # IBM (1 corresponds to 0 dB).
 
+
+def mmse_noise_psd(xi, gamma):
+	"""
+	Computes the MMSE-LSA gain function.
+
+	Argument/s:
+		xi - a priori SNR.
+		gamma - a posteriori SNR.
+
+	Returns:
+		MMSE-Noise_PSD gain function.
+	"""
+	return np.add(np.divide(1, np.add(1, xi)), np.divide(xi, np.multiply(gamma, np.add(1, xi))))
+	# MMSE-Noise_PSD gain function.
+
+
 def gfunc(xi, gamma=None, gtype='mmse-lsa'):
 	"""
 	Computes the selected gain function.
@@ -122,5 +138,6 @@ def gfunc(xi, gamma=None, gtype='mmse-lsa'):
 	elif gtype == 'cwf': G = cwf(xi)
 	elif gtype == 'irm': G = irm(xi)
 	elif gtype == 'ibm': G = ibm(xi)
+	elif gtype == 'mmse-noise-psd': G = mmse_noise_psd(xi, gamma)
 	else: raise ValueError('Invalid gain function type.')
 	return G
