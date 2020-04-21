@@ -20,7 +20,7 @@ from tensorflow.python.lib.io import file_io
 # from tensorflow.python.util.compat import collections_abc
 from tqdm import tqdm
 import deepxi.se_batch as batch
-import csv, math, os, random, # collections, io, six
+import csv, math, os, random # collections, io, six
 import numpy as np
 import tensorflow as tf
 
