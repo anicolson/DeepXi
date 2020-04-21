@@ -28,7 +28,7 @@ Deep Xi is implemented in TensorFlow 2 and is used for speech enhancement, noise
 
 How does Deep Xi work?
 ----
-A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of the DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The instantaneous *a priori* SNR is mapped to the interval `[0,1]` in order to improve the rate of convergence of the used stochastic gradient descent algorith. The map is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the mean and standard deviation of the sample for for each frequency bin is shown in **Figure 3**. The training examples in each mini-batch are padded to the longest sequence length in the mini-batch. The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding. During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using the sample statistics and Equation (12) from [[2]](https://ieeexplore.ieee.org/document/9066933).
+A training example is shown in **Figure 2**. A deep neural network (DNN) within the Deep Xi framework is fed the **noisy-speech short-time magnitude spectrum** as input. The training target of the DNN is a mapped version of the instantaneous *a priori* SNR (i.e. **mapped *a priori* SNR**). The instantaneous *a priori* SNR is mapped to the interval `[0,1]` to improve the rate of convergence of the used stochastic gradient descent algorithm. The map is the cumulative distribution function (CDF) of the instantaneous *a priori* SNR, as given by Equation (13) in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). The statistics for the CDF are computed over a sample of the training set. An example of the mean and standard deviation of the sample for each frequency bin is shown in **Figure 3**. The training examples in each mini-batch are padded to the longest sequence length in the mini-batch. The **sequence mask** is used by TensorFlow to ensure that the DNN is not trained on the padding. During inference, the *a priori* SNR estimate is computed from the mapped *a priori* SNR using the sample statistics and Equation (12) from [[2]](https://ieeexplore.ieee.org/document/9066933).
 
 |![](./fig_training_example.png "Deep Xi training example.")|
 |----|
@@ -56,7 +56,7 @@ The MATLAB scripts used to generate these sets can be found in [`set`](https://g
 
 Current networks
 -----
-The following networks are **causal**. This is facilitated by using unidirectional recurrent cells, causal convlutional kernels, and layer normalisation that does not consider future time-frames (`frame-wise layer normalisation`).
+The following networks are **causal**. This is facilitated by using unidirectional recurrent cells, causal convolutional kernels, and layer normalisation that does not consider future time-frames (`frame-wise layer normalisation`).
 
 **Deep Xi-TCN (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
@@ -95,7 +95,7 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 Results for Deep Xi Test Set
 -----
 
-Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each individual condition can be found in `log/results`**
+Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
 
 | Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
 |------------------|-----------|--------|---------|------|------|-------|
@@ -108,7 +108,7 @@ Average objective scores obtained over the conditions in the [Deep Xi Test Set](
 
 Results for the DEMAND -- Voice Bank test set
 -----
-Objective scores obtained on the DEMAND--Voice bank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                     | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
 |----------------------------|--------|------|------|------|------|-----------|
