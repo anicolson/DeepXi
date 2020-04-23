@@ -73,6 +73,7 @@ def get_args():
 	parser.add_argument('--f_s', type=int, help='Sampling frequency (Hz)')
 	parser.add_argument('--T_d', type=int, help='Window duration (ms)')
 	parser.add_argument('--T_s', type=int, help='Window shift (ms)')
+	parser.add_argument('--n_filters', default=None, type=int, help='Number of filters for subband ideal binary mask (IBM)')
 
 	## NETWORK PARAMETERS
 	parser.add_argument('--d_in', type=int, help='Input dimensionality')

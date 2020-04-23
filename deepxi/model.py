@@ -196,7 +196,8 @@ class DeepXi(DeepXiInput):
 		out_type='y',
 		gain='mmse-lsa',
 		out_path='out',
-		stats_path=None
+		stats_path=None,
+		n_filters=40,
 		):
 		"""
 		Deep Xi inference. The specified 'out_type' is saved.
@@ -214,12 +215,18 @@ class DeepXi(DeepXiInput):
 		"""
 		if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
 		elif out_type == 'y': out_path = out_path + '/y/' + gain
-		elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
 		elif out_type == 'deepmmse': out_path = out_path + '/deepmmse'
+		elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
+		elif out_type == 'subband_ibm_hat': out_path = out_path + '/subband_ibm_hat'
 		else: raise ValueError('Invalid output type.')
 		if not os.path.exists(out_path): os.makedirs(out_path)
 
 		if test_epoch < 1: raise ValueError("test_epoch must be greater than 0.")
+
+		# The mel-scale filter bank is to compute an ideal binary mask (IBM)
+		# estimate for log-spectral subband energies (LSSE).
+		if out_type == 'subband_ibm_hat':
+			mel_filter_bank = self.mel_filter_bank(n_filters)
 
 		self.sample_stats(stats_path)
 		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) +
@@ -238,17 +245,24 @@ class DeepXi(DeepXiInput):
 			x_STPS = x_STPS_batch[i,:n_frames[i],:]
 			xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
 			xi_hat = self.xi_hat(xi_bar_hat)
-			if out_type == 'xi_hat': save_mat(args.out_path + '/' + base_name + '.mat', xi_hat, 'xi_hat')
+			if out_type == 'xi_hat': save_mat(args.out_path + '/' + base_name + '.mat',
+				xi_hat, 'xi_hat')
 			elif out_type == 'y':
 				y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=gain))
 				y = self.polar_synthesis(y_STMS, x_STPS).numpy()
 				save_wav(out_path + '/' + base_name + '.wav', y, self.f_s)
+			elif out_type == 'deepmmse':
+				d_PSD_hat = np.multiply(np.square(x_STMS), gfunc(xi_hat, xi_hat+1,
+					gtype='deepmmse'))
+				save_mat(out_path + '/' + base_name + '.mat', d_PSD_hat, 'd_psd_hat')
 			elif out_type == 'ibm_hat':
 				ibm_hat = np.greater(xi_hat, 1.0).astype(bool)
 				save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
-			elif out_type == 'deepmmse':
-				d_PSD_hat = np.multiply(np.square(x_STMS), gfunc(xi_hat, xi_hat+1, gtype='deepmmse'))
-				save_mat(out_path + '/' + base_name + '.mat', d_PSD_hat, 'd_psd_hat')
+			elif out_type == 'subband_ibm_hat':
+				xi_hat_subband = np.matmul(xi_hat, mel_filter_bank.transpose())
+				subband_ibm_hat = np.greater(xi_hat_subband, 1.0).astype(bool)
+				save_mat(out_path + '/' + base_name + '.mat', subband_ibm_hat,
+					'subband_ibm_hat')
 			else: raise ValueError('Invalid output type.')
 
 	def test(

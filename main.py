@@ -91,6 +91,7 @@ if __name__ == '__main__':
 		gain=args.gain,
 		out_path=args.out_path,
 		stats_path=args.data_path,
+		n_filters=args.n_filters,
 		)
 
 	if args.test: deepxi.test(

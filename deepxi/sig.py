@@ -11,6 +11,12 @@ import numpy as np
 import scipy.special as spsp
 import tensorflow as tf
 
+"""
+[1] Huang, X., Acero, A., Hon, H., 2001. Spoken Language Processing:
+	A guide to theory, algorithm, and system development.
+	Prentice Hall, Upper Saddle River, NJ, USA (pp. 315).
+"""
+
 class STFT:
 	"""
 	Short-time Fourier transform.
@@ -315,3 +321,74 @@ class DeepXiInput(STFT):
 		xi_db_hat = np.add(np.multiply(np.multiply(self.sigma, np.sqrt(2.0)),
 			spsp.erfinv(np.subtract(np.multiply(2.0, xi_bar_hat), 1))), self.mu)
 		return np.power(10.0, np.divide(xi_db_hat, 10.0))
+
+	def mel_filter_bank(self, M):
+		"""
+		Created a mel-scaled filter bank using the equations from [1].
+		The notation from [1] is also used. For this case, each filter
+		sums to unity, so that it can be used to weight the STMS a
+		priori SNR to compute the a priori SNR for each subband, i.e.
+		each filter bank.
+
+		Argument/s:
+			M - number of filters.
+
+		Returns:
+			H - triangular mel filterbank matrix.
+
+		"""
+		f_l = 0 # lowest frequency (Hz).
+		f_h = self.f_s/2 # highest frequency (Hz).
+		K = self.NFFT//2 + 1 # number of frequency bins.
+		H = np.zeros([M, K], dtype=np.float32) # mel filter bank.
+		for m in range(1, M + 1):
+			bl = self.bpoint(m - 1, M, f_l, f_h) # lower boundary point, f(m - 1) for m-th filterbank.
+			c = self.bpoint(m, M, f_l, f_h) # m-th filterbank centre point, f(m).
+			bh = self.bpoint(m + 1, M, f_l, f_h) # higher boundary point f(m + 1) for m-th filterbank.
+			for k in range(K):
+				if k >= bl and k <= c:
+					H[m-1,k] = (2*(k - bl))/((bh - bl)*(c - bl)) # m-th filterbank up-slope.
+				if k >= c and k <= bh:
+					H[m-1,k] = (2*(bh - k))/((bh - bl)*(bh - c)) # m-th filterbank down-slope.
+		return H
+
+	def bpoint(self, m, M, f_l, f_h):
+		"""
+		Detirmines the frequency bin boundary point for a filterbank.
+
+		Argument/s:
+			m - filterbank.
+			M - total filterbanks.
+			f_l - lowest frequency.
+			f_h - highest frequency.
+
+		Returns:
+			Frequency bin boundary point.
+		"""
+		K = self.NFFT//2 + 1 # number of frequency bins.
+		return ((2*K)/self.f_s)*self.mel2hz(self.hz2mel(f_l) + \
+			m*((self.hz2mel(f_h) - self.hz2mel(f_l))/(M + 1))) # boundary point.
+
+	def hz2mel(self, f):
+		"""
+		Converts a value from the Hz scale to a value in the mel scale.
+
+		Argument/s:
+			f - Hertz value.
+
+		Returns:
+			Mel value.
+		"""
+		return 2595*np.log10(1 + (f/700))
+
+	def mel2hz(self, m):
+		"""
+		Converts a value from the mel scale to a value in the Hz scale.
+
+		Argument/s:
+			m - mel value.
+
+		Returns:
+			Hertz value.
+		"""
+		return 700*((10**(m/2595)) - 1)
