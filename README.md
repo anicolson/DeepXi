@@ -87,7 +87,7 @@ mbatch_size=8
 causal=1
 ```
 
-**`resnet-1.0n` (technically, this is not a TCN)**
+**`resnet-1.0n` (technically, this is not a TCN due to the use of non-causal dilated 1D kernels)**
 ```
 d_model=256
 n_blocks=40
