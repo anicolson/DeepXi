@@ -4,13 +4,22 @@ PROJ_DIR='deepxi'
 
 case `hostname` in
 "fist")  echo "Running on fist."
-    SET_PATH='/mnt/ssd/deep_xi_training_set'
+    SET_PATH='/home/aaron/set/SE_TRAIN_V1_VLIGHT'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
     TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
     OUT_PATH='/home/aaron/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/model/'$PROJ_DIR
     ;;
+
+# "fist")  echo "Running on fist."
+#     SET_PATH='/mnt/ssd/deep_xi_training_set'
+#     DATA_PATH='/home/aaron/data/'$PROJ_DIR
+#     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
+#     TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
+#     OUT_PATH='/home/aaron/out/'$PROJ_DIR
+#     MODEL_PATH='/home/aaron/model/'$PROJ_DIR
+#     ;;
 "pinky-jnr")  echo "Running on pinky-jnr."
     SET_PATH='/home/aaron/set/deep_xi_training_set'
     DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
@@ -53,7 +62,7 @@ get_free_gpu () {
     done
 }
 
-NETWORK='TCN'
+VER=0
 TRAIN=0
 INFER=0
 TEST=0
@@ -64,7 +73,7 @@ do
     KEY=$(echo $ARGUMENT | cut -f1 -d=)
     VALUE=$(echo $ARGUMENT | cut -f2 -d=)
     case "$KEY" in
-            NETWORK)            NETWORK=${VALUE} ;;
+            VER)                VER=${VALUE} ;;
             GPU)                GPU=${VALUE} ;;
             TRAIN)              TRAIN=${VALUE} ;;
             INFER)              INFER=${VALUE} ;;
@@ -81,15 +90,16 @@ then
     GPU=$?
 fi
 
-if [ "$NETWORK" == 'TCN' ]
+if [ "$VER" == 'resnet-1.0c' ]
 then
-    python3 main.py --ver               'tcn-1a'        \
-                    --network           'TCN'           \
+    python3 main.py --ver               'resnet-1.0c'   \
+                    --network           'ResNet'        \
                     --d_model           256             \
                     --n_blocks          40              \
                     --d_f               64              \
                     --k                 3               \
                     --max_d_rate        16              \
+                    --causal            1               \
                     --max_epochs        200             \
                     --resume_epoch      0               \
                     --test_epoch        180             \
@@ -100,10 +110,11 @@ then
                     --T_s               16              \
                     --min_snr           -10             \
                     --max_snr           20              \
+                    --snr_inter         1               \
                     --out_type          'y'             \
                     --save_model        1               \
                     --log_iter          0               \
-                    --eval_example      1               \
+                    --eval_example      0               \
                     --gain              $GAIN           \
                     --train             $TRAIN          \
                     --infer             $INFER          \
@@ -117,15 +128,19 @@ then
                     --model_path        $MODEL_PATH
 fi
 
-if [ "$NETWORK" == 'ResLSTM' ]
+if [ "$VER" == 'resnet-1.0n' ]
 then
-    python3 main.py --ver               'reslstm-1a'    \
-                    --network           'ResLSTM'       \
-                    --d_model           512             \
-                    --n_blocks          5               \
-                    --max_epochs        100             \
+    python3 main.py --ver               'resnet-1.0n'   \
+                    --network           'ResNet'        \
+                    --d_model           256             \
+                    --n_blocks          40              \
+                    --d_f               64              \
+                    --k                 3               \
+                    --max_d_rate        16              \
+                    --causal            0               \
+                    --max_epochs        200             \
                     --resume_epoch      0               \
-                    --test_epoch        0               \
+                    --test_epoch        180             \
                     --mbatch_size       8               \
                     --sample_size       1000            \
                     --f_s               16000           \
@@ -133,10 +148,45 @@ then
                     --T_s               16              \
                     --min_snr           -10             \
                     --max_snr           20              \
+                    --snr_inter         1               \
                     --out_type          'y'             \
                     --save_model        1               \
                     --log_iter          0               \
-                    --eval_example      1               \
+                    --eval_example      0               \
+                    --gain              $GAIN           \
+                    --train             $TRAIN          \
+                    --infer             $INFER          \
+                    --test              $TEST           \
+                    --gpu               $GPU            \
+                    --set_path          $SET_PATH       \
+                    --data_path         $DATA_PATH      \
+                    --test_x_path       $TEST_X_PATH    \
+                    --test_s_path       $TEST_S_PATH    \
+                    --out_path          $OUT_PATH       \
+                    --model_path        $MODEL_PATH
+fi
+
+if [ "$VER" == 'reslstm-1.0c' ]
+then
+    python3 main.py --ver               'reslstm-1.0c'  \
+                    --network           'ResLSTM'       \
+                    --d_model           512             \
+                    --n_blocks          5               \
+                    --max_epochs        100             \
+                    --resume_epoch      0               \
+                    --test_epoch        10              \
+                    --mbatch_size       8               \
+                    --sample_size       1000            \
+                    --f_s               16000           \
+                    --T_d               32              \
+                    --T_s               16              \
+                    --min_snr           -10             \
+                    --max_snr           20              \
+                    --snr_inter         1               \
+                    --out_type          'y'             \
+                    --save_model        1               \
+                    --log_iter          0               \
+                    --eval_example      0               \
                     --gain              $GAIN           \
                     --train             $TRAIN          \
                     --infer             $INFER          \

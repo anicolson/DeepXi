@@ -30,7 +30,7 @@ def get_args():
 	parser.add_argument('--test', default=False, type=str_to_bool, help='Evaluate using objective measures')
 	parser.add_argument('--prelim', default=False, type=str_to_bool, help='Preliminary flag')
 	parser.add_argument('--verbose', default=False, type=str_to_bool, help='Verbose')
-	parser.add_argument('--network', type=str, help='Network type')
+	parser.add_argument('--network_type', type=str, help='Network type')
 
 	## OPTIONS (TRAIN)
 	parser.add_argument('--mbatch_size', type=int, help='Mini-batch size')
@@ -70,6 +70,7 @@ def get_args():
 	## FEATURES
 	parser.add_argument('--min_snr', type=int, help='Minimum trained SNR level')
 	parser.add_argument('--max_snr', type=int, help='Maximum trained SNR level')
+	parser.add_argument('--snr_inter', type=int, help='Interval between SNR levels')
 	parser.add_argument('--f_s', type=int, help='Sampling frequency (Hz)')
 	parser.add_argument('--T_d', type=int, help='Window duration (ms)')
 	parser.add_argument('--T_s', type=int, help='Window shift (ms)')
@@ -80,9 +81,13 @@ def get_args():
 	parser.add_argument('--d_out', type=int, help='Ouput dimensionality')
 	parser.add_argument('--d_model', type=int, help='Model dimensions')
 	parser.add_argument('--n_blocks', type=int, help='Number of blocks')
+	parser.add_argument('--n_heads', type=int, help='Number of attention heads')
 	parser.add_argument('--d_f', default=None, type=int, help='Number of filters')
+	parser.add_argument('--d_ff', default=None, type=int, help='Feed forward size')
 	parser.add_argument('--k', default=None, type=int, help='Kernel size')
 	parser.add_argument('--max_d_rate', default=None, type=int, help='Maximum dilation rate')
+	parser.add_argument('--causal', type=str_to_bool, help='Causal network')
+	parser.add_argument('--warmup_steps', type=int, help='Number of warmup steps')
 
 	parser.add_argument('--net_height', default=[4], type=list, help='RDL block height')
 

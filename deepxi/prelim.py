@@ -6,8 +6,8 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from deepxi.gain import gfunc
-from deepxi.network.cnn import TCN
 from deepxi.network.rnn import ResLSTM
+from deepxi.network.tcn import ResNet
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -29,7 +29,7 @@ class Prelim():
 		if self.n_feat < 5: raise ValueError('More input features are required for this exampple.')
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
 		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
-		if network == 'TCN': self.network = TCN(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
+		if network == 'ResNet': self.network = ResNet(self.mask, self.n_outp, B=40, d_model=256, d_f=64, k=3, max_d_rate=16)
 		elif network == 'ResLSTM': self.network = ResLSTM(self.mask, self.n_outp, n_blocks=3, d_model=256)
 		else: raise ValueError('Invalid network type.')
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)

@@ -118,3 +118,71 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 		pickle.dump(batch_list, f)
 	print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
 	return batch_list
+
+
+def val_wav_batch(val_s_dir, val_d_dir):
+	'''
+	Produces the validation batchs. Identical filenames for the clean speech and
+	noise must be placed in their respective directories, with the SNR at the
+	end of the filename. Their lengths must also be identical.
+
+	As an example: './val_clean_speech/ANY_NAME_-5dB.wav'
+
+	contains the clean speech, and
+
+	'./val_noise/ANY_NAME_-5dB.wav'
+
+	contains the noise at the same length. They will be mixed together at the SNR
+	level specified in the filename.
+
+	Argument/s:
+		val_s_dir - path to clean-speech validation files.
+		val_d_dir - path to noise validation files.
+
+	Outputs:
+		val_s - batch of clean-speech padded waveforms.
+		val_d - batch of noise padded waveforms.
+		val_s_len - lengths of clean-speech waveforms.
+		val_d_len - lengths of noise waveforms.
+		val_snr - batch of SNR levels.
+	'''
+	val_s_list = []
+	val_d_list = []
+	val_s_len_list = []
+	val_d_len_list = []
+	val_snr_list = []
+	extension = ['*.wav', '*.flac', '*.mp3']
+	for i in extension:
+		s_paths = glob.glob(os.path.join(val_s_dir, i))
+		d_paths = glob.glob(os.path.join(val_d_dir, i))
+		for (j,k) in zip(s_paths, d_paths):
+			s_basename = os.path.basename(os.path.splitext(j)[0])
+			d_basename = os.path.basename(os.path.splitext(k)[0])
+			if s_basename != d_basename:
+				raise ValueError("The clean speech and noise validation files do not match: {} and {}.".format(s_basename, d_basename))
+			if s_basename[-2:] != "dB":
+				raise ValueError("The basename of the following file must end in dB: {}.".format(s_basename))
+			(s_wav, _) = read_wav(j) # read waveform from given file path.
+			(d_wav, _) = read_wav(k) # read waveform from given file path.
+			if len(s_wav) != len(d_wav):
+				raise ValueError("The clean speech and noise validation waveforms have different lengths: {} and {} for {}.".format(len(s_wav), len(d_wav), s_basename))
+			if np.isnan(s_wav).any() or np.isinf(s_wav).any():
+				raise ValueError("The clean speech waveform has either NaN or Inf values: {}.".format(j))
+			if np.isnan(d_wav).any() or np.isinf(d_wav).any():
+				raise ValueError("The noise waveform has either NaN or Inf values: {}.".format(k))
+			val_s_list.append(s_wav)
+			val_d_list.append(d_wav)
+			val_s_len_list.append(len(s_wav))
+			val_d_len_list.append(len(d_wav))
+			val_snr_list.append(float(s_basename.split("_")[-1][:-2]))
+	if len(val_s_len_list) != len(val_d_len_list):
+		raise ValueError("The number of clean speech and noise validation files do not match.")
+	max_wav_len = max(val_s_len_list) # maximum length of waveforms.
+	val_s = np.zeros([len(val_s_len_list), max_wav_len], np.int16) # numpy array for padded waveform matrix.
+	val_d = np.zeros([len(val_d_len_list), max_wav_len], np.int16) # numpy array for padded waveform matrix.
+	for (i, s_wav) in enumerate(val_s_list): val_s[i,:len(s_wav)] = s_wav # add clean-speech waveform to numpy array.
+	for (i, d_wav) in enumerate(val_d_list): val_d[i,:len(d_wav)] = d_wav # add noise waveform to numpy array.
+	val_s_len = np.array(val_s_len_list, np.int32)
+	val_d_len = np.array(val_d_len_list, np.int32)
+	val_snr = np.array(val_snr_list, np.int32)
+	return val_s, val_d, val_s_len, val_d_len, val_snr

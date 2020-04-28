@@ -6,16 +6,18 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from deepxi.gain import gfunc
-from deepxi.network.cnn import TCN
+from deepxi.network.attention import MHANet
 from deepxi.network.rnn import ResLSTM
+from deepxi.network.tcn import ResNet
 from deepxi.sig import DeepXiInput
 from deepxi.utils import read_wav, save_wav, save_mat
 from pesq import pesq
 from pystoi import stoi
 from tensorflow.keras.callbacks import Callback, CSVLogger, ModelCheckpoint
-from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Input, Masking
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.schedules import LearningRateSchedule
 from tensorflow.python.lib.io import file_io
 # from tensorflow.python.util.compat import collections_abc
 from tqdm import tqdm
@@ -38,9 +40,10 @@ class DeepXi(DeepXiInput):
 		N_s,
 		NFFT,
 		f_s,
-		network,
+		network_type,
 		min_snr,
 		max_snr,
+		snr_inter,
 		ver='VERSION_NAME',
 		**kwargs
 		):
@@ -58,33 +61,50 @@ class DeepXi(DeepXiInput):
 		super().__init__(N_d, N_s, NFFT, f_s)
 		self.min_snr = min_snr
 		self.max_snr = max_snr
+		self.snr_levels = list(range(self.min_snr, self.max_snr + 1, snr_inter))
 		self.ver = ver
 		self.n_feat = math.ceil(self.NFFT/2 + 1)
 		self.n_outp = self.n_feat
 		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
-		self.mask = tf.keras.layers.Masking(mask_value=0.0)(self.inp)
-		if network == 'TCN': self.network = TCN(
-			inp=self.mask,
-			n_outp=self.n_outp,
-			n_blocks=kwargs['n_blocks'],
-			d_model=kwargs['d_model'],
-			d_f=kwargs['d_f'],
-			k=kwargs['k'],
-			max_d_rate=kwargs['max_d_rate'],
-			)
-		elif network == 'ResLSTM': self.network = ResLSTM(
-			inp=self.mask,
-			n_outp=self.n_outp,
-			n_blocks=kwargs['n_blocks'],
-			d_model=kwargs['d_model'],
-			)
+		self.mask = Masking(mask_value=0.0)(self.inp)
+		self.network_type = network_type
+
+		if self.network_type == 'MHANet':
+			self.network = MHANet(
+				inp=self.mask,
+				n_outp=self.n_outp,
+				d_model=kwargs['d_model'],
+				n_blocks=kwargs['n_blocks'],
+				n_heads=kwargs['n_heads'],
+				d_ff=kwargs['d_ff'],
+				warmup_steps=kwargs['warmup_steps'],
+				causal=kwargs['causal'],
+				)
+		elif self.network_type == 'ResNet':
+			self.network = ResNet(
+				inp=self.mask,
+				n_outp=self.n_outp,
+				n_blocks=kwargs['n_blocks'],
+				d_model=kwargs['d_model'],
+				d_f=kwargs['d_f'],
+				k=kwargs['k'],
+				max_d_rate=kwargs['max_d_rate'],
+				padding=kwargs['padding'],
+				)
+		elif self.network_type == 'ResLSTM':
+			self.network = ResLSTM(
+				inp=self.mask,
+				n_outp=self.n_outp,
+				n_blocks=kwargs['n_blocks'],
+				d_model=kwargs['d_model'],
+				)
 		else: raise ValueError('Invalid network type.')
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
 		if not os.path.exists("log/summary"):
 			os.makedirs("log/summary")
 		with open("log/summary/" + self.ver + ".txt", "w") as f:
-		    self.model.summary(print_fn=lambda x: f.write(x + '\n'))
+			self.model.summary(print_fn=lambda x: f.write(x + '\n'))
 
 	def train(
 		self,
@@ -165,16 +185,28 @@ class DeepXi(DeepXiInput):
 		callbacks = []
 		callbacks.append(CSVLogger("log/" + self.ver + ".csv", separator=',', append=True))
 		if save_model: callbacks.append(SaveWeights(model_path))
+
 		# if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
 
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" +
 			str(resume_epoch-1) + "/variables/variables" )
 
+		if self.network_type == "MHANet":
+			lr_schedular = TransformerSchedular(self.network.d_model,
+				self.network.warmup_steps)
+			opt = Adam(learning_rate=lr_schedular, clipvalue=1.0, beta_1=0.9,
+				beta_2=0.98, epsilon=1e-9)
+		else:
+			opt = Adam(learning_rate=0.001, clipvalue=1.0)
+
 		self.model.compile(
 			sample_weight_mode="temporal",
 			loss="binary_crossentropy",
-			optimizer=Adam(lr=0.001, clipvalue=1.0)
+			optimizer=opt
 			)
+
+		print("SNR levels used for training:")
+		print(self.snr_levels)
 
 		self.model.fit(
 			x=train_dataset,
@@ -413,7 +445,8 @@ class DeepXi(DeepXiInput):
 			s_sample_list = random.sample(self.train_s_list, sample_size)
 			d_sample_list = random.sample(self.train_d_list, sample_size)
 			s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
-			snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
+			snr_sample = np.array(random.choices(self.snr_levels, k=sample_size))
+			# snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
 			samples = []
 			for i in tqdm(range(s_sample.shape[0])):
 				s_STMS, d_STMS, _, _ = self.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
@@ -586,7 +619,8 @@ class DeepXi(DeepXiInput):
 			rand_idx = np.random.randint(0, 1+d_list[i]['wav_len']-s_batch_len[i])
 			d_batch[i,:s_batch_len[i]] = wav[rand_idx:rand_idx+s_batch_len[i]]
 		d_batch_len = s_batch_len
-		snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size)
+		# snr_batch = np.random.randint(self.min_snr, self.max_snr+1, batch_size)
+		snr_batch = np.array(random.choices(self.snr_levels, k=batch_size))
 		return s_batch, d_batch, s_batch_len, d_batch_len, snr_batch
 
 	def add_score(self, dict, key, score):
@@ -610,10 +644,6 @@ class DeepXi(DeepXiInput):
 			else: dict[key] = [score]
 		return dict
 
-#############################################################
-## CREATE deepxi/callbacks.py AND MOVE THE CALLBACKS THERE ##
-#############################################################
-
 class SaveWeights(Callback):  ### RENAME TO SaveModel
 	"""
 	"""
@@ -627,6 +657,29 @@ class SaveWeights(Callback):  ### RENAME TO SaveModel
 		"""
 		"""
 		self.model.save(self.model_path + "/epoch-" + str(epoch))
+
+class TransformerSchedular(LearningRateSchedule):
+	"""
+	"""
+	def __init__(self, d_model, warmup_steps):
+		"""
+		"""
+		super(TransformerSchedular, self).__init__()
+		self.d_model = float(d_model)
+		self.warmup_steps = warmup_steps
+
+	def __call__(self, step):
+		"""
+		"""
+		arg1 = tf.math.rsqrt(step)
+		arg2 = step * (self.warmup_steps ** -1.5)
+		return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
+
+	def get_config(self):
+		"""
+		"""
+		config = {'d_model': self.d_model, 'warmup_steps': self.warmup_steps}
+		return config
 
 # class CSVLoggerIter(Callback):
 # 	"""

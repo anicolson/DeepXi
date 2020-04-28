@@ -40,7 +40,7 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 
 Which audio do I use with Deep Xi?
 ----
-Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is used due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi.
+Deep Xi operates on mono/single-channel audio (not stereo/dual-channel audio). Single-channel audio is used due to most cell phones using a single microphone. The available trained models operate on a sampling frequency of `f_s=16000`Hz, which is currently the standard sampling frequency used in the speech enhancement community. The sampling frequency can be changed in `run.sh`. Deep Xi can be trained using a higher sampling frequency (e.g. `f_s=44100`Hz), but this is unnecessary as human speech rarely exceeds 8 kHz (the Nyquist frequency of `f_s=16000`Hz is 8 kHz). The available trained models operate on a window duration and shift of `T_d=32`ms and `T_s=16`ms, respectively. To train a model on a different window duration and shift, `T_d` and `T_s` can be changed in `run.sh`. Currently, Deep Xi supports `.wav`, `.mp3`, and `.flac` audio codecs. The audio codec and bit rate does not affect the performance of Deep Xi.
 
 Where can I get a dataset for Deep Xi?
 ----
@@ -56,11 +56,26 @@ The MATLAB scripts used to generate these sets can be found in [`set`](https://g
 
 Current networks
 -----
-The following networks are **causal**. This is facilitated by using unidirectional recurrent cells, causal convolutional kernels, and layer normalisation that does not consider future time-frames (`frame-wise layer normalisation`).
+Recurrent neural networks (RNNs), temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
+<!--- * **MHANet**: Multi-head attention network. --->
+* **ResNet**: Residual network.
+* **ResLSTM**: Residual long short-term memory network.
 
-**Deep Xi-TCN (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
+<!--- Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in . --->
 
-Deep Xi utilising a temporal convolutional network (TCN) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. The configuration of `tcn-1a` is as follows:
+Deep Xi utilising the ResNet TCN (**Deep Xi-ResNet**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. **A trained model for version `resnet-1.0c` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
+
+Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). It uses residual blocks containing a single LSTM cell. The network comprises of approximately 10 million parameters.
+
+|![](./fig_Deep-Xi-ResNet.png "Deep Xi-ResNet a priori SNR estimator.")|
+|----|
+| <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-ResNet with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the ResNet is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-ResNet with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
+
+Deep Xi Versions
+-----
+There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. Versions with **c** are **causal**. Versions with **n** are **non-causal**. The network type is given at the start of `ver`. The iteration of the version is also given, i.e. `1.0`. Here are the available versions:
+
+**`resnet-1.0c` (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 ```
 d_model=256
 n_blocks=40
@@ -69,12 +84,22 @@ k=3
 max_d_rate=16
 test_epoch=180
 mbatch_size=8
+causal=1
 ```
-An example of Deep Xi-TCN is shown in **Figure 4**. **A trained model for version `tcn-1a` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
 
-**Deep Xi-ResLSTM**
+**`resnet-1.0n` (technically, this is not a TCN)**
+```
+d_model=256
+n_blocks=40
+d_f=64
+k=3
+max_d_rate=16
+test_epoch=180
+mbatch_size=8
+causal=0
+```
 
-Deep Xi utilising a residual long short-term memory (ResLSTM) network was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). It uses residual blocks containing a single LSTM cell. The network comprises of approximately 10 million parameters. The configuration of `reslstm-1a` is as follows:
+**`reslstm-1.0c`**
 ```
 d_model=512  
 n_blocks=5   
@@ -83,10 +108,6 @@ mbatch_size=8
 ```
 
 
-
-|![](./fig_Deep-Xi-ResNet.png "Deep Xi-TCN a priori SNR estimator.")|
-|----|
-| <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-TCN with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the TCN is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-TCN with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
 
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0).
@@ -99,12 +120,12 @@ Average objective scores obtained over the conditions in the [Deep Xi Test Set](
 
 | Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
 |------------------|-----------|--------|---------|------|------|-------|
-| Deep Xi-TCN (tcn-1a) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
-| Deep Xi-TCN (tcn-1a) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-TCN (tcn-1a) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
-| Deep Xi-TCN (tcn-1a) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
-| Deep Xi-TCN (tcn-1a) | WF        | Yes    |   1.75|2.21|78.30|63.96|
-| Deep Xi-TCN (tcn-1a) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
+| Deep Xi-ResNet (resnet-1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
+| Deep Xi-ResNet (resnet-1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
+| Deep Xi-ResNet (resnet-1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-ResNet (resnet-1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
+| Deep Xi-ResNet (resnet-1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
+| Deep Xi-ResNet (resnet-1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
 
 Results for the DEMAND -- Voice Bank test set
 -----
@@ -119,7 +140,9 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 | [MMSE-GAN](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8462068)                 | No     | 3.80 | 3.12 | 3.14 | 2.53 | **93**        |
 | [Deep Feature Loss](https://arxiv.org/pdf/1806.10522.pdf)          | Yes    | 3.86 | **3.33** | 3.22 | --   | --        |
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf)                 | No     | 3.99 | 3.18 | 3.42 | **2.86** | --        |
-| **Deep Xi-TCN (3e, tf1 version) MMSE-LSA** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
+| **Deep Xi-ResNet (3e, tf1 version) MMSE-LSA** | Yes    | **4.12** | **3.33** | **3.48** | 2.82 | **93 (93.3)** |
+| **Deep Xi-ResNet (1.0c, causal) MMSE-LSA** | Yes    | **4.14** | **3.32** | **3.46** | 2.77 | **93 (93.2)** |
+| **Deep Xi-ResNet (1.0n, non-causal) MMSE-LSA** | Yes    | **4.28** | **3.46** | **3.64** | 2.95 | **94 (93.6)** |
 
 Installation
 -----
@@ -145,20 +168,20 @@ Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to config
 **Inference:**
 To perform inference and save the outputs, use the following:
 ```
-./run.sh NETWORK="TCN" INFER=1 GAIN="mmse-lsa"
+./run.sh VER="resnet-1.0c" INFER=1 GAIN="mmse-lsa"
 ```
 Please look in [`thoth/args.py`](https://github.com/anicolson/DeepXi/blob/master/deepxi/args.py) for available gain functions and [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for further options.
 
 **Testing:**
 To perform testing and get objective scores, use the following:
 ```
-./run.sh NETWORK="TCN" TEST=1 GAIN="mmse-lsa"
+./run.sh VER="resnet-1.0c" TEST=1 GAIN="mmse-lsa"
 ```
 Please look in [`log/results`](https://github.com/anicolson/DeepXi/blob/master/log/results) for the results.
 
 **Training:**
 ```
-./run.sh NETWORK="TCN" TRAIN=1 GAIN="mmse-lsa"
+./run.sh VER="resnet-1.0c" TRAIN=1 GAIN="mmse-lsa"
 ```
 Ensure to delete the data directory before training. This will allow training lists and statistics for your training set to be saved and used. **To retrain from a certain epoch, set `--resume_epoch` in [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to the desired epoch**.
 
@@ -166,7 +189,7 @@ Citation guide
 -----
 Please cite the following depending on what you are using:
 * If using Deep Xi-ResLSTM, please cite [1].
-* If using Deep Xi-TCN, please cite [1] and [2].
+* If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
 
 [1] [A. Nicolson, K. K. Paliwal, Deep learning for minimum mean-square error approaches to speech enhancement, Speech Communication 111 (2019) 44 - 55, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)

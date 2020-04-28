@@ -10,6 +10,10 @@ import numpy as np
 from deepxi.utils import read_wav
 from scipy.io.wavfile import read
 
+
+
+
+
 def Batch(fdir, snr_l=[]):
 	'''
 	REQUIRES REWRITING. WILL BE MOVED TO deepxi/utils.py

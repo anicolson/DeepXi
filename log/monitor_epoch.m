@@ -7,13 +7,20 @@
 
 clear all; close all; clc
 
-ver = {'tcn-1a'};
+% ver = {'resnet-1.0c', 'resnet-1.0n', 'mhanet-0.1c', 'mhanet-0.1n', 'mhanet-0.2n'};
+
+ver = {
+    'mhanet-0.1c',...
+    'mhanet-0.3c',...
+    'mhanet-0.1n',...
+    'mhanet-0.4n',...
+    };
 
 for i = 1:length(ver)
     T = readtable([ver{i}, '.csv']);
     epoch = 1:height(T);
-    subplot(1,2,1); plot(epoch, T.loss); xlabel('Epoch'); ylabel('Training loss'); hold on;
-    subplot(1,2,2); plot(epoch, T.val_loss); xlabel('Epoch'); ylabel('Validation loss'); hold on;
+    subplot(1,2,1); plot(epoch, T.loss, 'LineWidth', 1); xlabel('Epoch'); ylabel('Training loss'); hold on;
+    subplot(1,2,2); plot(epoch, T.val_loss, 'LineWidth', 1); xlabel('Epoch'); ylabel('Validation loss'); hold on;
 end
 legend(ver);
 hold off;

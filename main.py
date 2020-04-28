@@ -18,6 +18,9 @@ if __name__ == '__main__':
 
 	args = get_args()
 
+	if args.causal: padding = "causal"
+	else: padding = "same"
+
 	args.model_path = args.model_path + '/' + args.ver # model save path.
 	if args.set_path != "set": args.data_path = args.data_path + '/' + args.set_path.rsplit('/', 1)[-1] # data path.
 	train_s_path = args.set_path + '/train_clean_speech' # path to the clean speech training set.
@@ -32,8 +35,11 @@ if __name__ == '__main__':
 		train_s_list = utils.batch_list(train_s_path, 'clean_speech', args.data_path)
 		train_d_list = utils.batch_list(train_d_path, 'noise', args.data_path)
 		if args.val_flag:
-			val_s, val_s_len, val_snr, _ = Batch(val_s_path, list(range(args.min_snr, args.max_snr + 1)))
-			val_d, val_d_len, _, _ = Batch(val_d_path, list(range(args.min_snr, args.max_snr + 1)))
+
+			val_s, val_d, val_s_len, val_d_len, val_snr = utils.val_wav_batch(val_s_path, val_d_path)
+
+			# val_s, val_s_len, val_snr, _ = Batch(val_s_path, list(range(args.min_snr, args.max_snr + 1)))
+			# val_d, val_d_len, _, _ = Batch(val_d_path, list(range(args.min_snr, args.max_snr + 1)))
 		else: val_s, val_d, val_s_len, val_d_len, val_snr = None, None, None, None, None
 
 	if args.infer or args.test:
@@ -50,19 +56,25 @@ if __name__ == '__main__':
 		N_s=N_s,
 		NFFT=NFFT,
 		f_s=args.f_s,
-		network=args.network,
+		network_type=args.network_type,
 		min_snr=args.min_snr,
 		max_snr=args.max_snr,
+		snr_inter=args.snr_inter,
 		d_model=args.d_model,
 		n_blocks=args.n_blocks,
+		n_heads=args.n_heads,
 		d_f=args.d_f,
+		d_ff=args.d_ff,
 		k=args.k,
 		max_d_rate=args.max_d_rate,
+		warmup_steps=args.warmup_steps,
+		padding=padding,
+		causal=args.causal,
 		ver=args.ver,
 		)
 
 	if args.train: deepxi.train(
-		train_s_list=train_s_list,
+		train_s_list=train_s_list[0:50],
 		train_d_list=train_d_list,
 		model_path=args.model_path,
 		val_s=val_s,

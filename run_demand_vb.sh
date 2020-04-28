@@ -72,25 +72,27 @@ then
     GPU=$?
 fi
 
-if [ "$NETWORK" == 'TCN' ]
+if [ "$NETWORK" == 'ResNet' ]
 then
-    python3 main.py --ver               'tcn-1a_demand_vb'        \
-                    --network           'TCN'           \
+    python3 main.py --ver               'tcn-1.0c_demand_vb'        \
+                    --network_type      'ResNet'           \
                     --d_model           256             \
                     --n_blocks          40              \
                     --d_f               64              \
                     --k                 3               \
                     --max_d_rate        16              \
+                    --causal            1               \
                     --max_epochs        200             \
                     --resume_epoch      0               \
-                    --test_epoch        60              \
+                    --test_epoch        115             \
                     --mbatch_size       8               \
                     --sample_size       1000            \
                     --f_s               16000           \
                     --T_d               32              \
                     --T_s               16              \
-                    --min_snr           -10             \
-                    --max_snr           20              \
+                    --min_snr           0               \
+                    --max_snr           15              \
+                    --snr_inter         5               \
                     --out_type          'y'             \
                     --save_model        1               \
                     --log_iter          0               \
