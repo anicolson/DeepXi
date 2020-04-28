@@ -4,22 +4,13 @@ PROJ_DIR='deepxi'
 
 case `hostname` in
 "fist")  echo "Running on fist."
-    SET_PATH='/home/aaron/set/SE_TRAIN_V1_VLIGHT'
+    SET_PATH='/mnt/ssd/deep_xi_training_set'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
     TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
     OUT_PATH='/home/aaron/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/model/'$PROJ_DIR
     ;;
-
-# "fist")  echo "Running on fist."
-#     SET_PATH='/mnt/ssd/deep_xi_training_set'
-#     DATA_PATH='/home/aaron/data/'$PROJ_DIR
-#     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
-#     TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
-#     OUT_PATH='/home/aaron/out/'$PROJ_DIR
-#     MODEL_PATH='/home/aaron/model/'$PROJ_DIR
-#     ;;
 "pinky-jnr")  echo "Running on pinky-jnr."
     SET_PATH='/home/aaron/set/deep_xi_training_set'
     DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR

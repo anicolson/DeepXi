@@ -74,7 +74,7 @@ if __name__ == '__main__':
 		)
 
 	if args.train: deepxi.train(
-		train_s_list=train_s_list[0:50],
+		train_s_list=train_s_list,
 		train_d_list=train_d_list,
 		model_path=args.model_path,
 		val_s=val_s,
