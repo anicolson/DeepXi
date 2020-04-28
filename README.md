@@ -56,7 +56,7 @@ The MATLAB scripts used to generate these sets can be found in [`set`](https://g
 
 Current networks
 -----
-Recurrent neural networks (RNNs), temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
+Recurrent neural networks (RNNs) and temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
 <!--- * **MHANet**: Multi-head attention network. --->
 * **ResNet**: Residual network.
 * **ResLSTM**: Residual long short-term memory network.
