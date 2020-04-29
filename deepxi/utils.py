@@ -119,7 +119,6 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 	print('The ' + list_name + ' list has a total of %i entries.' % (len(batch_list)))
 	return batch_list
 
-
 def val_wav_batch(val_s_dir, val_d_dir):
 	'''
 	Produces the validation batchs. Identical filenames for the clean speech and
@@ -146,6 +145,7 @@ def val_wav_batch(val_s_dir, val_d_dir):
 		val_d_len - lengths of noise waveforms.
 		val_snr - batch of SNR levels.
 	'''
+	print("Loading validation waveforms...")
 	val_s_list = []
 	val_d_list = []
 	val_s_len_list = []

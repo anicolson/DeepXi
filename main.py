@@ -35,11 +35,7 @@ if __name__ == '__main__':
 		train_s_list = utils.batch_list(train_s_path, 'clean_speech', args.data_path)
 		train_d_list = utils.batch_list(train_d_path, 'noise', args.data_path)
 		if args.val_flag:
-
 			val_s, val_d, val_s_len, val_d_len, val_snr = utils.val_wav_batch(val_s_path, val_d_path)
-
-			# val_s, val_s_len, val_snr, _ = Batch(val_s_path, list(range(args.min_snr, args.max_snr + 1)))
-			# val_d, val_d_len, _, _ = Batch(val_d_path, list(range(args.min_snr, args.max_snr + 1)))
 		else: val_s, val_d, val_s_len, val_d_len, val_snr = None, None, None, None, None
 
 	if args.infer or args.test:

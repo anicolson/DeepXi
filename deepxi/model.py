@@ -6,7 +6,6 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from deepxi.gain import gfunc
-from deepxi.network.attention import MHANet
 from deepxi.network.rnn import ResLSTM
 from deepxi.network.tcn import ResNet
 from deepxi.sig import DeepXiInput
@@ -70,6 +69,7 @@ class DeepXi(DeepXiInput):
 		self.network_type = network_type
 
 		if self.network_type == 'MHANet':
+			from deepxi.network.attention import MHANet
 			self.network = MHANet(
 				inp=self.mask,
 				n_outp=self.n_outp,
