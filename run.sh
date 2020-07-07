@@ -3,6 +3,8 @@
 chmod +x ./config.sh
 . ./config.sh
 
+# Updated ResNet with no scale and shift parameters for layer normalisation.
+# This prevents overfitting to the training set.
 if [ "$VER" == 'resnet-1.1n' ]
 then
     python3 main.py --ver               $VER                        \
