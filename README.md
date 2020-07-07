@@ -16,7 +16,7 @@ Contents
   * [Introduction](#introduction-)
   * [How does Deep Xi work?](#how-does-deep-xi-work-)
   * [Current networks](#current-networks)
-  * [Deep Xi Versions](#deep-xi-versions)
+  * [Available models](#available-models)
   * [Results for Deep Xi Test Set](#results-for-deep-xi-test-set)
   * [Results for the DEMAND -- Voice Bank test set](#results-for-the-demand----voice-bank-test-set)
   * [DeepMMSE](#deepmmse)
@@ -63,15 +63,13 @@ Recurrent neural networks (RNNs) and temporal convolutional networks (TCNs), are
 
 <!--- Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in . --->
 
-Deep Xi utilising a ResNet TCN (**Deep Xi-TCN**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. **A trained model for version `resnet-1.0c` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
-
-Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
+Deep Xi utilising a ResNet TCN (**Deep Xi-TCN**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
 
 |![](./docs/fig_Deep-Xi-ResNet.png "Deep Xi-ResNet a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-ResNet with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the ResNet is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-ResNet with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
 
-Deep Xi Versions
+Available models
 -----
 There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. The network type is given at the start of `ver`. Versions with **c** are **causal**. Versions with **n** are **non-causal**.  The version iteration is also given, i.e. `1.0`. Here are the current versions:
 
@@ -82,6 +80,8 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 **`resnet-1.0c` (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **`reslstm-1.0c` (there are issues with training this network currently)**
+
+**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
 
 **Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
