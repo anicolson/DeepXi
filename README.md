@@ -5,11 +5,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.* 
+Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.* 
 ====
-
-Used by MMSE estimators for speech enhancement.
-----
 
 Contents
 ----
