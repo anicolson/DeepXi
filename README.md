@@ -78,9 +78,7 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 
 **`reslstm-1.0c` (there are issues with training this network currently)**
 
-**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
-
-**Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
+**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
 
 <!--
