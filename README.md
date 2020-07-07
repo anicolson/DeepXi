@@ -99,13 +99,13 @@ Average objective scores obtained over the conditions in the [Deep Xi Test Set](
 
 | Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
 |------------------|-----------|--------|---------|------|------|-------|
-| Deep Xi-ResNet (resnet-1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
-| Deep Xi-ResNet (resnet-1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-ResNet (resnet-1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
-| Deep Xi-ResNet (resnet-1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
-| Deep Xi-ResNet (resnet-1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
-| Deep Xi-ResNet (resnet-1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
-| Deep Xi-ResNet (resnet-1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
+| Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
+| Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
+| Deep Xi-ResNet (1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
+| Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
+| Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
+| Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
 
 **DEMAND -- Voice Bank test set**
 
