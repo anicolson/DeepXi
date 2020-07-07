@@ -16,6 +16,7 @@ Contents
   * [Deep Xi Versions](#deep-xi-versions)
   * [Results for Deep Xi Test Set](#results-for-deep-xi-test-set)
   * [Results for the DEMAND -- Voice Bank test set](#results-for-the-demand----voice-bank-test-set)
+  * [DeepMMSE](#deepmmse)
   * [Installation](#installation)
   * [How to Use the Deep Xi](#how-to-use-the-deep-xi)
   * [Current issues and potential areas of improvement](#current-issues-and-potential-areas-of-improvement)
@@ -119,6 +120,11 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 | **Deep Xi-ResNet (1.0c)** | MMSE-LSA | Yes    | 4.14 | 3.32 | 3.46 | 2.77 | 93 (93.2) | -- |
 | **Deep Xi-ResNet (1.0n)** | MMSE-LSA | No    | 4.28 | 3.46 | 3.64 | 2.95 | 94 (93.6) | -- |
 | **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.32** | **3.52** | **3.68** | **3.01** | **94 (93.9)** | 9.4 |
+
+DeepMMSE
+----
+
+Description coming soon...
 
 Installation
 -----
