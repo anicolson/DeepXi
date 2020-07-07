@@ -6,14 +6,15 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from deepxi.gain import gfunc
-from deepxi.network.rnn import ResLSTM
-from deepxi.network.tcn import ResNet
-from deepxi.sig import DeepXiInput
-from deepxi.utils import read_wav, save_wav, save_mat
+from deepxi.network.selector import network_selector
+from deepxi.inp_tgt import inp_tgt_selector
+from deepxi.sig import InputTarget
+from deepxi.utils import read_mat, read_wav, save_mat, save_wav
 from pesq import pesq
 from pystoi import stoi
 from tensorflow.keras.callbacks import Callback, CSVLogger, ModelCheckpoint
 from tensorflow.keras.layers import Input, Masking
+from tensorflow.keras.losses import BinaryCrossentropy, MeanSquaredError
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import LearningRateSchedule
@@ -21,15 +22,16 @@ from tensorflow.python.lib.io import file_io
 # from tensorflow.python.util.compat import collections_abc
 from tqdm import tqdm
 import deepxi.se_batch as batch
-import csv, math, os, random # collections, io, six
+import csv, math, os, pickle, random # collections, io, six
 import numpy as np
 import tensorflow as tf
+import tensorflow.keras.backend as K
 
 # [1] Nicolson, A. and Paliwal, K.K., 2019. Deep learning for
 # 	  minimum mean-square error approaches to speech enhancement.
 # 	  Speech Communication, 111, pp.44-55.
 
-class DeepXi(DeepXiInput):
+class DeepXi():
 	"""
 	Deep Xi model from [1].
 	"""
@@ -37,68 +39,62 @@ class DeepXi(DeepXiInput):
 		self,
 		N_d,
 		N_s,
-		NFFT,
+		K,
 		f_s,
+		inp_tgt_type,
 		network_type,
 		min_snr,
 		max_snr,
 		snr_inter,
+		sample_dir=None,
 		ver='VERSION_NAME',
+		train_s_list=None,
+		train_d_list=None,
+		sample_size=None,
 		**kwargs
 		):
 		"""
 		Argument/s
-			N_d - window duration (samples).
-			N_s - window shift (samples).
-			NFFT - number of DFT bins.
+			N_d - window duration (samples_xi_db).
+			N_s - window shift (samples_xi_db).
+			K - number of frequency bins.
 			f_s - sampling frequency.
-			network - network type.
+			inp_tgt_type - input and target type.
+			network_type - network type.
 			min_snr - minimum SNR level for training.
 			max_snr - maximum SNR level for training.
+			stats_dir - path to save sample statistics.
 			ver - version name.
+			train_s_list - clean-speech training list to compute statistics.
+			train_d_list - noise training list to compute statistics.
+			sample_size - number of samples to compute the statistics from.
+			kwargs - keyword arguments.
 		"""
-		super().__init__(N_d, N_s, NFFT, f_s)
+		self.inp_tgt_type = inp_tgt_type
+		self.network_type = network_type
 		self.min_snr = min_snr
 		self.max_snr = max_snr
 		self.snr_levels = list(range(self.min_snr, self.max_snr + 1, snr_inter))
 		self.ver = ver
-		self.n_feat = math.ceil(self.NFFT/2 + 1)
-		self.n_outp = self.n_feat
-		self.inp = Input(name='inp', shape=[None, self.n_feat], dtype='float32')
-		self.mask = Masking(mask_value=0.0)(self.inp)
-		self.network_type = network_type
+		self.train_s_list=train_s_list
+		self.train_d_list=train_d_list
 
-		if self.network_type == 'MHANet':
-			from deepxi.network.attention import MHANet
-			self.network = MHANet(
-				inp=self.mask,
-				n_outp=self.n_outp,
-				d_model=kwargs['d_model'],
-				n_blocks=kwargs['n_blocks'],
-				n_heads=kwargs['n_heads'],
-				d_ff=kwargs['d_ff'],
-				warmup_steps=kwargs['warmup_steps'],
-				causal=kwargs['causal'],
-				)
-		elif self.network_type == 'ResNet':
-			self.network = ResNet(
-				inp=self.mask,
-				n_outp=self.n_outp,
-				n_blocks=kwargs['n_blocks'],
-				d_model=kwargs['d_model'],
-				d_f=kwargs['d_f'],
-				k=kwargs['k'],
-				max_d_rate=kwargs['max_d_rate'],
-				padding=kwargs['padding'],
-				)
-		elif self.network_type == 'ResLSTM':
-			self.network = ResLSTM(
-				inp=self.mask,
-				n_outp=self.n_outp,
-				n_blocks=kwargs['n_blocks'],
-				d_model=kwargs['d_model'],
-				)
-		else: raise ValueError('Invalid network type.')
+		inp_tgt_obj_path = sample_dir + '/' + self.ver + '_inp_tgt.p'
+		if os.path.exists(inp_tgt_obj_path):
+			with open(inp_tgt_obj_path, 'rb') as f:
+				self.inp_tgt = pickle.load(f)
+		else:
+			self.inp_tgt = inp_tgt_selector(self.inp_tgt_type, N_d, N_s, K, f_s, **kwargs)
+			samples_s_STMS, samples_d_STMS, samples_x_STMS = self.sample(sample_size,
+				sample_dir)
+			self.inp_tgt.stats(samples_s_STMS, samples_d_STMS, samples_x_STMS)
+			with open(inp_tgt_obj_path, 'wb') as f:
+				pickle.dump(self.inp_tgt, f, pickle.HIGHEST_PROTOCOL)
+
+		self.inp = Input(name='inp', shape=[None, self.inp_tgt.n_feat], dtype='float32')
+		self.network = network_selector(self.network_type, self.inp,
+			self.inp_tgt.n_outp, **kwargs)
+
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
 		if not os.path.exists("log/summary"):
@@ -110,6 +106,9 @@ class DeepXi(DeepXiInput):
 		self,
 		train_s_list,
 		train_d_list,
+		mbatch_size,
+		max_epochs,
+		loss_fnc,
 		model_path='model',
 		val_s=None,
 		val_d=None,
@@ -118,11 +117,7 @@ class DeepXi(DeepXiInput):
 		val_snr=None,
 		val_flag=True,
 		val_save_path=None,
-		mbatch_size=8,
-		max_epochs=200,
 		resume_epoch=0,
-		stats_path=None,
-		sample_size=None,
 		eval_example=False,
 		save_model=True,
 		log_iter=False,
@@ -144,11 +139,10 @@ class DeepXi(DeepXiInput):
 			mbatch_size - mini-batch size.
 			max_epochs - maximum number of epochs.
 			resume_epoch - epoch to resume training from.
-			stats_path - path to save sample statistics.
-			sample_size - sample size.
 			eval_example - evaluate a mini-batch of training examples.
 			save_model - save architecture, weights, and training configuration.
 			log_iter - log training loss for each training iteration.
+			loss_fnc - loss function.
 		"""
 		self.train_s_list = train_s_list
 		self.train_d_list = train_d_list
@@ -156,27 +150,12 @@ class DeepXi(DeepXiInput):
 		self.n_examples = len(self.train_s_list)
 		self.n_iter = math.ceil(self.n_examples/mbatch_size)
 
-		self.sample_stats(stats_path, sample_size, train_s_list, train_d_list)
-
 		train_dataset = self.dataset(max_epochs-resume_epoch)
 
 		if val_flag:
 			val_set = self.val_batch(val_save_path, val_s, val_d, val_s_len, val_d_len, val_snr)
 			val_steps = len(val_set[0])
 		else: val_set, val_steps = None, None
-
-		if eval_example:
-			print("Saving a mini-batch of training examples in .mat files...")
-			x_STMS_batch, xi_bar_batch, seq_mask_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
-			save_mat('./x_STMS_batch.mat', x_STMS_batch, 'x_STMS_batch')
-			save_mat('./xi_bar_batch.mat', xi_bar_batch, 'xi_bar_batch')
-			save_mat('./seq_mask_batch.mat', seq_mask_batch, 'seq_mask_batch')
-			print("Testing if add_noise() works correctly...")
-			s, d, s_len, d_len, snr_tgt = self.wav_batch(train_s_list[0:mbatch_size], train_d_list[0:mbatch_size])
-			(_, s, d) = self.add_noise_batch(self.normalise(s), self.normalise(d), s_len, d_len, snr_tgt)
-			for (i, _) in enumerate(s):
-				snr_act = self.snr_db(s[i][0:s_len[i]], d[i][0:d_len[i]])
-				print('SNR target|actual: {:.2f}|{:.2f} (dB).'.format(snr_tgt[i], snr_act))
 
 		if not os.path.exists(model_path): os.makedirs(model_path)
 		if not os.path.exists("log"): os.makedirs("log")
@@ -189,25 +168,41 @@ class DeepXi(DeepXiInput):
 		# if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
 
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" +
-			str(resume_epoch-1) + "/variables/variables" )
+			str(resume_epoch-1) + "/variables/variables")
+
+		if eval_example:
+			print("Saving a mini-batch of training examples in .mat files...")
+			inp_batch, tgt_batch, seq_mask_batch = list(train_dataset.take(1).as_numpy_iterator())[0]
+			save_mat('./inp_batch.mat', inp_batch, 'inp_batch')
+			save_mat('./tgt_batch.mat', tgt_batch, 'tgt_batch')
+			save_mat('./seq_mask_batch.mat', seq_mask_batch, 'seq_mask_batch')
+			print("Testing if add_noise() works correctly...")
+			s, d, s_len, d_len, snr_tgt = self.wav_batch(self.train_s_list[0:mbatch_size],
+				self.train_d_list[0:mbatch_size])
+			(_, s, d) = self.inp_tgt.add_noise_batch(self.inp_tgt.normalise(s),
+				self.inp_tgt.normalise(d), s_len, d_len, snr_tgt)
+			for (i, _) in enumerate(s):
+				snr_act = self.inp_tgt.snr_db(s[i][0:s_len[i]], d[i][0:d_len[i]])
+				print('SNR target|actual: {:.2f}|{:.2f} (dB).'.format(snr_tgt[i], snr_act))
 
 		if self.network_type == "MHANet":
 			lr_schedular = TransformerSchedular(self.network.d_model,
 				self.network.warmup_steps)
 			opt = Adam(learning_rate=lr_schedular, clipvalue=1.0, beta_1=0.9,
 				beta_2=0.98, epsilon=1e-9)
-		else:
-			opt = Adam(learning_rate=0.001, clipvalue=1.0)
+		else: opt = Adam(learning_rate=0.001, clipvalue=1.0)
+
+		if loss_fnc == "BinaryCrossentropy": loss = BinaryCrossentropy()
+		elif loss_fnc == "MeanSquaredError": loss = MeanSquaredError()
+		else: raise ValueError("Invalid loss function")
 
 		self.model.compile(
 			sample_weight_mode="temporal",
-			loss="binary_crossentropy",
+			loss=loss,
 			optimizer=opt
 			)
-
 		print("SNR levels used for training:")
 		print(self.snr_levels)
-
 		self.model.fit(
 			x=train_dataset,
 			initial_epoch=resume_epoch,
@@ -218,7 +213,7 @@ class DeepXi(DeepXiInput):
 			validation_steps=val_steps
 			)
 
-	def infer( ## NEED TO ADD DeepMMSE
+	def infer(
 		self,
 		test_x,
 		test_x_len,
@@ -228,8 +223,8 @@ class DeepXi(DeepXiInput):
 		out_type='y',
 		gain='mmse-lsa',
 		out_path='out',
-		stats_path=None,
 		n_filters=40,
+		saved_data_path=None,
 		):
 		"""
 		Deep Xi inference. The specified 'out_type' is saved.
@@ -243,59 +238,86 @@ class DeepXi(DeepXiInput):
 			out_type - output type (see deepxi/args.py).
 			gain - gain function (see deepxi/args.py).
 			out_path - path to save output files.
-			stats_path - path to the saved statistics.
+			saved_data_path - path to saved data necessary for enhancement.
 		"""
-		if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
-		elif out_type == 'y': out_path = out_path + '/y/' + gain
-		elif out_type == 'deepmmse': out_path = out_path + '/deepmmse'
-		elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
-		elif out_type == 'subband_ibm_hat': out_path = out_path + '/subband_ibm_hat'
-		else: raise ValueError('Invalid output type.')
-		if not os.path.exists(out_path): os.makedirs(out_path)
-
-		if test_epoch < 1: raise ValueError("test_epoch must be greater than 0.")
+		out_path_base = out_path
+		if not isinstance(test_epoch, list): test_epoch = [test_epoch]
+		if not isinstance(gain, list): gain = [gain]
 
 		# The mel-scale filter bank is to compute an ideal binary mask (IBM)
 		# estimate for log-spectral subband energies (LSSE).
 		if out_type == 'subband_ibm_hat':
 			mel_filter_bank = self.mel_filter_bank(n_filters)
 
-		self.sample_stats(stats_path)
-		self.model.load_weights(model_path + '/epoch-' + str(test_epoch-1) +
-			'/variables/variables' )
+		for e in test_epoch:
+			if e < 1: raise ValueError("test_epoch must be greater than 0.")
+			for g in gain:
 
-		print("Processing observations...")
-		x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
-		print("Performing inference...")
-		xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1, verbose=1)
+				out_path = out_path_base + '/' + self.ver + '/' + 'e' + str(e) # output path.
+				if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
+				elif out_type == 'gamma_hat': out_path = out_path + '/gamma_hat'
+				elif out_type == 's_STPS_hat': out_path = out_path + '/s_STPS_hat'
+				elif out_type == 'y':
+					if self.inp_tgt_type == 'MagIRM': out_path = out_path + '/y'
+					else: out_path = out_path + '/y/' + g
+				elif out_type == 'deepmmse': out_path = out_path + '/deepmmse'
+				elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
+				elif out_type == 'subband_ibm_hat': out_path = out_path + '/subband_ibm_hat'
+				else: raise ValueError('Invalid output type.')
+				if not os.path.exists(out_path): os.makedirs(out_path)
 
-		print("Performing synthesis...")
-		batch_size = len(test_x_len)
-		for i in tqdm(range(batch_size)):
-			base_name = test_x_base_names[i]
-			x_STMS = x_STMS_batch[i,:n_frames[i],:]
-			x_STPS = x_STPS_batch[i,:n_frames[i],:]
-			xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
-			xi_hat = self.xi_hat(xi_bar_hat)
-			if out_type == 'xi_hat': save_mat(args.out_path + '/' + base_name + '.mat',
-				xi_hat, 'xi_hat')
-			elif out_type == 'y':
-				y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=gain))
-				y = self.polar_synthesis(y_STMS, x_STPS).numpy()
-				save_wav(out_path + '/' + base_name + '.wav', y, self.f_s)
-			elif out_type == 'deepmmse':
-				d_PSD_hat = np.multiply(np.square(x_STMS), gfunc(xi_hat, xi_hat+1,
-					gtype='deepmmse'))
-				save_mat(out_path + '/' + base_name + '.mat', d_PSD_hat, 'd_psd_hat')
-			elif out_type == 'ibm_hat':
-				ibm_hat = np.greater(xi_hat, 1.0).astype(bool)
-				save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
-			elif out_type == 'subband_ibm_hat':
-				xi_hat_subband = np.matmul(xi_hat, mel_filter_bank.transpose())
-				subband_ibm_hat = np.greater(xi_hat_subband, 1.0).astype(bool)
-				save_mat(out_path + '/' + base_name + '.mat', subband_ibm_hat,
-					'subband_ibm_hat')
-			else: raise ValueError('Invalid output type.')
+
+				self.model.load_weights(model_path + '/epoch-' + str(e-1) +
+					'/variables/variables' )
+
+				print("Processing observations...")
+				inp_batch, supplementary_batch, n_frames = self.observation_batch(test_x, test_x_len)
+
+				print("Performing inference...")
+				tgt_hat_batch = self.model.predict(inp_batch, batch_size=1, verbose=1)
+
+				print("Saving outputs...")
+				batch_size = len(test_x_len)
+				for i in tqdm(range(batch_size)):
+					base_name = test_x_base_names[i]
+					inp = inp_batch[i,:n_frames[i],:]
+					tgt_hat = tgt_hat_batch[i,:n_frames[i],:]
+
+					# if tf.is_tensor(supplementary_batch):
+					supplementary = supplementary_batch[i,:n_frames[i],:]
+
+					if saved_data_path is not None:
+						saved_data = read_mat(saved_data_path + '/' + base_name + '.mat')
+						supplementary = (supplementary, saved_data)
+
+					if out_type == 'xi_hat':
+						xi_hat = self.inp_tgt.xi_hat(tgt_hat)
+						save_mat(out_path + '/' + base_name + '.mat', xi_hat, 'xi_hat')
+					elif out_type == 'gamma_hat':
+						gamma_hat = self.inp_tgt.gamma_hat(tgt_hat)
+						save_mat(out_path + '/' + base_name + '.mat', gamma_hat, 'gamma_hat')
+					elif out_type == 's_STPS_hat':
+						s_STPS_hat = self.inp_tgt.s_stps_hat(tgt_hat)
+						save_mat(out_path + '/' + base_name + '.mat', s_STPS_hat, 's_STPS_hat')
+					elif out_type == 'y':
+						y = self.inp_tgt.enhanced_speech(inp, supplementary, tgt_hat, g).numpy()
+						save_wav(out_path + '/' + base_name + '.wav', y, self.inp_tgt.f_s)
+					elif out_type == 'deepmmse':
+						xi_hat = self.inp_tgt.xi_hat(tgt_hat)
+						d_PSD_hat = np.multiply(np.square(inp), gfunc(xi_hat, xi_hat+1.0,
+							gtype='deepmmse'))
+						save_mat(out_path + '/' + base_name + '.mat', d_PSD_hat, 'd_psd_hat')
+					elif out_type == 'ibm_hat':
+						xi_hat = self.inp_tgt.xi_hat(tgt_hat)
+						ibm_hat = np.greater(xi_hat, 1.0).astype(bool)
+						save_mat(out_path + '/' + base_name + '.mat', ibm_hat, 'ibm_hat')
+					elif out_type == 'subband_ibm_hat':
+						xi_hat = self.inp_tgt.xi_hat(tgt_hat)
+						xi_hat_subband = np.matmul(xi_hat, mel_filter_bank.transpose())
+						subband_ibm_hat = np.greater(xi_hat_subband, 1.0).astype(bool)
+						save_mat(out_path + '/' + base_name + '.mat', subband_ibm_hat,
+							'subband_ibm_hat')
+					else: raise ValueError('Invalid output type.')
 
 	def test(
 		self,
@@ -308,11 +330,12 @@ class DeepXi(DeepXiInput):
 		test_epoch,
 		model_path='model',
 		gain='mmse-lsa',
-		stats_path=None
 		):
 		"""
 		Deep Xi testing. Objective measures are used to evaluate the performance
-		of Deep Xi.
+		of Deep Xi. Note that the 'supplementary' variable can includes other
+		variables necessary for synthesis, like the noisy-speech short-time
+		phase spectrum.
 
 		Argument/s:
 			test_x - noisy-speech test batch.
@@ -324,9 +347,9 @@ class DeepXi(DeepXiInput):
 			test_epoch - epoch to test.
 			model_path - path to model directory.
 			gain - gain function (see deepxi/args.py).
-			stats_path - path to the saved statistics.
-
 		"""
+		print("Processing observations...")
+		inp_batch, supplementary_batch, n_frames = self.observation_batch(test_x, test_x_len)
 		if not isinstance(test_epoch, list): test_epoch = [test_epoch]
 		if not isinstance(gain, list): gain = [gain]
 		for e in test_epoch:
@@ -334,48 +357,47 @@ class DeepXi(DeepXiInput):
 
 				if e < 1: raise ValueError("test_epoch must be greater than 0.")
 
-				self.sample_stats(stats_path)
 				self.model.load_weights(model_path + '/epoch-' + str(e-1) +
 					'/variables/variables' )
 
-				print("Processing observations...")
-				x_STMS_batch, x_STPS_batch, n_frames = self.observation_batch(test_x, test_x_len)
 				print("Performing inference...")
-				xi_bar_hat_batch = self.model.predict(x_STMS_batch, batch_size=1, verbose=1)
+				tgt_hat_batch = self.model.predict(inp_batch, batch_size=1, verbose=1)
 
 				print("Performing synthesis and objective scoring...")
 				results = {}
 				batch_size = len(test_x_len)
 				for i in tqdm(range(batch_size)):
 					base_name = test_x_base_names[i]
-					x_STMS = x_STMS_batch[i,:n_frames[i],:]
-					x_STPS = x_STPS_batch[i,:n_frames[i],:]
-					xi_bar_hat = xi_bar_hat_batch[i,:n_frames[i],:]
-					xi_hat = self.xi_hat(xi_bar_hat)
-					y_STMS = np.multiply(x_STMS, gfunc(xi_hat, xi_hat+1, gtype=g))
-					y = self.polar_synthesis(y_STMS, x_STPS).numpy()
+					inp = inp_batch[i,:n_frames[i],:]
+					supplementary = supplementary_batch[i,:n_frames[i],:]
+					tgt_hat = tgt_hat_batch[i,:n_frames[i],:]
+
+					y = self.inp_tgt.enhanced_speech(inp, supplementary, tgt_hat, g).numpy()
 
 					for (j, basename) in enumerate(test_s_base_names):
 						if basename in test_x_base_names[i]: ref_idx = j
 
-					s = self.normalise(test_s[ref_idx,0:test_s_len[ref_idx]]).numpy()
+					s = self.inp_tgt.normalise(test_s[ref_idx,
+						0:test_s_len[ref_idx]]).numpy() # from int16 to float.
 					y = y[0:len(s)]
 
-					noise_source = test_x_base_names[i].split("_")[-2]
-					snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
+					try: noise_src = test_x_base_names[i].split("_")[-2]
+					except IndexError: noise_src = "Null"
+					if noise_src == "Null": snr_level = 0
+					else: snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
 
-					results = self.add_score(results, (noise_source, snr_level, 'STOI'),
-						100*stoi(s, y, self.f_s, extended=False))
-					results = self.add_score(results, (noise_source, snr_level, 'eSTOI'),
-						100*stoi(s, y, self.f_s, extended=True))
-					results = self.add_score(results, (noise_source, snr_level, 'PESQ'),
-						pesq(self.f_s, s, y, 'nb'))
-					results = self.add_score(results, (noise_source, snr_level, 'MOS-LQO'),
-						pesq(self.f_s, s, y, 'wb'))
+					results = self.add_score(results, (noise_src, snr_level, 'STOI'),
+						100*stoi(s, y, self.inp_tgt.f_s, extended=False))
+					results = self.add_score(results, (noise_src, snr_level, 'eSTOI'),
+						100*stoi(s, y, self.inp_tgt.f_s, extended=True))
+					results = self.add_score(results, (noise_src, snr_level, 'PESQ'),
+						pesq(self.inp_tgt.f_s, s, y, 'nb'))
+					results = self.add_score(results, (noise_src, snr_level, 'MOS-LQO'),
+						pesq(self.inp_tgt.f_s, s, y, 'wb'))
 
-				noise_sources, snr_levels, metrics = set(), set(), set()
+				noise_srcs, snr_levels, metrics = set(), set(), set()
 				for key, value in results.items():
-					noise_sources.add(key[0])
+					noise_srcs.add(key[0])
 					snr_levels.add(key[1])
 					metrics.add(key[2])
 
@@ -385,7 +407,7 @@ class DeepXi(DeepXiInput):
 					f.write("noise,snr_db")
 					for k in sorted(metrics): f.write(',' + k)
 					f.write('\n')
-					for i in sorted(noise_sources):
+					for i in sorted(noise_srcs):
 						for j in sorted(snr_levels):
 							f.write("{},{}".format(i, j))
 							for k in sorted(metrics):
@@ -394,7 +416,7 @@ class DeepXi(DeepXiInput):
 							f.write('\n')
 
 				avg_results = {}
-				for i in sorted(noise_sources):
+				for i in sorted(noise_srcs):
 					for j in sorted(snr_levels):
 						if (j >= self.min_snr) and (j <= self.max_snr):
 							for k in sorted(metrics):
@@ -414,53 +436,181 @@ class DeepXi(DeepXiInput):
 							f.write(",{:.2f}".format(np.mean(avg_results[i])))
 					f.write('\n')
 
-	def sample_stats(
+	def sample(
 		self,
-		stats_path='data',
-		sample_size=1000,
-		train_s_list=None,
-		train_d_list=None
+		sample_size,
+		sample_dir='data',
 		):
 		"""
-		Computes statistics for each frequency component of the instantaneous a priori SNR
-		in dB over a sample of the training set. The statistics are then used to map the
-		instantaneous a priori SNR in dB between 0 and 1 using its cumulative distribution
-		function. This forms the mapped a priori SNR (the training target).
+		Gathers a sample of the training set. The sample can be used to compute
+		statistics for mapping functions.
 
 		Argument/s:
-			stats_path - path to the saved statistics.
-			sample_size - number of training examples to compute the statistics from.
-			train_s_list - train clean speech list.
-			train_d_list - train noise list.
+			sample_size - number of training examples included in the sample.
+			sample_dir - path to the saved sample.
 		"""
-		if os.path.exists(stats_path + '/stats.npz'):
-			print('Loading sample statistics...')
-			with np.load(stats_path + '/stats.npz') as stats:
-				self.mu = stats['mu_hat']
-				self.sigma = stats['sigma_hat']
-		elif train_s_list == None:
-			raise ValueError('No stats.npz file exists. data/stats.p is available here: https://github.com/anicolson/DeepXi/blob/master/data/stats.npz.')
+
+		sample_path = sample_dir + '/sample'
+		if os.path.exists(sample_path + '.npz'):
+			print('Loading sample...')
+			with np.load(sample_path + '.npz') as sample:
+				samples_s_STMS = sample['samples_s_STMS']
+				samples_d_STMS = sample['samples_d_STMS']
+				samples_x_STMS = sample['samples_x_STMS']
+		elif self.train_s_list == None:
+			raise ValueError('No sample.npz file exists. data/sample.npz is available here: https://github.com/anicolson/DeepXi/blob/master/data/sample.npz.')
 		else:
-			print('Finding sample statistics...')
+			if sample_size == None: raise ValueError("sample_size is not set.")
+			print('Gathering a sample of the training set...')
 			s_sample_list = random.sample(self.train_s_list, sample_size)
 			d_sample_list = random.sample(self.train_d_list, sample_size)
 			s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
 			snr_sample = np.array(random.choices(self.snr_levels, k=sample_size))
-			# snr_sample = np.random.randint(self.min_snr, self.max_snr + 1, sample_size)
-			samples = []
+			samples_s_STMS = []
+			samples_d_STMS = []
+			samples_x_STMS = []
 			for i in tqdm(range(s_sample.shape[0])):
-				s_STMS, d_STMS, _, _ = self.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
+				s, d, x, _ = self.inp_tgt.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
 					d_sample_len[i:i+1], snr_sample[i:i+1])
-				xi_db = self.xi_db(s_STMS, d_STMS) # instantaneous a priori SNR (dB).
-				samples.append(np.squeeze(xi_db.numpy()))
-			samples = np.vstack(samples)
-			if len(samples.shape) != 2: raise ValueError('Incorrect shape for sample.')
-			stats = {'mu_hat': np.mean(samples, axis=0), 'sigma_hat': np.std(samples, axis=0)}
-			self.mu, self.sigma = stats['mu_hat'], stats['sigma_hat']
-			if not os.path.exists(stats_path): os.makedirs(stats_path)
-			np.savez(stats_path + '/stats.npz', mu_hat=stats['mu_hat'], sigma_hat=stats['sigma_hat'])
-			save_mat(stats_path + '/stats.mat', stats, 'stats')
-			print('Sample statistics saved.')
+				s_STMS, _ = self.inp_tgt.polar_analysis(s)
+				d_STMS, _ = self.inp_tgt.polar_analysis(d)
+				x_STMS, _ = self.inp_tgt.polar_analysis(x)
+				samples_s_STMS.append(np.squeeze(s_STMS.numpy()))
+				samples_d_STMS.append(np.squeeze(d_STMS.numpy()))
+				samples_x_STMS.append(np.squeeze(x_STMS.numpy()))
+			samples_s_STMS = np.vstack(samples_s_STMS)
+			samples_d_STMS = np.vstack(samples_d_STMS)
+			samples_x_STMS = np.vstack(samples_x_STMS)
+			if len(samples_s_STMS.shape) != 2: raise ValueError('Incorrect shape for s_STMS sample.')
+			if len(samples_d_STMS.shape) != 2: raise ValueError('Incorrect shape for d_STMS sample.')
+			if len(samples_x_STMS.shape) != 2: raise ValueError('Incorrect shape for x_STMS sample.')
+			if not os.path.exists(sample_dir): os.makedirs(sample_dir)
+			np.savez(sample_path + '.npz', samples_s_STMS=samples_s_STMS,
+				samples_d_STMS=samples_d_STMS, samples_x_STMS=samples_x_STMS)
+			sample = {'samples_s_STMS': samples_s_STMS,
+				'samples_d_STMS': samples_d_STMS,
+				'samples_x_STMS': samples_x_STMS}
+			save_mat(sample_path + '.mat', sample, 'stats')
+			print('Sample of the training set saved.')
+		return samples_s_STMS, samples_d_STMS, samples_x_STMS
+
+	# def spect_dist(
+	# 	self,
+	# 	test_s,
+	# 	test_s_len,
+	# 	test_s_base_names,
+	# 	test_d,
+	# 	test_d_len,
+	# 	test_d_base_names,
+	# 	snr,
+	# 	test_epoch,
+	# 	model_path='model',
+	# 	):
+	# 	"""
+	# 	Note that the 'supplementary' variable can includes other
+	# 	variables necessary for synthesis, like the noisy-speech short-time
+	# 	phase spectrum.
+	#
+	# 	Argument/s:
+	# 		test_s - clean-speech test batch.
+	# 		test_s_len - clean-speech test batch lengths.
+	# 		test_s_base_names - clean-speech base names.
+	# 		test_d - noise test batch.
+	# 		test_d_len - noise test batch lengths.
+	# 		test_d_base_names - noise base names.
+	# 		snr - SNR levels to be tested.
+	# 		test_epoch - epoch to test.
+	# 		model_path - path to model directory.
+	# 	"""
+	# 	if not isinstance(test_epoch, list): test_epoch = [test_epoch]
+	# 	for e in test_epoch:
+	#
+	# 		if e < 1: raise ValueError("test_epoch must be greater than 0.")
+	#
+	# 		self.model.load_weights(model_path + '/epoch-' + str(e-1) +
+	# 			'/variables/variables' )
+	#
+	# 		results = {}
+	#
+	# 		for i in snr:
+	# 			for s, d, s_len, d_len, base_name in tqdm(zip(test_s, test_d,
+	# 				test_s_len, test_d_len, test_s_base_names)):
+	# 				x_STMS, xi, n_frames = self.inp_tgt.tmp(s, d, s_len, d_len, i)
+	# 				xi_bar_hat = self.model.predict(tf.expand_dims(x_STMS, 0),
+	# 					batch_size=1, verbose=0)
+	# 				xi_hat = self.inp_tgt.xi_bar_inv(xi_bar_hat, self.inp_tgt.mu_xi_db, self.inp_tgt.sigma_xi_db)
+	# 				xi = xi[:n_frames,:]
+	# 				xi_hat = xi_hat[0,:n_frames,:]
+	# 				noise_src = base_name.split("_")[-1]
+	# 				snr_level = str(i) + "dB"
+	#
+	# 				results = self.add_score(results, (noise_src, snr_level, 'SD'),
+	# 					self.inp_tgt.spectral_distortion(xi, xi_hat).numpy())
+	#
+	#
+	# 				print(results)
+
+
+						#
+						# 	for (j, basename) in enumerate(test_s_base_names):
+						# 		if basename in test_x_base_names[i]: ref_idx = j
+						#
+						# 	s = self.inp_tgt.normalise(test_s[ref_idx,
+						# 		0:test_s_len[ref_idx]]).numpy() # from int16 to float.
+						# 	y = y[0:len(s)]
+						#
+						# 	noise_src = test_x_base_names[i].split("_")[-2]
+						# 	snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
+						#
+						# 	results = self.add_score(results, (noise_src, snr_level, 'STOI'),
+						# 		100*stoi(s, y, self.inp_tgt.f_s, extended=False))
+						# 	results = self.add_score(results, (noise_src, snr_level, 'eSTOI'),
+						# 		100*stoi(s, y, self.inp_tgt.f_s, extended=True))
+						# 	results = self.add_score(results, (noise_src, snr_level, 'PESQ'),
+						# 		pesq(self.inp_tgt.f_s, s, y, 'nb'))
+
+						#
+						# noise_srcs, snr_levels, metrics = set(), set(), set()
+						# for key, value in results.items():
+						# 	noise_srcs.add(key[0])
+						# 	snr_levels.add(key[1])
+						# 	metrics.add(key[2])
+						#
+						# if not os.path.exists("log/results"): os.makedirs("log/results")
+						#
+						# with open("log/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
+						# 	f.write("noise,snr_db")
+						# 	for k in sorted(metrics): f.write(',' + k)
+						# 	f.write('\n')
+						# 	for i in sorted(noise_srcs):
+						# 		for j in sorted(snr_levels):
+						# 			f.write("{},{}".format(i, j))
+						# 			for k in sorted(metrics):
+						# 				if (i, j, k) in results.keys():
+						# 					f.write(",{:.2f}".format(np.mean(results[(i,j,k)])))
+						# 			f.write('\n')
+						#
+						# avg_results = {}
+						# for i in sorted(noise_srcs):
+						# 	for j in sorted(snr_levels):
+						# 		if (j >= self.min_snr) and (j <= self.max_snr):
+						# 			for k in sorted(metrics):
+						# 				if (i, j, k) in results.keys():
+						# 					avg_results = self.add_score(avg_results, k, results[(i,j,k)])
+						#
+						# if not os.path.exists("log/results/average.csv"):
+						# 	with open("log/results/average.csv", "w") as f:
+						# 		f.write("ver")
+						# 		for i in sorted(metrics): f.write("," + i)
+						# 		f.write('\n')
+						#
+						# with open("log/results/average.csv", "a") as f:
+						# 	f.write(self.ver + "_e" + str(e) + '_' + g)
+						# 	for i in sorted(metrics):
+						# 		if i in avg_results.keys():
+						# 			f.write(",{:.2f}".format(np.mean(avg_results[i])))
+						# 	f.write('\n')
+
 
 	def dataset(self, n_epochs, buffer_size=16):
 		"""
@@ -476,8 +626,8 @@ class DeepXi(DeepXiInput):
 		dataset = tf.data.Dataset.from_generator(
 			self.mbatch_gen,
 			(tf.float32, tf.float32, tf.float32),
-			(tf.TensorShape([None, None, self.n_feat]),
-				tf.TensorShape([None, None, self.n_outp]),
+			(tf.TensorShape([None, None, self.inp_tgt.n_feat]),
+				tf.TensorShape([None, None, self.inp_tgt.n_outp]),
 				tf.TensorShape([None, None])),
 			[tf.constant(n_epochs)]
 			)
@@ -492,7 +642,7 @@ class DeepXi(DeepXiInput):
 			n_epochs - number of epochs to generate.
 
 		Returns:
-			x_STMS_mbatch - mini-batch of observations (noisy speech short-time magnitude spectum).
+			inp_mbatch - mini-batch of observations (input to network).
 			xi_bar_mbatch - mini-batch of targets (mapped a priori SNR).
 			seq_mask_mbatch - mini-batch of sequence masks.
 		"""
@@ -504,13 +654,13 @@ class DeepXi(DeepXiInput):
 				d_mbatch_list = random.sample(self.train_d_list, end_idx-start_idx)
 				s_mbatch, d_mbatch, s_mbatch_len, d_mbatch_len, snr_mbatch = \
 					self.wav_batch(s_mbatch_list, d_mbatch_list)
-				x_STMS_mbatch, xi_bar_mbatch, n_frames_mbatch = \
-					self.example(s_mbatch, d_mbatch, s_mbatch_len,
+				inp_mbatch, xi_bar_mbatch, n_frames_mbatch = \
+					self.inp_tgt.example(s_mbatch, d_mbatch, s_mbatch_len,
 					d_mbatch_len, snr_mbatch)
 				seq_mask_mbatch = tf.cast(tf.sequence_mask(n_frames_mbatch), tf.float32)
 				start_idx += self.mbatch_size; end_idx += self.mbatch_size
 				if end_idx > self.n_examples: end_idx = self.n_examples
-				yield x_STMS_mbatch, xi_bar_mbatch, seq_mask_mbatch
+				yield inp_mbatch, xi_bar_mbatch, seq_mask_mbatch
 
 	def val_batch(
 		self,
@@ -522,6 +672,8 @@ class DeepXi(DeepXiInput):
 		val_snr
 		):
 		"""
+		MAY CHANGE THIS TO NO SAVING.
+
 		Creates and saves the examples for the validation set. If
 		already saved, the function will load the batch of examples.
 
@@ -534,58 +686,60 @@ class DeepXi(DeepXiInput):
 			val_snr - validation SNR levels.
 
 		Returns:
-			x_STMS_batch - batch of observations (noisy speech short-time magnitude spectum).
-			xi_bar_batch - batch of targets (mapped a priori SNR).
+			inp_batch - batch of observations (input to network).
+			tgt_batch - batch of targets (mapped a priori SNR).
 			seq_mask_batch - batch of sequence masks.
 		"""
-		if not os.path.exists(save_path): os.makedirs(save_path)
-		if os.path.exists(save_path + '/val_batch.npz'):
-			print('Loading validation batch...')
-			with np.load(save_path + '/val_batch.npz') as data:
-				x_STMS_batch = data['val_inp']
-				xi_bar_batch = data['val_tgt']
-				seq_mask_batch =  data['val_seq_mask']
-		else:
-			print('Creating validation batch...')
-			batch_size = len(val_s)
-			max_n_frames = self.n_frames(max(val_s_len))
-			x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
-			xi_bar_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
-			seq_mask_batch = np.zeros([batch_size, max_n_frames], np.float32)
-			for i in tqdm(range(batch_size)):
-				x_STMS, xi_bar, _ = self.example(val_s[i:i+1], val_d[i:i+1],
-					val_s_len[i:i+1], val_d_len[i:i+1], val_snr[i:i+1])
-				n_frames = self.n_frames(val_s_len[i])
-				x_STMS_batch[i,:n_frames,:] = x_STMS.numpy()
-				xi_bar_batch[i,:n_frames,:] = xi_bar.numpy()
-				seq_mask_batch[i,:n_frames] = tf.cast(tf.sequence_mask(n_frames), tf.float32)
-			np.savez(save_path + '/val_batch.npz', val_inp=x_STMS_batch,
-				val_tgt=xi_bar_batch, val_seq_mask=seq_mask_batch)
-		return x_STMS_batch, xi_bar_batch, seq_mask_batch
+		# if not os.path.exists(save_path): os.makedirs(save_path)
+		# val_batch_path = save_path + '/val_batch_' + self.inp_tgt_type + '.npz'
+		# if os.path.exists(val_batch_path):
+		# 	print('Loading validation batch...')
+		# 	with np.load(val_batch_path) as data:
+		# 		inp_batch = data['val_inp']
+		# 		tgt_batch = data['val_tgt']
+		# 		seq_mask_batch =  data['val_seq_mask']
+		# else:
+		print('Processing validation batch...')
+		batch_size = len(val_s)
+		max_n_frames = self.inp_tgt.n_frames(max(val_s_len))
+		inp_batch = np.zeros([batch_size, max_n_frames, self.inp_tgt.n_feat], np.float32)
+		tgt_batch = np.zeros([batch_size, max_n_frames, self.inp_tgt.n_outp], np.float32)
+		seq_mask_batch = np.zeros([batch_size, max_n_frames], np.float32)
+		for i in tqdm(range(batch_size)):
+			inp, tgt, _ = self.inp_tgt.example(val_s[i:i+1], val_d[i:i+1],
+				val_s_len[i:i+1], val_d_len[i:i+1], val_snr[i:i+1])
+			n_frames = self.inp_tgt.n_frames(val_s_len[i])
+			inp_batch[i,:n_frames,:] = inp.numpy()
+			if tf.is_tensor(tgt): tgt_batch[i,:n_frames,:] = tgt.numpy()
+			else: tgt_batch[i,:n_frames,:] = tgt
+			seq_mask_batch[i,:n_frames] = tf.cast(tf.sequence_mask(n_frames), tf.float32)
+			# np.savez(val_batch_path, val_inp=inp_batch,
+			# 	val_tgt=tgt_batch, val_seq_mask=seq_mask_batch)
+		return inp_batch, tgt_batch, seq_mask_batch
 
 	def observation_batch(self, x_batch, x_batch_len):
 		"""
-		Computes observations (noisy-speech STMS) from noisy speech recordings.
+		Computes observations (inp) from noisy speech recordings.
 
 		Argument/s:
 			x_batch - noisy-speech batch.
 			x_batch_len - noisy-speech batch lengths.
 
 		Returns:
-			x_STMS_batch - batch of observations (noisy-speech short-time magnitude spectrums).
-			x_STPS_batch - batch of noisy-speech short-time phase spectrums.
+			inp_batch - batch of observations (input to network).
+			supplementary_batch - batch of noisy-speech short-time phase spectrums.
 			n_frames_batch - number of frames in each observation.
 		"""
 		batch_size = len(x_batch)
-		max_n_frames = self.n_frames(max(x_batch_len))
-		x_STMS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
-		x_STPS_batch = np.zeros([batch_size, max_n_frames, self.n_feat], np.float32)
-		n_frames_batch = [self.n_frames(i) for i in x_batch_len]
+		max_n_frames = self.inp_tgt.n_frames(max(x_batch_len))
+		inp_batch = np.zeros([batch_size, max_n_frames, self.inp_tgt.n_feat], np.float32)
+		supplementary_batch = np.zeros([batch_size, max_n_frames, self.inp_tgt.n_feat], np.float32)
+		n_frames_batch = [self.inp_tgt.n_frames(i) for i in x_batch_len]
 		for i in tqdm(range(batch_size)):
-			x_STMS, x_STPS = self.observation(x_batch[i,:x_batch_len[i]])
-			x_STMS_batch[i,:n_frames_batch[i],:] = x_STMS.numpy()
-			x_STPS_batch[i,:n_frames_batch[i],:] = x_STPS.numpy()
-		return x_STMS_batch, x_STPS_batch, n_frames_batch
+			inp, supplementary = self.inp_tgt.observation(x_batch[i,:x_batch_len[i]])
+			inp_batch[i,:n_frames_batch[i],:] = inp
+			supplementary_batch[i,:n_frames_batch[i],:] = supplementary
+		return inp_batch, supplementary_batch, n_frames_batch
 
 	def wav_batch(self, s_list, d_list):
 		"""
@@ -680,84 +834,3 @@ class TransformerSchedular(LearningRateSchedule):
 		"""
 		config = {'d_model': self.d_model, 'warmup_steps': self.warmup_steps}
 		return config
-
-# class CSVLoggerIter(Callback):
-# 	"""
-# 	for each training iteration
-# 	"""
-# 	def __init__(self, filename, separator=',', append=False):
-# 		"""
-# 		"""
-# 		self.sep = separator
-# 		self.filename = filename
-# 		self.append = append
-# 		self.writer = None
-# 		self.keys = None
-# 		self.append_header = True
-# 		if six.PY2:
-# 			self.file_flags = 'b'
-# 			self._open_args = {}
-# 		else:
-# 			self.file_flags = ''
-# 			self._open_args = {'newline': '\n'}
-# 		super(CSVLoggerIter, self).__init__()
-#
-# 	def on_train_begin(self, logs=None):
-# 		"""
-# 		"""
-# 		if self.append:
-# 			if file_io.file_exists(self.filename):
-# 				with open(self.filename, 'r' + self.file_flags) as f:
-# 					self.append_header = not bool(len(f.readline()))
-# 			mode = 'a'
-# 		else:
-# 			mode = 'w'
-# 		self.csv_file = io.open(self.filename, mode + self.file_flags,
-# 			**self._open_args)
-#
-# 	def on_train_batch_end(self, batch, logs=None):
-# 		"""
-# 		"""
-# 		logs = logs or {}
-#
-# 		def handle_value(k):
-# 			is_zero_dim_ndarray = isinstance(k, np.ndarray) and k.ndim == 0
-# 			if isinstance(k, six.string_types):
-# 				return k
-# 			elif isinstance(k, collections_abc.Iterable) and not is_zero_dim_ndarray:
-# 				return '"[%s]"' % (', '.join(map(str, k)))
-# 			else:
-# 				return k
-#
-# 		if self.keys is None:
-# 			self.keys = sorted(logs.keys())
-#
-# 		if self.model.stop_training:
-# 			# NA is set so that csv parsers do not fail for the last batch.
-# 			logs = dict([(k, logs[k]) if k in logs else (k, 'NA') for k in self.keys])
-#
-# 		if not self.writer:
-#
-# 			class CustomDialect(csv.excel):
-# 				delimiter = self.sep
-#
-# 			fieldnames = self.keys
-# 			if six.PY2:
-# 				fieldnames = [unicode(x) for x in fieldnames]
-#
-# 			self.writer = csv.DictWriter(
-# 				self.csv_file,
-# 				fieldnames=fieldnames,
-# 				dialect=CustomDialect)
-# 			if self.append_header:
-# 				self.writer.writeheader()
-#
-# 		row_dict = collections.OrderedDict({'batch': batch})
-# 		row_dict.update((key, handle_value(logs[key])) for key in self.keys)
-#
-# 		self.writer.writerow(row_dict)
-# 		self.csv_file.flush()
-#
-# 	def on_train_end(self, logs=None):
-# 		self.csv_file.close()
-# 		self.writer = None

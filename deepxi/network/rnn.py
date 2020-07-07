@@ -7,7 +7,7 @@
 
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Activation, Add, Dense, \
-	LayerNormalization, LSTM, ReLU, TimeDistributed
+	LayerNormalization, LSTM, Masking, ReLU, TimeDistributed
 import numpy as np
 
 class ResLSTM:
@@ -21,6 +21,8 @@ class ResLSTM:
 		n_outp,
 		n_blocks,
 		d_model,
+		sigmoid_outp,
+		unroll=False,
 		):
 		"""
 		Argument/s:
@@ -28,14 +30,33 @@ class ResLSTM:
 			n_outp - number of output nodes.
 			n_blocks - number of residual blocks.
 			d_model - model size.
+			unroll - unroll recurrent state (can't be used as sequence length
+				changes).
+			sigmoid_outp - use a sigmoid output activation.
 		"""
 		self.n_outp = n_outp
 		self.d_model = d_model
-		self.first_layer = self.feedforward(inp)
-		self.layer_list = [self.first_layer]
-		for _ in range(n_blocks): self.layer_list.append(self.block(self.layer_list[-1]))
-		self.logits = TimeDistributed(Dense(self.n_outp))(self.layer_list[-1])
-		self.outp = Activation('sigmoid')(self.logits)
+		self.unroll = unroll
+		seq_mask = Masking(mask_value=0.0).compute_mask(inp)
+		x = self.feedforward(inp)
+		for _ in range(n_blocks): x = self.block(x, seq_mask)
+		self.outp = Dense(self.n_outp)(x)
+		if sigmoid_outp: self.outp = Activation('sigmoid')(self.outp)
+
+	def block(self, inp, seq_mask):
+		"""
+		Residual LSTM block.
+
+		Argument/s:
+			inp - input placeholder.
+			seq_mask - sequence mask.
+
+		Returns:
+			residual - output of block.
+		"""
+		lstm = LSTM(self.d_model, unroll=self.unroll)(inp, mask=seq_mask)
+		residual = Add()([inp, lstm])
+		return residual
 
 	def feedforward(self, inp):
 		"""
@@ -47,21 +68,7 @@ class ResLSTM:
 		Returns:
 			act - output of feedforward layer.
 		"""
-		ff = TimeDistributed(Dense(self.d_model, use_bias=False))(inp)
+		ff = Dense(self.d_model, use_bias=False)(inp)
 		norm = LayerNormalization(axis=2, epsilon=1e-6)(ff)
 		act = ReLU()(norm)
 		return act
-
-	def block(self, inp):
-		"""
-		Residual LSTM block.
-
-		Argument/s:
-			inp - input placeholder.
-
-		Returns:
-			residual - output of block.
-		"""
-		lstm = LSTM(self.d_model)(inp)
-		residual = Add()([inp, lstm])
-		return residual
