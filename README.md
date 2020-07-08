@@ -18,7 +18,7 @@ Contents
   * [Results for the DEMAND -- Voice Bank test set](#results-for-the-demand----voice-bank-test-set)
   * [DeepMMSE](#deepmmse)
   * [Installation](#installation)
-  * [How to Use the Deep Xi](#how-to-use-the-deep-xi)
+  * [How to use Deep Xi](#how-to-use-deep-xi)
   * [Current issues and potential areas of improvement](#current-issues-and-potential-areas-of-improvement)
   * [Where can I get a dataset for Deep Xi?](#where-can-i-get-a-dataset-for-deep-xi-)
   * [Which audio do I use with Deep Xi?](#which-audio-do-i-use-with-deep-xi-)
@@ -140,7 +140,7 @@ To install:
 4. `cd DeepXi`
 5. `pip install -r requirements.txt`
 
-How to Use the Deep Xi
+How to use Deep Xi
 -----
 
 Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure and run Deep Xi.
