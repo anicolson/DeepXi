@@ -55,12 +55,15 @@ Current networks
 -----
 Recurrent neural networks (RNNs) and temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
 <!--- * **MHANet**: Multi-head attention network. --->
+* **RDLNet**: Residual-dense lattice network.
 * **ResNet**: Residual network.
 * **ResLSTM**: Residual long short-term memory network.
 
 <!--- Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in . --->
 
 Deep Xi utilising a ResNet TCN (**Deep Xi-TCN**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
+
+Description about RDLNet coming soon...
 
 |![](./docs/fig_Deep-Xi-ResNet.png "Deep Xi-ResNet a priori SNR estimator.")|
 |----|
