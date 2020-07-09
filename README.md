@@ -117,6 +117,7 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf) |      --          | No     | 3.99 | 3.18 | 3.42 | 2.86 | --        | -- |
 | **Deep Xi-ResNet (1.0c)** | MMSE-LSA | Yes    | 4.14 | 3.32 | 3.46 | 2.77 | 93 (93.2) | -- |
 | **Deep Xi-ResNet (1.0n)** | MMSE-LSA | No    | 4.28 | 3.46 | 3.64 | 2.95 | 94 (93.6) | -- |
+| **Deep Xi-ResNet (1.1c)** | MMSE-LSA | Yes    | 4.24 | 3.40 | 3.59 | 2.91 | 94 (93.5) | 8.4 |
 | **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.32** | **3.52** | **3.68** | **3.01** | **94 (93.9)** | 9.4 |
 
 DeepMMSE
