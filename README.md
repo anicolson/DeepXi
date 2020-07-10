@@ -213,6 +213,7 @@ Citation guide
 -----
 
 Please cite the following depending on what you are using:
+* The Deep Xi framework is proposed in [1].
 * If using Deep Xi-ResLSTM, please cite [1].
 * If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
