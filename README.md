@@ -218,6 +218,7 @@ Please cite the following depending on what you are using:
 * If using Deep Xi-ResLSTM, please cite [1].
 * If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
+* If using Deep Xi-RDLNet, please cite [1] and [3].
 
 [1] [A. Nicolson, K. K. Paliwal, Deep learning for minimum mean-square error approaches to speech enhancement, Speech Communication 111 (2019) 44 - 55, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)
 
