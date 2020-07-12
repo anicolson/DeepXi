@@ -89,23 +89,9 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 Results
 -----
 
-**Deep Xi Test Set**
-
-Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
-
-| Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
-|------------------|-----------|--------|---------|------|------|-------|
-| Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
-| Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-ResNet (1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
-| Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
-| Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
-| Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
-| Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
-
 **DEMAND -- Voice Bank test set**
 
-Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). Each Deep Xi model is trained on the  DEMAND--Voicebank training set. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                 |   Gain | Causal | CSIG | CBAK | COVL | PESQ | STOI      | SegSNR |
 |-------------------------|---|--------|------|------|------|------|-----------|----|
@@ -120,6 +106,21 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 | **Deep Xi-ResNet (1.0n)** | MMSE-LSA | No    | 4.28 | 3.46 | 3.64 | 2.95 | 94 (93.6) | -- |
 | **Deep Xi-ResNet (1.1c)** | MMSE-LSA | Yes    | 4.24 | 3.40 | 3.59 | 2.91 | 94 (93.5) | 8.4 |
 | **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.32** | **3.52** | **3.68** | **3.01** | **94 (93.9)** | **9.4** |
+
+**Deep Xi Test Set**
+
+Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
+
+| Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
+|------------------|-----------|--------|---------|------|------|-------|
+| Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
+| Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
+| Deep Xi-ResNet (1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
+| Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
+| Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
+| Deep Xi-ResNet (1.1c) | MMSE-LSA  | Yes    |   1.92|2.36|81.88|66.44|
+| Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
 
 DeepMMSE
 ----
