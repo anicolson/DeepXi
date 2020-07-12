@@ -71,13 +71,15 @@ Available models
 -----
 There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. The network type is given at the start of `ver`. Versions with **c** are **causal**. Versions with **n** are **non-causal**.  The version iteration is also given, i.e. `1.0`. Here are the current versions:
 
-**`resnet-1.1n` (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
+**[`resnet-1.1n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
-**`resnet-1.0n` (technically, this is not a TCN due to the use of non-causal dilated 1D kernels)**
+**[`resnet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
-**`resnet-1.0c` (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
+**[`resnet-1.0n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (technically, this is not a TCN due to the use of non-causal dilated 1D kernels)**
 
-**`reslstm-1.0c` (there are issues with training this network currently)**
+**[`resnet-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
+
+**[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (there are issues with training this network currently)**
 
 **Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
