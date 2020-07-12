@@ -5,20 +5,20 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation.* Used by MMSE approaches to speech enhancement.
+Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.* 
 ====
 
 Contents
----
+----
   * [Introduction](#introduction-)
   * [How does Deep Xi work?](#how-does-deep-xi-work-)
   * [Current networks](#current-networks)
-  * [Deep Xi Versions](#deep-xi-versions)
+  * [Available models](#available-models)
   * [Results for Deep Xi Test Set](#results-for-deep-xi-test-set)
   * [Results for the DEMAND -- Voice Bank test set](#results-for-the-demand----voice-bank-test-set)
   * [DeepMMSE](#deepmmse)
   * [Installation](#installation)
-  * [How to Use the Deep Xi](#how-to-use-the-deep-xi)
+  * [How to use Deep Xi](#how-to-use-deep-xi)
   * [Current issues and potential areas of improvement](#current-issues-and-potential-areas-of-improvement)
   * [Where can I get a dataset for Deep Xi?](#where-can-i-get-a-dataset-for-deep-xi-)
   * [Which audio do I use with Deep Xi?](#which-audio-do-i-use-with-deep-xi-)
@@ -55,20 +55,19 @@ Current networks
 -----
 Recurrent neural networks (RNNs) and temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
 <!--- * **MHANet**: Multi-head attention network. --->
-* **ResNet**: Residual network.
-* **ResLSTM**: Residual long short-term memory network.
+* **ResLSTM**: Residual long short-term memory network [1].
+* **ResNet**: Residual network [2].
+* **RDLNet**: Residual-dense lattice network [3].
 
 <!--- Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in . --->
 
-Deep Xi utilising a ResNet TCN (**Deep Xi-TCN**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. **A trained model for version `resnet-1.0c` is available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory. It is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set).**
-
-Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
+Deep Xi utilising a ResNet TCN (**Deep Xi-TCN**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
 
 |![](./docs/fig_Deep-Xi-ResNet.png "Deep Xi-ResNet a priori SNR estimator.")|
 |----|
 | <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-ResNet with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the ResNet is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-ResNet with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
 
-Deep Xi Versions
+Available models
 -----
 There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. The network type is given at the start of `ver`. Versions with **c** are **causal**. Versions with **n** are **non-causal**.  The version iteration is also given, i.e. `1.0`. Here are the current versions:
 
@@ -80,7 +79,7 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 
 **`reslstm-1.0c` (there are issues with training this network currently)**
 
-**Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
+**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
 
 <!--
@@ -96,13 +95,13 @@ Average objective scores obtained over the conditions in the [Deep Xi Test Set](
 
 | Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
 |------------------|-----------|--------|---------|------|------|-------|
-| Deep Xi-ResNet (resnet-1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
-| Deep Xi-ResNet (resnet-1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-ResNet (resnet-1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
-| Deep Xi-ResNet (resnet-1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
-| Deep Xi-ResNet (resnet-1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
-| Deep Xi-ResNet (resnet-1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
-| Deep Xi-ResNet (resnet-1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
+| Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
+| Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
+| Deep Xi-ResNet (1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
+| Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
+| Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
+| Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
 
 **DEMAND -- Voice Bank test set**
 
@@ -119,7 +118,8 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf) |      --          | No     | 3.99 | 3.18 | 3.42 | 2.86 | --        | -- |
 | **Deep Xi-ResNet (1.0c)** | MMSE-LSA | Yes    | 4.14 | 3.32 | 3.46 | 2.77 | 93 (93.2) | -- |
 | **Deep Xi-ResNet (1.0n)** | MMSE-LSA | No    | 4.28 | 3.46 | 3.64 | 2.95 | 94 (93.6) | -- |
-| **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.32** | **3.52** | **3.68** | **3.01** | **94 (93.9)** | 9.4 |
+| **Deep Xi-ResNet (1.1c)** | MMSE-LSA | Yes    | 4.24 | 3.40 | 3.59 | 2.91 | 94 (93.5) | 8.4 |
+| **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.32** | **3.52** | **3.68** | **3.01** | **94 (93.9)** | **9.4** |
 
 DeepMMSE
 ----
@@ -142,7 +142,7 @@ To install:
 4. `cd DeepXi`
 5. `pip install -r requirements.txt`
 
-How to Use the Deep Xi
+How to use Deep Xi
 -----
 
 Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure and run Deep Xi.
@@ -213,10 +213,14 @@ Citation guide
 -----
 
 Please cite the following depending on what you are using:
+* The Deep Xi framework is proposed in [1].
 * If using Deep Xi-ResLSTM, please cite [1].
 * If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
+* If using Deep Xi-RDLNet, please cite [1] and [3].
 
 [1] [A. Nicolson, K. K. Paliwal, Deep learning for minimum mean-square error approaches to speech enhancement, Speech Communication 111 (2019) 44 - 55, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)
 
 [2] [Q. Zhang, A. M. Nicolson, M. Wang, K. Paliwal and C. Wang, "DeepMMSE: A Deep Learning Approach to MMSE-based Noise Power Spectral Density Estimation," in IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 28, pp. 1404-1415, 2020, doi: 10.1109/TASLP.2020.2987441.](https://ieeexplore.ieee.org/document/9066933)
+
+[3] [Mohammad Nikzad, Aaron Nicolson, Yongsheng Gao, Jun Zhou, Kuldip K. Paliwal, and Fanhua Shang. "Deep residual-dense lattice network for speech enhancement". In AAAI Conference on Artificial Intelligence, pages 8552–8559, 2020](https://www.aaai.org/Papers/AAAI/2020GB/AAAI-NikzadM.6844.pdf)
