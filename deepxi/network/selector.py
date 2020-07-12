@@ -24,6 +24,18 @@ def network_selector(network_type, inp, n_outp, **kwargs):
 			causal=kwargs['causal'],
 			sigmoid_outp=sigmoid_outp
 			)
+	elif network_type == 'RDLNet':
+		from dev.rdlnet import RDLNet
+		network = RDLNet(
+			inp=inp,
+			n_outp=n_outp,
+			n_blocks=kwargs['n_blocks'],
+			length=kwargs['length'],
+			m_1=kwargs['m_1'],
+			padding=kwargs['padding'],
+			unit_type=kwargs['unit_type'],
+			sigmoid_outp=sigmoid_outp
+			)
 	elif network_type == 'ResNetV2':
 		from deepxi.network.tcn import ResNetV2
 		network = ResNetV2(

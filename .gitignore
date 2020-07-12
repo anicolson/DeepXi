@@ -38,6 +38,8 @@ test_code.py
 dev/
 *.asv
 log/results/objective_scores
+*rdlnet*
+*resnet-1.1.*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

@@ -120,50 +120,6 @@ class InputTarget(AnalysisSynthesis):
 		"""
 		return tf.truediv(tf.square(S), tf.maximum(tf.square(D), 1e-12))
 
-	# def xi_db(self, S, D):
-	# 	"""
-	# 	Instantaneous a priori SNR in dB.
-	#
-	# 	Argument/s:
-	# 		S - clean-speech short-time spectrum.
-	# 		D - noise short-time spectrum.
-	#
-	# 	Returns:
-	# 		Instantaneous a priori SNR in dB.
-	# 	"""
-	# 	return tf.multiply(10.0, self.log_10(tf.maximum(self.xi(S, D), 1e-12)))
-
-	# def xi_bar(self, S, D, mu, sigma):
-	# 	"""
-	# 	Mapped a priori SNR in dB.
-	#
-	# 	Argument/s:
-	# 		S - clean-speech short-time spectrum.
-	# 		D - noise short-time spectrum.
-	# 		mu - mean of each instantaneous a priori SNR (dB) frequency component.
-	# 		sigma - standard deviation of each instantaneous a priori SNR (dB) frequency component.
-	#
-	# 	Returns:
-	# 		Mapped a priori SNR in dB.
-	# 	"""
-	# 	return
-	#
-	# def xi_bar_inv(self, xi_bar_hat, mu, sigma):
-	# 	"""
-	# 	A priori SNR estimate computed from the inverse of the mapped a priori SNR.
-	#
-	# 	Argument/s:
-	# 		xi_bar_hat - mapped a priori SNR estimate.
-	# 		mu - mean of each instantaneous a priori SNR (dB) frequency component.
-	# 		sigma - standard deviation of each instantaneous a priori SNR (dB) frequency component.
-	#
-	# 	Returns:
-	# 		A priori SNR estimate.
-	# 	"""
-	# 	xi_db_hat = np.add(np.multiply(np.multiply(sigma, np.sqrt(2.0)),
-	# 		spsp.erfinv(np.subtract(np.multiply(2.0, xi_bar_hat), 1))), mu)
-	# 	return np.power(10.0, np.divide(xi_db_hat, 10.0))
-
 	def gamma(self, X, D):
 		"""
 		Instantaneous a posteriori SNR.
@@ -177,233 +133,31 @@ class InputTarget(AnalysisSynthesis):
 		"""
 		return tf.truediv(tf.square(X), tf.maximum(tf.square(D), 1e-12))
 
-	# def gamma_db(self, X, D):
-	# 	"""
-	# 	Instantaneous a posteriori SNR (dB).
-	#
-	# 	Argument/s:
-	# 		X - noisy-speech short-time spectrum.
-	# 		D - noise short-time spectrum.
-	#
-	# 	Returns:
-	# 		Instantaneous a posteriori SNR (dB).
-	# 	"""
-	# 	return tf.multiply(10.0, self.log_10(tf.maximum(self.gamma(X, D), 1e-12)))
-
-	# def gamma_bar(self, X, D, alpha, b):
-	# 	"""
-	# 	Mapped a posteriori SNR in dB. Assumed truncated double gamma
-	# 	distribution. The location parameter is assumed to be 1.0. 'a' is set to
-	# 	0.0 as it is the lowest possible value for the a posteriori SNR.
-	#
-	# 	Argument/s:
-	# 		X - noisy-speech short-time spectrum.
-	# 		D - noise short-time spectrum.
-	# 		alpha - location parameter.
-	# 		b - upper bounds of interval.
-	#
-	# 	Returns:
-	# 		Mapped a posteriori SNR.
-	# 	"""
-	# 	gamma = self.gamma(X, D)
-	# 	return self.truncated_double_gamma_cdf(gamma, alpha, 1.0, 0.0, b)
-
-	# def gamma_bar_inv(self, gamma_bar_hat, alpha, b):
-	# 	"""
-	# 	A posteriori SNR estimate computed from the inverse of the mapped a
-	# 	posteriori SNR. The location parameter is assumed to be 1.0. 'a' is set
-	# 	to 0.0 as it is the lowest possible value for the a posteriori SNR.
-	#
-	# 	Argument/s:
-	# 		gamma_bar_hat - mapped a posteriori SNR estimate.
-	# 		m - location parameter.
-	# 		alpha - location parameter.
-	# 		b - upper bounds of interval.
-	#
-	# 	Returns:
-	# 		A posteriori SNR estimate.
-	# 	"""
-	# 	return self.truncated_double_gamma_cdf_inverse(gamma_bar_hat,
-	# 		alpha, 1.0, 0.0, b)
-	#
-	# def gamma_bar_depreciated(self, X, D, m, lambda_, kappa):
-	# 	"""
-	# 	Mapped a posteriori SNR in dB. Assumed asymmetric Laplace distribution.
-	#
-	# 	Argument/s:
-	# 		X - noisy-speech short-time spectrum.
-	# 		D - noise short-time spectrum.
-	# 		m - location parameter.
-	# 		lambda_ - scale parameter.
-	# 		kappa - asymmetry parameter.
-	#
-	# 	Returns:
-	# 		Mapped a posteriori SNR in dB.
-	# 	"""
-	# 	gamma_db = self.gamma_db(X, D)
-	# 	v_1 = tf.math.square(kappa)
-	# 	v_2 = tf.math.add(1.0, v_1)
-	# 	v_3 = tf.math.truediv(v_1, v_2)
-	# 	v_4 = tf.math.truediv(1.0, v_2)
-	# 	v_5 = tf.math.truediv(lambda_, kappa)
-	# 	v_6 = tf.math.negative(tf.math.multiply(lambda_, kappa))
-	# 	gamma_bar_minus = tf.math.multiply(v_3,
-	# 		tf.math.exp(tf.math.multiply(v_5, tf.math.subtract(gamma_db, m))))
-	# 	gamma_bar_plus = tf.math.subtract(1.0, tf.math.multiply(v_4,
-	# 		tf.math.exp(tf.math.multiply(v_6, tf.math.subtract(gamma_db, m)))))
-	# 	return tf.where(tf.math.greater(gamma_db, m), gamma_bar_plus,
-	# 		gamma_bar_minus)
-	#
-	# def gamma_hat_depreciated(self, gamma_bar_hat, m, lambda_, kappa):
-	# 	"""
-	# 	A posteriori SNR estimate.
-	#
-	# 	Argument/s:
-	# 		gamma_bar_hat - mapped a posteriori SNR estimate.
-	# 		m - location parameter.
-	# 		lambda_ - scale parameter.
-	# 		kappa - asymmetry parameter.
-	#
-	# 	Returns:
-	# 		A posteriori SNR estimate.
-	# 	"""
-	# 	v_1 = tf.math.square(kappa)
-	# 	v_2 = tf.math.add(1.0, v_1)
-	# 	v_3 = tf.math.truediv(v_2, v_1)
-	# 	v_4 = tf.math.truediv(kappa, lambda_)
-	# 	v_5 = tf.math.multiply(kappa, lambda_)
-	#
-	# 	gamma_hat_minus = tf.math.add(tf.math.multiply(tf.math.log(tf.math.multiply(gamma_bar_hat,
-	# 		v_3)), v_4), m)
-	# 	gamma_hat_plus = tf.math.multiply(tf.math.subtract(1.0, gamma_bar_hat), v_2)
-	# 	gamma_hat_plus = tf.math.subtract(m, tf.math.divide(tf.math.log(gamma_hat_plus), v_5))
-	# 	logical = tf.math.greater(gamma_bar_hat, tf.math.truediv(v_1, v_2))
-	# 	gamma_db_hat = tf.where(logical, gamma_hat_plus, gamma_hat_minus)
-	# 	return np.power(10.0, np.divide(gamma_db_hat, 10.0))
-
-	def cdm(self, S, D):
+	def cd(self, S, D):
 		"""
-		Constructuve-deconstructive mask.
+		____________.
 
 		Argument/s:
 			S - clean-speech short-time spectrum.
 			D - noise short-time spectrum.
 
 		Returns:
-			Instantaneous a priori SNR.
+			____________.
 		"""
-		return tf.cast(tf.math.greater_equal(tf.multiply(S, D), 0.0), tf.float32)
+		return tf.multiply(S, D)
 
-	# def normal_cdf(self, x, mu, sigma):
+	# def cdm(self, cd):
 	# 	"""
-	# 	Normal (Gaussian) cumulative distribution function (CDF).
+	# 	Constructuve-deconstructive mask.
 	#
 	# 	Argument/s:
-	# 		x - random variable realisations.
-	# 		mu - mean.
-	# 		sigma - standard deviation.
+	# 		S - clean-speech short-time spectrum.
+	# 		D - noise short-time spectrum.
 	#
 	# 	Returns:
-	# 		CDF.
+	# 		_________________.
 	# 	"""
-	# 	return None
-	#
-	# def normal_cdf_inverse(self, x, mu, sigma):
-	# 	"""
-	# 	Inverse of normal (Gaussian) cumulative distribution function (CDF).
-	#
-	# 	Argument/s:
-	# 		x - random variable realisations.
-	# 		mu - mean.
-	# 		sigma - standard deviation.
-	#
-	# 	Returns:
-	# 		Inverse of CDF.
-	# 	"""
-	# 	return None
-	#
-	# def double_gamma_cdf(self, x, alpha, mu):
-	# 	"""
-	# 	Double gamma cumulative distribution function (CDF).
-	#
-	# 	Argument/s:
-	# 		x - random variable realisations.
-	# 		alpha - shape parameter.
-	# 		mu - location parameter.
-	#
-	# 	Returns:
-	# 		CDF.
-	# 	"""
-	# 	v_1 = tf.math.multiply(0.5, tf.math.igamma(alpha,
-	# 		tf.math.abs(tf.math.subtract(x, mu))))
-	# 	cdf_minus = tf.math.subtract(0.5, v_1)
-	# 	cdf_plus = tf.math.add(0.5, v_1)
-	# 	return tf.where(tf.math.greater(x, mu), cdf_plus, cdf_minus)
-	#
-	# def double_gamma_cdf_inverse(self, cdf, alpha, mu):
-	# 	"""
-	# 	Inverse of double gamma cumulative distribution function (CDF).
-	#
-	# 	Argument/s:
-	# 		cdf - cumulative distribution function value.
-	# 		alpha - shape parameter.
-	# 		mu - location parameter.
-	#
-	# 	Returns:
-	# 		x - inverse of CDF.
-	# 	"""
-	# 	x_lower = tf.math.subtract(1.0, tf.math.multiply(2.0, cdf))
-	# 	x_lower = spsp.gammaincinv(alpha, x_lower)
-	# 	x_lower = tf.math.subtract(mu, x_lower)
-	# 	x_upper = tf.math.subtract(tf.math.multiply(2.0, cdf), 1.0)
-	# 	x_upper = spsp.gammaincinv(alpha, x_upper)
-	# 	x_upper = tf.math.add(mu, x_upper)
-	# 	x = tf.where(tf.math.greater(cdf, 0.5), x_upper, x_lower)
-	# 	return x
-	#
-	# def truncated_double_gamma_cdf(self, x, alpha, mu, a, b):
-	# 	"""
-	# 	Truncated double gamma cumulative distribution function (CDF).
-	#
-	# 	Argument/s:
-	# 		x - random variable realisations.
-	# 		alpha - shape parameter.
-	# 		mu - location parameter.
-	# 		a - lower bounds.
-	# 		b - upper bounds.
-	#
-	# 	Returns:
-	# 		CDF.
-	# 	"""
-	# 	cdf_a = self.double_gamma_cdf(a, alpha, mu)
-	# 	cdf_b = self.double_gamma_cdf(b, alpha, mu)
-	# 	cdf = self.double_gamma_cdf(x, alpha, mu)
-	# 	cdf = tf.math.truediv(tf.math.subtract(cdf,
-	# 		cdf_a), tf.math.subtract(cdf_b, cdf_a))
-	# 	cdf = tf.where(tf.math.less(x, a), tf.zeros_like(x), cdf)
-	# 	cdf = tf.where(tf.math.greater(x, b), tf.ones_like(x), cdf)
-	# 	return cdf
-	#
-	# def truncated_double_gamma_cdf_inverse(self, cdf, alpha, mu, a, b):
-	# 	"""
-	# 	Inverse of truncated double gamma cumulative distribution function (CDF).
-	#
-	# 	Argument/s:
-	# 		cdf - cumulative distribution function value.
-	# 		alpha - shape parameter.
-	# 		mu - location parameter.
-	# 		a - lower bounds.
-	# 		b - upper bounds.
-	#
-	# 	Returns:
-	# 		x - inverse of CDF value.
-	# 	"""
-	# 	cdf_a = self.double_gamma_cdf(a, alpha, mu)
-	# 	cdf_b = self.double_gamma_cdf(b, alpha, mu)
-	# 	cdf = tf.math.add(tf.math.multiply(cdf,
-	# 		tf.math.subtract(cdf_b, cdf_a)), cdf_a)
-	# 	x = self.double_gamma_cdf_inverse(cdf, alpha, mu)
-	# 	return x
+	# 	return tf.cast(tf.math.greater_equal(cd, 0.0), tf.float32)
 
 	def mix(self, s, d, s_len, d_len, snr):
 		"""

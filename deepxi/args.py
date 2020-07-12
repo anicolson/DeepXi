@@ -100,7 +100,8 @@ def get_args():
 	parser.add_argument('--max_d_rate', default=None, type=int, help='Maximum dilation rate')
 	parser.add_argument('--causal', type=str_to_bool, help='Causal network')
 	parser.add_argument('--warmup_steps', type=int, help='Number of warmup steps')
-	parser.add_argument('--net_height', default=[4], type=list, help='RDL block height')
+	parser.add_argument('--length', default=None, type=int, help='RDL block length')
+	parser.add_argument('--m_1', default=None, type=int, help='Output size for height=1 of the RDL block')
 	parser.add_argument('--centre', type=str_to_bool, help='Use centre parameter for layer normalisation')
 	parser.add_argument('--scale', type=str_to_bool, help='Use scale parameter for layer normalisation')
 	parser.add_argument('--unit_type', type=str, help='Block unit type')
@@ -113,19 +114,8 @@ def get_args():
 	parser.add_argument('--gamma_map_params', default=None, type=str_to_list, help='Parameters for the instantaneous a posteriori SNR map')
 	parser.add_argument('--s_stps_map_type', type=str, help='Function used to map the phase')
 	parser.add_argument('--s_stps_map_params', default=None, type=str_to_list, help='Parameters for the phase map')
-
-	parser.add_argument('--mu_xi_db', default=None, type=float, help='Mean of instantaneous a priori SNR (dB)')
-	parser.add_argument('--sigma_xi_db', default=None, type=float, help='Standard deviation of instantaneous a priori SNR (dB)')
-	parser.add_argument('--b_gamma', default=None, type=float, help='Upper bounds for truncated double gamma distribution of a posteriori SNR.')
-	parser.add_argument('--alpha_gamma', default=None, type=float, help='Shape parameter for the instantaneous a posteriori SNR distribution')
-	parser.add_argument('--stdct_mu_xi_db', default=None, type=float, help='Mean of instantaneous a priori SNR (dB) (STDCT)')
-	parser.add_argument('--stdct_sigma_xi_db', default=None, type=float, help='Standard deviation of instantaneous a priori SNR (dB) (STDCT)')
-
-	parser.add_argument('--m_gamma_db', default=None, type=float, help='Location parameter for the instantaneous a posteriori SNR (dB) distribution')
-	parser.add_argument('--lambda_gamma_db', default=None, type=float, help='Scale parameter for the instantaneous a posteriori SNR (dB) distribution')
-	parser.add_argument('--kappa_gamma_db', default=None, type=float, help='Asymmetry parameter for the instantaneous a posteriori SNR (dB) distribution')
-	parser.add_argument('--mu_ps_db', default=None, type=float, help='Mean of power spectrum components (dB)')
-	parser.add_argument('--sigma_ps_db', default=None, type=float, help='Standard deviation of power spectrum components (dB)')
+	parser.add_argument('--cd_map_type', type=str, help='Function used to map the ___________')
+	parser.add_argument('--cd_map_params', default=None, type=str_to_list, help='Parameters for the ___________ map')
 
 	args = parser.parse_args()
 	return args

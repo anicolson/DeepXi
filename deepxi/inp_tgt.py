@@ -8,7 +8,9 @@
 from deepxi.gain import gfunc
 from deepxi.map import map_selector
 from deepxi.sig import InputTarget
+from tqdm import tqdm
 import math
+import numpy as np
 import tensorflow as tf
 
 def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
@@ -44,11 +46,11 @@ def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
 			xi_map_params=kwargs['xi_map_params'],
 			s_stps_map_type=kwargs['s_stps_map_type'],
 			s_stps_map_params=kwargs['s_stps_map_params'])
-	# elif inp_tgt_type == "STDCTXiBarCDM": return STDCTXiBarCDM(N_d,
-	# 	N_s, K, f_s, stdct_mu_xi_db=kwargs['stdct_mu_xi_db'],
-	# 	stdct_sigma_xi_db=kwargs['stdct_sigma_xi_db'])
-	# elif inp_tgt_type == "PowDBXi": return PowDBXiBar(N_d, N_s, K, f_s,
-	# 	mu_ps_db=kwargs['mu_ps_db'], sigma_ps_db=kwargs['sigma_ps_db'])
+	elif inp_tgt_type == "STDCTXiCD":
+		return STDCTXiCD(N_d, N_s, K, f_s, xi_map_type=kwargs['xi_map_type'],
+			xi_map_params=kwargs['xi_map_params'],
+			cd_map_type=kwargs['cd_map_type'],
+			cd_map_params=kwargs['cd_map_params'])
 	else: raise ValueError("Invalid inp_tgt type.")
 
 class MagTgt(InputTarget):
@@ -81,16 +83,43 @@ class MagTgt(InputTarget):
 		x_STMS, x_STPS = self.polar_analysis(x)
 		return x_STMS, x_STPS
 
-	def stats(self, s_STMS, d_STMS, x_STMS):
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
 		"""
 		The base stats() function is used when no statistics are requied for
 			the target.
 
 		Argument/s:
-			s_STMS, d_STMS, x_STMS - clean-speech, noise, and noisy-speech
-				magnitude spectrum samples.
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
 		"""
 		pass
+
+	def transfrom_stats(self, s_sample, d_sample, x_sample, wav_len):
+		"""
+		Transforms time-domain sample to short-time magnitude spectrum sample.
+
+		Argument/s:
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise,
+				noisy speech samples and their lengths.
+
+		Returns:
+			s_STMS, d_STMS, x_STMS - cleanspeech, noise and noisy-speech
+				short-time magnitude spectrum samples.
+		"""
+		s_STMS_sample = []
+		d_STMS_sample = []
+		x_STMS_sample = []
+		for i in tqdm(range(s_sample.shape[0])):
+			s_STMS, _ = self.polar_analysis(s_sample[i,0:wav_len[i]])
+			d_STMS, _ = self.polar_analysis(d_sample[i,0:wav_len[i]])
+			x_STMS, _ = self.polar_analysis(x_sample[i,0:wav_len[i]])
+			s_STMS_sample.append(np.squeeze(s_STMS.numpy()))
+			d_STMS_sample.append(np.squeeze(d_STMS.numpy()))
+			x_STMS_sample.append(np.squeeze(x_STMS.numpy()))
+		s_STMS_sample = np.vstack(s_STMS_sample)
+		d_STMS_sample = np.vstack(d_STMS_sample)
+		x_STMS_sample = np.vstack(x_STMS_sample)
+		return s_STMS_sample, d_STMS_sample, x_STMS_sample
 
 class MagXi(MagTgt):
 	"""
@@ -111,16 +140,18 @@ class MagXi(MagTgt):
 		self.n_outp = self.n_feat
 		self.xi_map = map_selector(xi_map_type, xi_map_params)
 
-	def stats(self, s_STMS, d_STMS, x_STMS):
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
 		"""
 		Compute statistics for map class.
 
 		Argument/s:
-			s_STMS, d_STMS, x_STMS - clean-speech, noise, and noisy-speech
-				magnitude spectrum samples.
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
 		"""
-		xi = self.xi(s_STMS, d_STMS)
-		self.xi_map.stats(xi)
+		s_STMS_sample, d_STMS_sample, x_STMS_sample = self.transfrom_stats(s_sample,
+			d_sample, x_sample, wav_len)
+		xi_sample = self.xi(s_STMS_sample, d_STMS_sample)
+		self.xi_map.stats(xi_sample)
 
 	def example(self, s, d, s_len, d_len, snr):
 		"""
@@ -210,16 +241,18 @@ class MagGamma(MagTgt):
 		self.n_outp = self.n_feat
 		self.gamma_map = map_selector(gamma_map_type, gamma_map_params)
 
-	def stats(self, s_STMS, d_STMS, x_STMS):
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
 		"""
 		Compute statistics for map class.
 
 		Argument/s:
-			s_STMS, d_STMS, x_STMS - clean-speech, noise, and noisy-speech
-				magnitude spectrum samples.
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
 		"""
-		gamma = self.gamma(x_STMS, d_STMS)
-		self.gamma_map.stats(gamma)
+		s_STMS_sample, d_STMS_sample, x_STMS_sample = self.transfrom_stats(s_sample,
+			d_sample, x_sample, wav_len)
+		gamma_sample = self.gamma(x_STMS_sample, d_STMS_sample)
+		self.gamma_map.stats(gamma_sample)
 
 	def example(self, s, d, s_len, d_len, snr):
 		"""
@@ -315,18 +348,20 @@ class MagXiGamma(MagTgt):
 		self.xi_map = map_selector(xi_map_type, xi_map_params)
 		self.gamma_map = map_selector(gamma_map_type, gamma_map_params)
 
-	def stats(self, s_STMS, d_STMS, x_STMS):
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
 		"""
 		Compute statistics for map class.
 
 		Argument/s:
-			s_STMS, d_STMS, x_STMS - clean-speech, noise, and noisy-speech
-				magnitude spectrum samples.
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
 		"""
-		xi = self.xi(s_STMS, d_STMS)
-		self.xi_map.stats(xi)
-		gamma = self.gamma(x_STMS, d_STMS)
-		self.gamma_map.stats(gamma)
+		s_STMS_sample, d_STMS_sample, x_STMS_sample = self.transfrom_stats(s_sample,
+			d_sample, x_sample, wav_len)
+		xi_sample = self.xi(s_STMS_sample, d_STMS_sample)
+		self.xi_map.stats(xi_sample)
+		gamma_sample = self.gamma(x_STMS_sample, d_STMS_sample)
+		self.gamma_map.stats(gamma_sample)
 
 	def example(self, s, d, s_len, d_len, snr):
 		"""
@@ -505,16 +540,18 @@ class MagPhaXiPha(MagTgt):
 		x_STMS_STPS = tf.concat([x_STMS, x_STPS], axis=-1)
 		return x_STMS_STPS, x_STMS_STPS
 
-	def stats(self, s_STMS, d_STMS, x_STMS):
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
 		"""
 		Compute statistics for map class.
 
 		Argument/s:
-			s_STMS, d_STMS, x_STMS - clean-speech, noise, and noisy-speech
-				magnitude spectrum samples.
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
 		"""
-		xi = self.xi(s_STMS, d_STMS)
-		self.xi_map.stats(xi)
+		s_STMS_sample, d_STMS_sample, x_STMS_sample = self.transfrom_stats(s_sample,
+			d_sample, x_sample, wav_len)
+		xi_sample = self.xi(s_STMS_sample, d_STMS_sample)
+		self.xi_map.stats(xi_sample)
 
 	def example(self, s, d, s_len, d_len, snr):
 		"""
@@ -595,160 +632,130 @@ class MagPhaXiPha(MagTgt):
 		s_STPS_hat = self.s_stps_map.inverse(s_STPS_bar_hat)
 		return s_STPS_hat
 
-# class STDCTXiBarCDM(InputTarget):
-# 	"""
-# 	Magnitude spectrum input. Mapped a priori SNR and CDM target.
-# 	"""
-# 	def __init__(self, N_d, N_s, K, f_s, stdct_mu_xi_db=None, stdct_sigma_xi_db=None):
-# 		super().__init__(N_d, N_s, K, f_s)
-# 		"""
-# 		Argument/s
-# 			N_d - window duration (samples).
-# 			N_s - window shift (samples).
-# 			K - number of frequency bins.
-# 			f_s - sampling frequency.
-# 			stdct_mu_xi_db - mean of instantaneous a priori SNR (dB) (STDCT).
-# 			stdct_sigma_xi_db - standard deviation of instantaneous a priori SNR
-# 				(dB) (STDCT).
-# 		"""
-# 		self.n_feat = K
-# 		self.n_outp = self.n_feat*2
-# 		self.stdct_mu_xi_db = stdct_mu_xi_db
-# 		self.stdct_sigma_xi_db = stdct_sigma_xi_db
-#
-# 	def observation(self, x):
-# 		"""
-# 	    An observation for Deep Xi (noisy-speech STMS).
-#
-# 		Argument/s:
-# 			x - noisy speech (dtype=tf.int32).
-# 			x_len - noisy speech length without padding (samples).
-#
-# 		Returns:
-# 			x_STMS - short-time magnitude spectrum.
-# 			x_STPS - short-time phase spectrum.
-# 		"""
-# 		x = self.normalise(x)
-# 		x_STDCT = self.stdct_analysis(x)
-# 		return x_STDCT, None
-#
-# 	def example(self, s, d, s_len, d_len, snr):
-# 		"""
-# 		Compute example for Deep Xi, i.e. observation (noisy-speech STMS)
-# 		and target (mapped a priori SNR).
-#
-# 		Argument/s:
-# 			s - clean speech (dtype=tf.int32).
-# 			d - noise (dtype=tf.int32).
-# 			s_len - clean-speech length without padding (samples).
-# 			d_len - noise length without padding (samples).
-# 			snr - SNR level.
-#
-# 		Returns:
-# 			x_STMS - noisy-speech short-time magnitude spectrum.
-# 			xi_bar - mapped a priori SNR.
-# 			n_frames - number of time-domain frames.
-# 		"""
-# 		s, d, x, n_frames = self.mix(s, d, s_len, d_len, snr)
-# 		s_STDCT = self.stdct_analysis(s)
-# 		d_STDCT = self.stdct_analysis(d)
-# 		x_STDCT = self.stdct_analysis(x)
-# 		xi_bar = self.xi_bar(s_STDCT, d_STDCT, self.stdct_mu_xi_db,
-# 			self.stdct_sigma_xi_db)
-# 		cdm = self.cdm(s_STDCT, d_STDCT)
-# 		xi_bar_cdm = tf.concat([xi_bar, cdm], axis=-1)
-# 		return x_STDCT, xi_bar_cdm, n_frames
-#
-# 	def enhanced_speech(self, x_STDCT, dummy, xi_bar_cdm_hat, gtype):
-# 		"""
-# 		Compute enhanced speech.
-#
-# 		Argument/s:
-# 			x_STDCT - noisy-speech short-time magnitude spectrum.
-# 			dummy - dummy variable (not used).
-# 			xi_bar_hat - mapped a priori SNR estimate.
-# 			gtype - gain function type.
-#
-# 		Returns:
-# 			enhanced speech.
-# 		"""
-# 		xi_bar_hat, cdm_hat = tf.split(xi_bar_cdm_hat,
-# 			num_or_size_splits=2, axis=-1)
-# 		xi_hat = self.xi_bar_inv(xi_bar_hat, self.stdct_mu_xi_db,
-# 			self.stdct_sigma_xi_db)
-# 		cdm_hat = tf.math.greater(cdm_hat, 0.5)
-# 		y_STDCT= tf.math.multiply(x_STDCT, gfunc(xi_hat, xi_hat+1.0, gtype, cdm_hat))
-# 		return self.stdct_synthesis(y_STDCT)
-#
-# class PowDBXiBar(InputTarget):
-# 	"""
-# 	Power spectrum (dB) input (normalised) and mapped a priori SNR target.
-# 	"""
-# 	def __init__(self, N_d, N_s, K, f_s, mu=None, sigma=None, mu_ps_db=0.0,
-# 		sigma_ps_db=1.0):
-# 		super().__init__(N_d, N_s, K, f_s)
-# 		"""
-# 		Argument/s
-# 			N_d - window duration (samples).
-# 			N_s - window shift (samples).
-# 			K - number of frequency bins.
-# 			f_s - sampling frequency.
-# 			mu - mean of each instantaneous a priori SNR (dB) frequency component.
-# 			sigma - standard deviation of each instantaneous a priori SNR (dB) frequency component.
-# 			mu_ps_db - mean of each power spectrum (dB) frequency component.
-# 			sigma_ps_db - standard deviation of each power spectrum (dB) frequency component.
-# 		"""
-# 		self.n_feat = math.ceil(K/2 + 1)
-# 		self.n_outp = self.n_feat
-# 		self.mu = mu
-# 		self.sigma = sigma
-# 		self.mu_ps_db = mu_ps_db
-# 		self.sigma_ps_db = sigma_ps_db
-#
-# 	def observation(self, x):
-# 		"""
-# 	    An observation for Deep Xi (noisy-speech STMS).
-#
-# 		Argument/s:
-# 			x - noisy speech (dtype=tf.int32).
-# 			x_len - noisy speech length without padding (samples).
-#
-# 		Returns:
-# 			x_PS_dB_bar - mapped short-time power spectrum (dB).
-# 			x_STPS - short-time phase spectrum.
-# 		"""
-# 		x = self.normalise(x)
-# 		x_STMS, x_STPS = self.polar_analysis(x)
-# 		x_PS_dB = tf.multiply(10.0, self.log_10(tf.math.square(x_STMS)))
-# 		x_PS_dB_bar = tf.math.truediv(tf.math.subtract(x_PS_dB, self.mu_ps_db), self.sigma_ps_db)
-# 		return x_PS_dB_bar, x_STPS
-#
-# 	def example(self, s, d, s_len, d_len, snr):
-# 		"""
-# 		Compute example for Deep Xi, i.e. observation (noisy-speech STMS)
-# 		and target (mapped a priori SNR).
-#
-# 		Argument/s:
-# 			s - clean speech (dtype=tf.int32).
-# 			d - noise (dtype=tf.int32).
-# 			s_len - clean-speech length without padding (samples).
-# 			d_len - noise length without padding (samples).
-# 			snr - SNR level.
-#
-# 		Returns:
-# 			x_STMS - noisy-speech short-time magnitude spectrum.
-# 			xi_bar - mapped a priori SNR.
-# 			n_frames - number of time-domain frames.
-# 		"""
-# 		s, d, x, n_frames = self.mix(s, d, s_len, d_len, snr)
-# 		s_STMS, _ = self.polar_analysis(s)
-# 		d_STMS, _ = self.polar_analysis(d)
-# 		x_STMS, _ = self.polar_analysis(x)
-# 		# mask = tf.expand_dims(tf.cast(tf.sequence_mask(n_frames), tf.float32), 2)
-# 		x_PS_dB = tf.multiply(10.0, self.log_10(tf.math.square(x_STMS)))
-# 		x_PS_dB_bar = tf.math.truediv(tf.math.subtract(x_PS_dB, self.mu_ps_db), self.sigma_ps_db)
-# 		# x_PS_dB_bar = tf.multiply(x_PS_dB_bar, mask)
-# 		xi_bar = self.xi_bar(s_STMS, d_STMS, m, lambda_, kappa)
-# 		# xi_bar = tf.multiply(xi_bar, mask)
-# 		return x_PS_dB_bar, xi_bar, n_frames
-#
+class STDCTXiCD(InputTarget):
+	"""
+	__________________________.
+	"""
+	def __init__(self, N_d, N_s, K, f_s, xi_map_type, xi_map_params,
+		cd_map_type, cd_map_params):
+		super().__init__(N_d, N_s, K, f_s)
+		"""
+		Argument/s
+			N_d - window duration (samples).
+			N_s - window shift (samples).
+			K - number of frequency bins.
+			f_s - sampling frequency.
+			_ - _____________.
+		"""
+		self.n_feat = K
+		self.n_outp = self.n_feat*2
+		self.xi_map = map_selector(xi_map_type, xi_map_params)
+		self.cd_map = map_selector(cd_map_type, cd_map_params)
+
+	def observation(self, x):
+		"""
+	    An observation for Deep Xi (noisy-speech __________).
+
+		Argument/s:
+			x - noisy speech (dtype=tf.int32).
+			x_len - noisy speech length without padding (samples).
+
+		Returns:
+			x_STDCT - noisy-speech short-time discrete cosine transform.
+		"""
+		x = self.normalise(x)
+		x_STDCT = self.stdct_analysis(x)
+		return x_STDCT, None
+
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
+		"""
+		Compute statistics for map class.
+
+		Argument/s:
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
+		"""
+		s_STDCT_sample, d_STDCT_sample, x_STDCT_sample = self.transfrom_stats(s_sample,
+			d_sample, x_sample, wav_len)
+		xi_sample = self.xi(s_STDCT_sample, d_STDCT_sample)
+		self.xi_map.stats(xi_sample)
+		cd_sample = self.cd(s_STDCT_sample, d_STDCT_sample)
+		self.cd_map.stats(cd_sample)
+
+	def transfrom_stats(self, s_sample, d_sample, x_sample, wav_len):
+		"""
+		Transforms time-domain sample to short-time discrete cosine transform
+		sample.
+
+		Argument/s:
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise,
+				noisy speech samples and their lengths.
+
+		Returns:
+			s_STDCT, d_STDCT, x_STDCT - clean-speech, noise and noisy-speech
+				short-time discrete cosine transform samples.
+		"""
+		s_STDCT_sample = []
+		d_STDCT_sample = []
+		x_STDCT_sample = []
+		for i in tqdm(range(s_sample.shape[0])):
+			s_STDCT = self.stdct_analysis(s_sample[i,0:wav_len[i]])
+			d_STDCT = self.stdct_analysis(d_sample[i,0:wav_len[i]])
+			x_STDCT = self.stdct_analysis(x_sample[i,0:wav_len[i]])
+			s_STDCT_sample.append(np.squeeze(s_STDCT.numpy()))
+			d_STDCT_sample.append(np.squeeze(d_STDCT.numpy()))
+			x_STDCT_sample.append(np.squeeze(x_STDCT.numpy()))
+		s_STDCT_sample = np.vstack(s_STDCT_sample)
+		d_STDCT_sample = np.vstack(d_STDCT_sample)
+		x_STDCT_sample = np.vstack(x_STDCT_sample)
+		return s_STDCT_sample, d_STDCT_sample, x_STDCT_sample
+
+	def example(self, s, d, s_len, d_len, snr):
+		"""
+		Compute example for Deep Xi, i.e. observation (noisy-speech STDCT)
+		and target (________).
+
+		Argument/s:
+			s - clean speech (dtype=tf.int32).
+			d - noise (dtype=tf.int32).
+			s_len - clean-speech length without padding (samples).
+			d_len - noise length without padding (samples).
+			snr - SNR level.
+
+		Returns:
+			x_STMS - noisy-speech short-time magnitude spectrum.
+			___ - _______________
+			n_frames - number of time-domain frames.
+		"""
+		s, d, x, n_frames = self.mix(s, d, s_len, d_len, snr)
+		s_STDCT = self.stdct_analysis(s)
+		d_STDCT = self.stdct_analysis(d)
+		x_STDCT = self.stdct_analysis(x)
+		xi = self.xi(s_STDCT, d_STDCT)
+		xi_bar = self.xi_map.map(xi)
+		cd = self.cd(s_STDCT, d_STDCT)
+		cd_bar = self.cd_map.map(cd)
+		xi_cd_map = tf.concat([xi_bar, cd_bar], axis=-1)
+		return x_STDCT, xi_cd_map, n_frames
+
+	def enhanced_speech(self, x_STDCT, dummy, xi_cd_bar_hat, gtype):
+		"""
+		Compute enhanced speech.
+
+		Argument/s:
+			x_STDCT - noisy-speech short-time magnitude spectrum.
+			dummy - dummy variable (not used).
+			____ - _____________________.
+			gtype - gain function type.
+
+		Returns:
+			enhanced speech.
+		"""
+		xi_bar_hat, cd_bar_hat = tf.split(xi_bar_cdm_hat,
+			num_or_size_splits=2, axis=-1)
+		xi_hat = self.xi_map.inverse(xi_bar_hat)
+		gamma_hat = tf.math.add(xi_hat, self.one)
+		cd_hat = self.cd_map.inverse(cd_bar_hat)
+		cdm_hat = tf.math.greater(cd_hat, 0.0)
+		y_STDCT= tf.math.multiply(x_STDCT, gfunc(xi_hat, gamma_hat, gtype, cdm_hat))
+		return self.stdct_synthesis(y_STDCT)

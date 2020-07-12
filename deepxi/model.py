@@ -55,8 +55,8 @@ class DeepXi():
 		):
 		"""
 		Argument/s
-			N_d - window duration (samples_xi_db).
-			N_s - window shift (samples_xi_db).
+			N_d - window duration (samples).
+			N_s - window shift (samples).
 			K - number of frequency bins.
 			f_s - sampling frequency.
 			inp_tgt_type - input and target type.
@@ -85,9 +85,8 @@ class DeepXi():
 				self.inp_tgt = pickle.load(f)
 		else:
 			self.inp_tgt = inp_tgt_selector(self.inp_tgt_type, N_d, N_s, K, f_s, **kwargs)
-			samples_s_STMS, samples_d_STMS, samples_x_STMS = self.sample(sample_size,
-				sample_dir)
-			self.inp_tgt.stats(samples_s_STMS, samples_d_STMS, samples_x_STMS)
+			s_sample, d_sample, x_sample, wav_len = self.sample(sample_size, sample_dir)
+			self.inp_tgt.stats(s_sample, d_sample, x_sample, wav_len)
 			with open(inp_tgt_obj_path, 'wb') as f:
 				pickle.dump(self.inp_tgt, f, pickle.HIGHEST_PROTOCOL)
 
@@ -449,6 +448,55 @@ class DeepXi():
 			sample_size - number of training examples included in the sample.
 			sample_dir - path to the saved sample.
 		"""
+		sample_path = sample_dir + '/sample'
+		if os.path.exists(sample_path + '.npz'):
+			print('Loading sample...')
+			with np.load(sample_path + '.npz') as sample:
+				s_sample = sample['s_sample']
+				d_sample = sample['d_sample']
+				x_sample = sample['x_sample']
+				wav_len = sample['wav_len']
+		elif self.train_s_list == None:
+			raise ValueError('No sample.npz file exists.')
+		else:
+			if sample_size == None: raise ValueError("sample_size is not set.")
+			print('Gathering a sample of the training set...')
+			s_sample_list = random.sample(self.train_s_list, sample_size)
+			d_sample_list = random.sample(self.train_d_list, sample_size)
+			s_sample_int, d_sample_int, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list,
+				d_sample_list)
+			s_sample = np.zeros_like(s_sample_int, np.float32)
+			d_sample = np.zeros_like(s_sample_int, np.float32)
+			x_sample = np.zeros_like(s_sample_int, np.float32)
+			for i in tqdm(range(s_sample.shape[0])):
+				s, d, x, _ = self.inp_tgt.mix(s_sample_int[i:i+1], d_sample_int[i:i+1],
+					s_sample_len[i:i+1], d_sample_len[i:i+1], snr_sample[i:i+1])
+				s_sample[i, 0:s_sample_len[i]] = s
+				d_sample[i, 0:s_sample_len[i]] = d
+				x_sample[i, 0:s_sample_len[i]] = x
+			wav_len = s_sample_len
+			if not os.path.exists(sample_dir): os.makedirs(sample_dir)
+			np.savez(sample_path + '.npz', s_sample=s_sample,
+				d_sample=d_sample, x_sample=x_sample, wav_len=wav_len)
+			sample = {'s_sample': s_sample, 'd_sample': d_sample,
+				'x_sample': x_sample, 'wav_len': wav_len}
+			save_mat(sample_path + '.mat', sample, 'stats')
+			print('Sample of the training set saved.')
+		return s_sample, d_sample, x_sample, wav_len
+
+	def sample_old(
+		self,
+		sample_size,
+		sample_dir='data',
+		):
+		"""
+		Gathers a sample of the training set. The sample can be used to compute
+		statistics for mapping functions.
+
+		Argument/s:
+			sample_size - number of training examples included in the sample.
+			sample_dir - path to the saved sample.
+		"""
 
 		sample_path = sample_dir + '/sample'
 		if os.path.exists(sample_path + '.npz'):
@@ -531,7 +579,6 @@ class DeepXi():
 	# 			'/variables/variables' )
 	#
 	# 		results = {}
-	#
 	# 		for i in snr:
 	# 			for s, d, s_len, d_len, base_name in tqdm(zip(test_s, test_d,
 	# 				test_s_len, test_d_len, test_s_base_names)):
@@ -549,68 +596,59 @@ class DeepXi():
 	#
 	#
 	# 				print(results)
-
-
-						#
-						# 	for (j, basename) in enumerate(test_s_base_names):
-						# 		if basename in test_x_base_names[i]: ref_idx = j
-						#
-						# 	s = self.inp_tgt.normalise(test_s[ref_idx,
-						# 		0:test_s_len[ref_idx]]).numpy() # from int16 to float.
-						# 	y = y[0:len(s)]
-						#
-						# 	noise_src = test_x_base_names[i].split("_")[-2]
-						# 	snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
-						#
-						# 	results = self.add_score(results, (noise_src, snr_level, 'STOI'),
-						# 		100*stoi(s, y, self.inp_tgt.f_s, extended=False))
-						# 	results = self.add_score(results, (noise_src, snr_level, 'eSTOI'),
-						# 		100*stoi(s, y, self.inp_tgt.f_s, extended=True))
-						# 	results = self.add_score(results, (noise_src, snr_level, 'PESQ'),
-						# 		pesq(self.inp_tgt.f_s, s, y, 'nb'))
-
-						#
-						# noise_srcs, snr_levels, metrics = set(), set(), set()
-						# for key, value in results.items():
-						# 	noise_srcs.add(key[0])
-						# 	snr_levels.add(key[1])
-						# 	metrics.add(key[2])
-						#
-						# if not os.path.exists("log/results"): os.makedirs("log/results")
-						#
-						# with open("log/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
-						# 	f.write("noise,snr_db")
-						# 	for k in sorted(metrics): f.write(',' + k)
-						# 	f.write('\n')
-						# 	for i in sorted(noise_srcs):
-						# 		for j in sorted(snr_levels):
-						# 			f.write("{},{}".format(i, j))
-						# 			for k in sorted(metrics):
-						# 				if (i, j, k) in results.keys():
-						# 					f.write(",{:.2f}".format(np.mean(results[(i,j,k)])))
-						# 			f.write('\n')
-						#
-						# avg_results = {}
-						# for i in sorted(noise_srcs):
-						# 	for j in sorted(snr_levels):
-						# 		if (j >= self.min_snr) and (j <= self.max_snr):
-						# 			for k in sorted(metrics):
-						# 				if (i, j, k) in results.keys():
-						# 					avg_results = self.add_score(avg_results, k, results[(i,j,k)])
-						#
-						# if not os.path.exists("log/results/average.csv"):
-						# 	with open("log/results/average.csv", "w") as f:
-						# 		f.write("ver")
-						# 		for i in sorted(metrics): f.write("," + i)
-						# 		f.write('\n')
-						#
-						# with open("log/results/average.csv", "a") as f:
-						# 	f.write(self.ver + "_e" + str(e) + '_' + g)
-						# 	for i in sorted(metrics):
-						# 		if i in avg_results.keys():
-						# 			f.write(",{:.2f}".format(np.mean(avg_results[i])))
-						# 	f.write('\n')
-
+	#
+	#
+	#
+	# 						for (j, basename) in enumerate(test_s_base_names):
+	# 							if basename in test_x_base_names[i]: ref_idx = j
+	#
+	# 						s = self.inp_tgt.normalise(test_s[ref_idx,
+	# 							0:test_s_len[ref_idx]]).numpy() # from int16 to float.
+	# 						y = y[0:len(s)]
+	#
+	# 						noise_src = test_x_base_names[i].split("_")[-2]
+	# 						snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
+	#
+	# 					noise_srcs, snr_levels, metrics = set(), set(), set()
+	# 					for key, value in results.items():
+	# 						noise_srcs.add(key[0])
+	# 						snr_levels.add(key[1])
+	# 						metrics.add(key[2])
+	#
+	# 					if not os.path.exists("log/results"): os.makedirs("log/results")
+	#
+	# 					with open("log/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
+	# 						f.write("noise,snr_db")
+	# 						for k in sorted(metrics): f.write(',' + k)
+	# 						f.write('\n')
+	# 						for i in sorted(noise_srcs):
+	# 							for j in sorted(snr_levels):
+	# 								f.write("{},{}".format(i, j))
+	# 								for k in sorted(metrics):
+	# 									if (i, j, k) in results.keys():
+	# 										f.write(",{:.2f}".format(np.mean(results[(i,j,k)])))
+	# 								f.write('\n')
+	#
+	# 					avg_results = {}
+	# 					for i in sorted(noise_srcs):
+	# 						for j in sorted(snr_levels):
+	# 							if (j >= self.min_snr) and (j <= self.max_snr):
+	# 								for k in sorted(metrics):
+	# 									if (i, j, k) in results.keys():
+	# 										avg_results = self.add_score(avg_results, k, results[(i,j,k)])
+	#
+	# 					if not os.path.exists("log/results/average.csv"):
+	# 						with open("log/results/average.csv", "w") as f:
+	# 							f.write("ver")
+	# 							for i in sorted(metrics): f.write("," + i)
+	# 							f.write('\n')
+	#
+	# 					with open("log/results/average.csv", "a") as f:
+	# 						f.write(self.ver + "_e" + str(e) + '_' + g)
+	# 						for i in sorted(metrics):
+	# 							if i in avg_results.keys():
+	# 								f.write(",{:.2f}".format(np.mean(avg_results[i])))
+	# 						f.write('\n')
 
 	def dataset(self, n_epochs, buffer_size=16):
 		"""
