@@ -26,7 +26,7 @@ else
 end
 
 if gpu_flag
-    system('source ~/venv/DeepXi/bin/activate; python3 deepxi.py --ver ''3f'' --epoch 175 --infer 1 --out_type y --gain mmse-lsa --gpu ''0''');
+    system('source ~/venv/DeepXi/bin/activate; ./run.sh VER=resnet-1.1n INFER=1 GAIN=mmse-lsa');
 else
-    system('source ~/venv/DeepXi/bin/activate; python3 deepxi.py --ver ''3f'' --epoch 175 --infer 1 --out_type y --gain mmse-lsa --gpu ''''');
+    system('source ~/venv/DeepXi/bin/activate; ./run.sh VER=resnet-1.1n INFER=1 GAIN=mmse-lsa GPU=9999');
 end
