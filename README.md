@@ -166,7 +166,7 @@ Please look in [`log/results`](https://github.com/anicolson/DeepXi/blob/master/l
 
 **Training:**
 ```
-./run.sh VER="resnet-1.1n" TRAIN=1 GAIN="mmse-lsa"
+./run.sh VER="resnet-1.1n" TRAIN=1
 ```
 Ensure to delete the data directory before training. This will allow training lists and statistics for your training set to be saved and used. **To retrain from a certain epoch, set `--resume_epoch` in [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to the desired epoch**.
 
