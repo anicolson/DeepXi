@@ -81,7 +81,7 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 
 **[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (there are issues with training this network currently)**
 
-**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
+**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set) (seperate models are trained on the DEMAND-Voice bank training set for the DEMAND-Voice bank test set results below). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
 
 <!--
@@ -93,7 +93,7 @@ Results
 
 **DEMAND -- Voice Bank test set**
 
-Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). Each Deep Xi model is trained on the  DEMAND--Voicebank training set. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). **Each Deep Xi model is trained on the  DEMAND--Voicebank training set**. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                 |   Gain | Causal | CSIG | CBAK | COVL | PESQ | STOI      | SegSNR |
 |-------------------------|---|--------|------|------|------|------|-----------|----|
@@ -111,7 +111,7 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 
 **Deep Xi Test Set**
 
-Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
+Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). **Each Deep Xi model is trained on the Deep Xi Training Set**. SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
 
 | Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
 |------------------|-----------|--------|---------|------|------|-------|
