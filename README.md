@@ -231,8 +231,8 @@ Please cite the following depending on what you are using:
 
 [3] [Mohammad Nikzad, Aaron Nicolson, Yongsheng Gao, Jun Zhou, Kuldip K. Paliwal, and Fanhua Shang. "Deep residual-dense lattice network for speech enhancement". In AAAI Conference on Artificial Intelligence, pages 8552–8559, 2020](https://www.aaai.org/Papers/AAAI/2020GB/AAAI-NikzadM.6844.pdf)
 
-[4] Aaron Nicolson, "Deep Xi Training Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/3adt-pb04. Accessed: Jul. 12, 2020.
+[4] Aaron Nicolson, "Deep Xi Training Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/3adt-pb04.
 
-[5] [1] Aaron Nicolson, "Deep Xi Test Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/h3xh-tm88. Accessed: Jul. 12, 2020.
+[5] [1] Aaron Nicolson, "Deep Xi Test Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/h3xh-tm88.
 
-[6] Aaron Nicolson, "Test Set From 10.1016/j.specom.2019.06.002", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/0ppr-yy46. Accessed: Jul. 12, 2020.
+[6] Aaron Nicolson, "Test Set From 10.1016/j.specom.2019.06.002", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/0ppr-yy46.
