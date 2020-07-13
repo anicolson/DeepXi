@@ -233,6 +233,6 @@ Please cite the following depending on what you are using:
 
 [4] Aaron Nicolson, "Deep Xi Training Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/3adt-pb04.
 
-[5] [1] Aaron Nicolson, "Deep Xi Test Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/h3xh-tm88.
+[5] Aaron Nicolson, "Deep Xi Test Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/h3xh-tm88.
 
 [6] Aaron Nicolson, "Test Set From 10.1016/j.specom.2019.06.002", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/0ppr-yy46.
