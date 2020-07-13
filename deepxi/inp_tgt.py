@@ -751,11 +751,39 @@ class STDCTXiCD(InputTarget):
 		Returns:
 			enhanced speech.
 		"""
-		xi_bar_hat, cd_bar_hat = tf.split(xi_bar_cdm_hat,
+		xi_bar_hat, cd_bar_hat = tf.split(xi_cd_bar_hat,
 			num_or_size_splits=2, axis=-1)
 		xi_hat = self.xi_map.inverse(xi_bar_hat)
 		gamma_hat = tf.math.add(xi_hat, self.one)
 		cd_hat = self.cd_map.inverse(cd_bar_hat)
 		cdm_hat = tf.math.greater(cd_hat, 0.0)
-		y_STDCT= tf.math.multiply(x_STDCT, gfunc(xi_hat, gamma_hat, gtype, cdm_hat))
+		y_STDCT = tf.math.multiply(x_STDCT, gfunc(xi_hat, gamma_hat, gtype, cdm_hat))
 		return self.stdct_synthesis(y_STDCT)
+
+	def xi_hat(self, xi_cd_bar_hat):
+		"""
+		A priori SNR estimate.
+
+		Argument/s:
+			xi_cd_bar_hat - mapped a priori SNR and ______________ estimate.
+
+		Returns:
+			xi_hat - a priori SNR estimate.
+		"""
+		xi_bar_hat, _ = tf.split(xi_cd_bar_hat, num_or_size_splits=2, axis=-1)
+		xi_hat = self.xi_map.inverse(xi_bar_hat)
+		return xi_hat
+
+	def cd_hat(self, xi_cd_bar_hat):
+		"""
+		___________ estimate.
+
+		Argument/s:
+			xi_cd_bar_hat - mapped a priori SNR and ______________ estimate.
+
+		Returns:
+			cd_hat - ________________ estimate.
+		"""
+		_, cd_bar_hat = tf.split(xi_cd_bar_hat, num_or_size_splits=2, axis=-1)
+		cd_hat = self.cd_map.inverse(cd_bar_hat)
+		return cd_hat

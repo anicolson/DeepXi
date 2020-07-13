@@ -36,6 +36,20 @@ def network_selector(network_type, inp, n_outp, **kwargs):
 			unit_type=kwargs['unit_type'],
 			sigmoid_outp=sigmoid_outp
 			)
+	elif network_type == 'ResNetV3':
+		from deepxi.network.tcn import ResNetV3
+		network = ResNetV3(
+			inp=inp,
+			n_outp=n_outp,
+			n_blocks=kwargs['n_blocks'],
+			d_model=kwargs['d_model'],
+			d_f=kwargs['d_f'],
+			k=kwargs['k'],
+			max_d_rate=kwargs['max_d_rate'],
+			padding=kwargs['padding'],
+			unit_type=kwargs['unit_type'],
+			sigmoid_outp=sigmoid_outp
+			)
 	elif network_type == 'ResNetV2':
 		from deepxi.network.tcn import ResNetV2
 		network = ResNetV2(

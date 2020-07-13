@@ -262,6 +262,7 @@ class DeepXi():
 				elif out_type == 'deepmmse': out_path = out_path + '/deepmmse'
 				elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
 				elif out_type == 'subband_ibm_hat': out_path = out_path + '/subband_ibm_hat'
+				elif out_type == 'cd_hat': out_path = out_path + '/cd_hat'
 				else: raise ValueError('Invalid output type.')
 				if not os.path.exists(out_path): os.makedirs(out_path)
 
@@ -316,6 +317,9 @@ class DeepXi():
 						subband_ibm_hat = np.greater(xi_hat_subband, 1.0).astype(bool)
 						save_mat(out_path + '/' + base_name + '.mat', subband_ibm_hat,
 							'subband_ibm_hat')
+					elif out_type == 'cd_hat':
+						cd_hat = self.inp_tgt.cd_hat(tgt_hat)
+						save_mat(out_path + '/' + base_name + '.mat', cd_hat, 'cd_hat')
 					else: raise ValueError('Invalid output type.')
 
 	def test(

@@ -107,7 +107,7 @@ class Linear(Map):
 		Returns:
 			x.
 		"""
-		return x
+		return x.numpy()
 
 class DB(Map):
 	"""

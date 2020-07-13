@@ -10,6 +10,10 @@ from tensorflow.keras.layers import Activation, Add, Conv1D, Conv2D, Dense, Drop
 	Flatten, LayerNormalization, MaxPooling2D, ReLU
 import numpy as np
 
+# [1] Xu, J., Sun, X., Zhang, Z., Zhao, G., & Lin, J. (2019). Understanding and
+# Improving Layer Normalization. In Advances in Neural Information Processing
+# Systems (pp. 4381-4391).
+
 class ResNet:
 	"""
 	Residual network using bottlekneck residual blocks and cyclic
@@ -107,9 +111,9 @@ class ResNet:
 
 class ResNetV2:
 	"""
-	Residual network using bottlekneck residual blocks and cyclic
-	dilation rate. Frame-wise layer normalisation is used with no scale
-	or centre parameters. Bias is used for all convolutional units.
+	Residual network using bottlekneck residual blocks and cyclic dilation rate.
+	Frame-wise layer normalisation is used with no scale or centre parameters to
+	reduce overfitting, as in [1]. Bias is used for all convolutional units.
 	"""
 	def __init__(
 		self,
@@ -211,3 +215,23 @@ class ResNetV2:
 				use_bias=True)(x)
 		else: raise ValueError("Invalid unit_type.")
 		return x
+
+class ResNetV3(ResNetV2):
+	"""
+	Amends incorrect first layer of ResNetV2 to be in line with [1].
+	"""
+	def feedforward(self, inp):
+		"""
+		Feedforward layer.
+
+		Argument/s:
+			inp - input placeholder.
+
+		Returns:
+			act - feedforward layer output.
+		"""
+		ff = Conv1D(self.d_model, 1, dilation_rate=1, use_bias=True)(inp)
+		act = ReLU()(ff)
+		norm = LayerNormalization(axis=2, epsilon=1e-6, center=False,
+			scale=False)(act)
+		return norm
