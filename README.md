@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.* 
+Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.*
 ====
 
 Contents
@@ -74,10 +74,6 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 **[`resnet-1.1n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **[`resnet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
-
-**[`resnet-1.0n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (technically, this is not a TCN due to the use of non-causal dilated 1D kernels)**
-
-**[`resnet-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (there are issues with training this network currently)**
 

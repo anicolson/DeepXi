@@ -15,10 +15,11 @@ def read_dtype(x):
 	elif any(map(str.isdigit, x)):
 		if '.' in x: return float(x)
 		else: return int(x)
-	else: return x
+	else:
+		return x
 
 def str_to_list(x):
-	if (';' in x) and (',' in x): return [[read_dtype(z) for z in y.split(',')] for y in x.split(';')]
+	if ';' in x: return [[read_dtype(z) for z in y.split(',')] for y in x.split(';')]
 	elif ',' in x: return [read_dtype(y) for y in x.split(',')]
 	else: return read_dtype(x)
 
@@ -108,6 +109,9 @@ def get_args():
 	parser.add_argument('--loss_fnc', type=str, help='Loss function')
 
 	## STATISTICS
+	parser.add_argument('--map_type', type=str_to_list, help='Function used as the map')
+	parser.add_argument('--map_params', default=[None, None], type=str_to_list, help='Parameters for the map')
+
 	parser.add_argument('--xi_map_type', type=str, help='Function used to map the instantaneous a priori SNR')
 	parser.add_argument('--xi_map_params', default=None, type=str_to_list, help='Parameters for the instantaneous a priori SNR map')
 	parser.add_argument('--gamma_map_type', type=str, help='Function used to map the instantaneous a posteriori SNR')

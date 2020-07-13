@@ -29,28 +29,28 @@ def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
 		inp_tgt class.
 	"""
 	if inp_tgt_type == "MagXi":
-		return MagXi(N_d, N_s, K, f_s, xi_map_type=kwargs['xi_map_type'],
-			xi_map_params=kwargs['xi_map_params'])
+		return MagXi(N_d, N_s, K, f_s, xi_map_type=kwargs['map_type'],
+			xi_map_params=kwargs['map_params'])
 	elif inp_tgt_type == "MagGamma":
-		return MagGamma(N_d, N_s, K, f_s, gamma_map_type=kwargs['gamma_map_type'],
-			gamma_map_params=kwargs['gamma_map_params'])
+		return MagGamma(N_d, N_s, K, f_s, gamma_map_type=kwargs['map_type'],
+			gamma_map_params=kwargs['map_params'])
 	elif inp_tgt_type == "MagXiGamma":
-		return MagXiGamma(N_d, N_s, K, f_s, xi_map_type=kwargs['xi_map_type'],
-			xi_map_params=kwargs['xi_map_params'],
-			gamma_map_type=kwargs['gamma_map_type'],
-			gamma_map_params=kwargs['gamma_map_params'])
+		return MagXiGamma(N_d, N_s, K, f_s, xi_map_type=kwargs['map_type'][0],
+			xi_map_params=kwargs['map_params'][0],
+			gamma_map_type=kwargs['map_type'][1],
+			gamma_map_params=kwargs['map_params'][1])
 	elif inp_tgt_type == "MagGain":
 		return MagGain(N_d, N_s, K, f_s, gain=kwargs['gain'])
 	elif inp_tgt_type == "MagPhaXiPha":
-		return MagPhaXiPha(N_d, N_s, K, f_s, xi_map_type=kwargs['xi_map_type'],
-			xi_map_params=kwargs['xi_map_params'],
-			s_stps_map_type=kwargs['s_stps_map_type'],
-			s_stps_map_params=kwargs['s_stps_map_params'])
+		return MagPhaXiPha(N_d, N_s, K, f_s, xi_map_type=kwargs['map_type'][0],
+			xi_map_params=kwargs['map_params'][0],
+			s_stps_map_type=kwargs['map_type'][1],
+			s_stps_map_params=kwargs['map_params'][1])
 	elif inp_tgt_type == "STDCTXiCD":
-		return STDCTXiCD(N_d, N_s, K, f_s, xi_map_type=kwargs['xi_map_type'],
-			xi_map_params=kwargs['xi_map_params'],
-			cd_map_type=kwargs['cd_map_type'],
-			cd_map_params=kwargs['cd_map_params'])
+		return STDCTXiCD(N_d, N_s, K, f_s, xi_map_type=kwargs['map_type'][0],
+			xi_map_params=kwargs['map_params'][0],
+			cd_map_type=kwargs['map_type'][1],
+			cd_map_params=kwargs['map_params'][1])
 	else: raise ValueError("Invalid inp_tgt type.")
 
 class MagTgt(InputTarget):
