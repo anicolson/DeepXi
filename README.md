@@ -81,7 +81,7 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 
 **[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (there are issues with training this network currently)**
 
-**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
+**Each available model is trained using the [Deep Xi Training Set](https://ieee-dataport.org/open-access/deep-xi-training-set) (seperate models are trained on the DEMAND-Voice bank training set for the DEMAND-Voice bank test set results below). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
 
 <!--
@@ -93,7 +93,7 @@ Results
 
 **DEMAND -- Voice Bank test set**
 
-Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). Each Deep Xi model is trained on the  DEMAND--Voicebank training set. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). **Each Deep Xi model is trained on the  DEMAND--Voicebank training set**. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                 |   Gain | Causal | CSIG | CBAK | COVL | PESQ | STOI      | SegSNR |
 |-------------------------|---|--------|------|------|------|------|-----------|----|
@@ -111,13 +111,13 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 
 **Deep Xi Test Set**
 
-Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
+Average objective scores obtained over the conditions in the [Deep Xi Test Set](http://dx.doi.org/10.21227/h3xh-tm88). **Each Deep Xi model is trained on the Deep Xi Training Set**. SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
 
 | Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
 |------------------|-----------|--------|---------|------|------|-------|
 | Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
 | Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-ResNet (1.0c) | SRWF/IRM  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-ResNet (1.0c) | SRWF  | Yes    |   1.87|2.31|80.98|65.94|
 | Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
 | Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
 | Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
@@ -166,7 +166,7 @@ Please look in [`log/results`](https://github.com/anicolson/DeepXi/blob/master/l
 
 **Training:**
 ```
-./run.sh VER="resnet-1.1n" TRAIN=1 GAIN="mmse-lsa"
+./run.sh VER="resnet-1.1n" TRAIN=1
 ```
 Ensure to delete the data directory before training. This will allow training lists and statistics for your training set to be saved and used. **To retrain from a certain epoch, set `--resume_epoch` in [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to the desired epoch**.
 
@@ -182,11 +182,11 @@ Where can I get a dataset for Deep Xi?
 ----
 Open-source training and testing sets are available for Deep Xi on IEEE *DataPort*:
 
-Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
+[4] Deep Xi Training Set: [http://dx.doi.org/10.21227/3adt-pb04](http://dx.doi.org/10.21227/3adt-pb04).
 
-Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
+[5] Deep Xi Test Set: [http://dx.doi.org/10.21227/h3xh-tm88](http://dx.doi.org/10.21227/h3xh-tm88).
 
-Test set from the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
+[6] Test set from the original [Deep Xi paper](https://doi.org/10.1016/j.specom.2019.06.002): [http://dx.doi.org/10.21227/0ppr-yy46](http://dx.doi.org/10.21227/0ppr-yy46).
 
 The MATLAB scripts used to generate these sets can be found in [`set`](https://github.com/anicolson/DeepXi/tree/master/set).
 
@@ -221,9 +221,18 @@ Please cite the following depending on what you are using:
 * If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
 * If using Deep Xi-RDLNet, please cite [1] and [3].
+* If using Deep Xi Training Set, please cite [5].
+* If using Deep Xi Test Set, please cite [5].
+* If using the Test Set From 10.1016/j.specom.2019.06.002, please cite [6].
 
 [1] [A. Nicolson, K. K. Paliwal, Deep learning for minimum mean-square error approaches to speech enhancement, Speech Communication 111 (2019) 44 - 55, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)
 
 [2] [Q. Zhang, A. M. Nicolson, M. Wang, K. Paliwal and C. Wang, "DeepMMSE: A Deep Learning Approach to MMSE-based Noise Power Spectral Density Estimation," in IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 28, pp. 1404-1415, 2020, doi: 10.1109/TASLP.2020.2987441.](https://ieeexplore.ieee.org/document/9066933)
 
 [3] [Mohammad Nikzad, Aaron Nicolson, Yongsheng Gao, Jun Zhou, Kuldip K. Paliwal, and Fanhua Shang. "Deep residual-dense lattice network for speech enhancement". In AAAI Conference on Artificial Intelligence, pages 8552–8559, 2020](https://www.aaai.org/Papers/AAAI/2020GB/AAAI-NikzadM.6844.pdf)
+
+[4] Aaron Nicolson, "Deep Xi Training Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/3adt-pb04.
+
+[5] Aaron Nicolson, "Deep Xi Test Set", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/h3xh-tm88.
+
+[6] Aaron Nicolson, "Test Set From 10.1016/j.specom.2019.06.002", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/0ppr-yy46.
