@@ -157,11 +157,10 @@ class DeepXi():
 		else: val_set, val_steps = None, None
 
 		if not os.path.exists(model_path): os.makedirs(model_path)
-		if not os.path.exists("log"): os.makedirs("log")
-		if not os.path.exists("log/iter"): os.makedirs("log/iter")
+		if not os.path.exists("log/loss"): os.makedirs("log/loss")
 
 		callbacks = []
-		callbacks.append(CSVLogger("log/" + self.ver + ".csv", separator=',', append=True))
+		callbacks.append(CSVLogger("log/loss/" + self.ver + ".csv", separator=',', append=True))
 		if save_model: callbacks.append(SaveWeights(model_path))
 
 		# if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
