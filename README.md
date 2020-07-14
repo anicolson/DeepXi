@@ -217,7 +217,7 @@ Please cite the following depending on what you are using:
 * If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
 * If using Deep Xi-RDLNet, please cite [1] and [3].
-* If using Deep Xi Training Set, please cite [5].
+* If using Deep Xi Training Set, please cite [4].
 * If using Deep Xi Test Set, please cite [5].
 * If using the Test Set From 10.1016/j.specom.2019.06.002, please cite [6].
 
