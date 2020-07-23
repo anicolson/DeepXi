@@ -123,7 +123,7 @@ Average objective scores obtained over the conditions in the [Deep Xi Test Set](
 DeepMMSE
 ----
 
-Description coming soon...
+DeepMMSE: A Deep Learning Approach to MMSE-Based Noise Power Spectral Density Estimation
 
 Installation
 -----
