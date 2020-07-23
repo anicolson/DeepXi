@@ -51,6 +51,8 @@ def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
 			xi_map_params=kwargs['map_params'][0],
 			cd_map_type=kwargs['map_type'][1],
 			cd_map_params=kwargs['map_params'][1])
+	elif inp_tgt_type == "MagMag":
+		return MagMag(N_d, N_s, K, f_s, mag=kwargs['mag'])
 	else: raise ValueError("Invalid inp_tgt type.")
 
 class MagTgt(InputTarget):
@@ -498,6 +500,65 @@ class MagGain(MagTgt):
 		"""
 		y_STMS = tf.math.multiply(x_STMS, G_hat)
 		return self.polar_synthesis(y_STMS, x_STPS)
+
+class MagMag(MagTgt):
+	"""
+	Magnitude spectrum input and gain target.
+	"""
+	def __init__(self, N_d, N_s, K, f_s, mag):
+		super().__init__(N_d, N_s, K, f_s)
+		"""
+		Argument/s
+			N_d - window duration (samples).
+			N_s - window shift (samples).
+			K - number of frequency bins.
+			f_s - sampling frequency.
+		"""
+		self.n_feat = math.ceil(K/2 + 1)
+		self.n_outp = self.n_feat
+		self.mag = mag
+
+	def example(self, s, d, s_len, d_len, snr):
+		"""
+		Compute example for Deep Xi, i.e. observation (noisy-speech STMS)
+		and target (gain).
+
+		Argument/s:
+			s - clean speech (dtype=tf.int32).
+			d - noise (dtype=tf.int32).
+			s_len - clean-speech length without padding (samples).
+			d_len - noise length without padding (samples).
+			snr - SNR level.
+
+		Returns:
+			x_STMS - noisy-speech short-time magnitude spectrum.
+			gain - gain.
+			n_frames - number of time-domain frames.
+		"""
+		s, d, x, n_frames = self.mix(s, d, s_len, d_len, snr)
+		s_STMS, _ = self.polar_analysis(s)
+		d_STMS, _ = self.polar_analysis(d)
+		x_STMS, _ = self.polar_analysis(x)
+		Mag = s_STMS
+		# xi = self.xi(s_STMS, d_STMS) # instantaneous a priori SNR.
+		# gamma = self.gamma(x_STMS, d_STMS) # instantaneous a posteriori SNR.
+		# G = gfunc(xi=xi, gamma=gamma, gtype=self.gain)
+		# IRM = tf.math.sqrt(tf.math.truediv(xi, tf.math.add(xi, self.one)))
+		return x_STMS, Mag, n_frames
+
+	def enhanced_speech(self, x_STPS, Mag_hat):
+		"""
+		Compute enhanced speech.
+
+		Argument/s:
+			x_STPS - noisy-speech short-time phase spectrum.
+			Mag_hat - Magnitude spectrum estimate.
+
+		Returns:
+			enhanced speech.
+		"""
+		# y_STMS = tf.math.multiply(x_STMS, G_hat)
+		return self.polar_synthesis(Mag_hat, x_STPS)
 
 class MagPhaXiPha(MagTgt):
 	"""
