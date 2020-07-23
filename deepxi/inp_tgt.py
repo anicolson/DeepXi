@@ -557,7 +557,6 @@ class MagMag(MagTgt):
 		Returns:
 			enhanced speech.
 		"""
-		# y_STMS = tf.math.multiply(x_STMS, G_hat)
 		return self.polar_synthesis(Mag_hat, x_STPS)
 
 class MagPhaXiPha(MagTgt):
