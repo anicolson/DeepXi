@@ -11,7 +11,7 @@ from deepxi.inp_tgt import inp_tgt_selector
 from deepxi.sig import InputTarget
 from deepxi.utils import read_mat, read_wav, save_mat, save_wav
 from pesq import pesq
-from stoi import stoi
+from pystoi import stoi
 from tensorflow.keras.callbacks import Callback, CSVLogger, ModelCheckpoint
 from tensorflow.keras.layers import Input, Masking
 from tensorflow.keras.losses import BinaryCrossentropy, MeanSquaredError
