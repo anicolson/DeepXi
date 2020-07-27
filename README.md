@@ -20,8 +20,7 @@ Contents
   * [How to use Deep Xi](#how-to-use-deep-xi)
   * [Current issues and potential areas of improvement](#current-issues-and-potential-areas-of-improvement)
   * [Where can I get a dataset for Deep Xi?](#where-can-i-get-a-dataset-for-deep-xi)
-  * [Which audio do I use with Deep Xi?](#which-audio-do-i-use-with-deep-xi-)
-  * [Naming convention in the `set/` directory](#naming-convention-in-the--set---directory)
+  * [Which audio do I use with Deep Xi?](#which-audio-do-i-use-with-deep-xi)
   * [Citation guide](#citation-guide)
 
 
