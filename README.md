@@ -10,8 +10,8 @@ Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhan
 
 Contents
 ----
-  * [Introduction](#introduction-)
-  * [How does Deep Xi work?](#how-does-deep-xi-work-)
+  * [Introduction](#introduction)
+  * [How does Deep Xi work?](#how-does-deep-xi-work)
   * [Current networks](#current-networks)
   * [Available models](#available-models)
   * [Results for Deep Xi Test Set](#results-for-deep-xi-test-set)
