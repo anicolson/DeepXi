@@ -128,7 +128,7 @@ DeepMMSE
 
 DeepMMSE: A Deep Learning Approach to MMSE-Based Noise Power Spectral Density Estimation.
 
-To get noise PSD estimate `.mat` files from DeepMMSE, please use the following:
+To save noise PSD estimate `.mat` files from DeepMMSE, please use the following:
 ```
 ./run.sh VER="resnet-1.1n" INFER=1 GAIN="deepmmse"
 ```
