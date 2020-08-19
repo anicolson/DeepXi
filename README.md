@@ -103,6 +103,7 @@ Objective scores obtained on the DEMAND--Voicebank test set described [here](htt
 | [MMSE-GAN](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8462068)    |    --         | No     | 3.80 | 3.12 | 3.14 | 2.53 | 93      | -- |
 | [Deep Feature Loss](https://arxiv.org/pdf/1806.10522.pdf)  |  --      | Yes    | 3.86 | 3.33 | 3.22 | --   | --        | -- |
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf) |      --          | No     | 3.99 | 3.18 | 3.42 | 2.86 | --        | -- |
+| **Deep Xi-ResLSTM (1.0c)** | MMSE-LSA | Yes    | 4.01 | 3.25 | 3.34 | 2.65 | 91 (91.0) | 8.2 |
 | **Deep Xi-ResNet (1.0c)** | MMSE-LSA | Yes    | 4.14 | 3.32 | 3.46 | 2.77 | 93 (93.2) | -- |
 | **Deep Xi-ResNet (1.0n)** | MMSE-LSA | No    | 4.28 | 3.46 | 3.64 | 2.95 | 94 (93.6) | -- |
 | **Deep Xi-ResNet (1.1c)** | MMSE-LSA | Yes    | 4.24 | 3.40 | 3.59 | 2.91 | 94 (93.5) | 8.4 |
