@@ -58,7 +58,7 @@ Current networks
 -----
 Recurrent neural networks (RNNs) and temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
 <!--- * **MHANet**: Multi-head attention network. --->
-* **ResLSTM**: Residual long short-term memory network [1].
+* **ResLSTM & ResBiLSTM**: Residual long short-term memory (LSTM) network and residual bidirectional LSTM (ResBiLSTM) network [1].
 * **ResNet**: Residual network [2].
 * **RDLNet**: Residual-dense lattice network [3].
 
@@ -78,7 +78,9 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 
 **[`resnet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
-**[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (there are issues with training this network currently)**
+**[`resbilstm-1.0n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available soon)**
+
+**[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available soon)**
 
 **Each available model is trained using the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset) (seperate models are trained on the DEMAND-Voice bank training set for the DEMAND-Voice bank test set results below). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
