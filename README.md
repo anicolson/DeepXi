@@ -27,7 +27,7 @@ Contents
 Introduction
 ----
 
-**Deep Xi is implemented in TensorFlow 2 and can be used for speech enhancement, noise estimation, mask estimation, and as a front-end for robust ASR.** [Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow 2](https://www.tensorflow.org/). Some of its use cases include:
+**Deep Xi is implemented in TensorFlow 2 and can be used for speech enhancement, noise estimation, mask estimation, and as a front-end for robust ASR.** [Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/ and is the symbol used in the literature for the *a priori* SNR) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow 2](https://www.tensorflow.org/). Some of its use cases include:
 * It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator.
 * It can be used by MMSE-based **noise PSD estimators**, as in *DeepMMSE* [[2]](https://ieeexplore.ieee.org/document/9066933).
 * Estimate the ideal binary mask **(IBM)** for missing feature approaches or the ideal ratio mask **(IRM)**.
