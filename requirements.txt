@@ -1,8 +1,6 @@
-scipy
+tensorflow
 tqdm
 pysoundfile
-cython
-pesq
+# cython
+# pesq
 # pystoi
-tensorflow
-numpy==1.18.3
