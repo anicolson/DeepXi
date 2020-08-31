@@ -3,6 +3,6 @@ tqdm
 pysoundfile
 cython
 pesq
-pystoi
+# pystoi
 tensorflow
 numpy==1.18.3
