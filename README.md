@@ -8,6 +8,9 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.*
 ====
 
+New preprint: [On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation](https://www.techrxiv.org/articles/preprint/On_Training_Targets_for_Deep_Learning_Approaches_to_Clean_Speech_Magnitude_Spectrum_Estimation/13012760/1)
+----
+
 Contents
 ----
   * [Introduction](#introduction)
