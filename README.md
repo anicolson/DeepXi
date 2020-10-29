@@ -20,7 +20,7 @@ New journal paper:
 New preprint: 
 
  * [On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation](https://www.techrxiv.org/articles/preprint/On_Training_Targets_for_Deep_Learning_Approaches_to_Clean_Speech_Magnitude_Spectrum_Estimation/13012760/1)
-
+ * The code for this study can be found at: [https://github.com/anicolson/tgt_20](https://github.com/anicolson/tgt_20).
 
 Contents
 ----
