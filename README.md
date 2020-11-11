@@ -161,7 +161,7 @@ Prerequisites for GPU usage:
 To install:
 
 1. `git clone https://github.com/anicolson/DeepXi.git`
-2. `virtualenv --system-site-packages -p python3 ~/venv/DeepXi`
+2. `python3 -m venv --system-site-packages ~/venv/DeepXi`
 3. `source ~/venv/DeepXi/bin/activate`
 4. `cd DeepXi`
 5. `pip install -r requirements.txt`
