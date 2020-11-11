@@ -11,8 +11,8 @@ Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhan
 News
 ----
 
-New journal paper (pre-proof version):
- * [Masked Multi-Head Self-Attention for Causal Speech Enhancement](https://www.sciencedirect.com/science/article/pii/S0167639320302806)
+New journal paper:
+ * [Masked Multi-Head Self-Attention for Causal Speech Enhancement](https://protect-au.mimecast.com/s/E9oJCMwvOEhqv5wBOuJmmiO?domain=authors.elsevier.com)
 
 New journal paper:
  * [Spectral distortion level resulting in a just-noticeable difference between an *a priori* signal-to-noise ratio estimate and its instantaneous case](https://doi.org/10.1121/10.0002113)
