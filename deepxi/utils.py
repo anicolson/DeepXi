@@ -36,7 +36,8 @@ def read_wav(path):
 		wav - waveform.
 		f_s - sampling frequency.
 	"""
-	wav, f_s = sf.read(path, dtype='int16')
+	try: wav, f_s = sf.read(path, dtype='int16')
+	except TypeError: f_s, wav = sf.read(path)
 	return wav, f_s
 
 def save_mat(path, data, name):
@@ -100,17 +101,21 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 			with open(data_path + '/' + list_name + '_list_' + platform.node() + '.p', 'rb') as f:
 				batch_list = pickle.load(f)
 			if batch_list[0]['file_path'].find(file_dir) != -1:
-				print(list_name + ' list has a total of %i entries.' % (len(batch_list)))
+				print(list_name + ' list has a totaltry: of %i entries.' % (len(batch_list)))
 				return batch_list
 
 	print('Creating ' + list_name + ' list...')
 	batch_list = []
 	for i in extension:
 		for j in glob.glob(os.path.join(file_dir, i)):
-			f = SoundFile(j)
-			wav_len = f.seek(0, SEEK_END)
-			if wav_len == -1:
-				wav, _ = read_wav(path)
+			try:
+				f = SoundFile(j)
+				wav_len = f.seek(0, SEEK_END)
+				if wav_len == -1:
+					wav, _ = read_wav(j)
+					wav_len = len(wav)
+			except NameError:
+				wav, _ = read_wav(j)
 				wav_len = len(wav)
 			batch_list.append({'file_path': j, 'wav_len': wav_len}) # append dictionary.
 	if not os.path.exists(data_path): os.makedirs(data_path) # make directory.
@@ -120,7 +125,7 @@ def batch_list(file_dir, list_name, data_path='data', make_new=False):
 	return batch_list
 
 def val_wav_batch(val_s_dir, val_d_dir):
-	'''
+	"""
 	Produces the validation batchs. Identical filenames for the clean speech and
 	noise must be placed in their respective directories, with the SNR at the
 	end of the filename. Their lengths must also be identical.
@@ -144,7 +149,7 @@ def val_wav_batch(val_s_dir, val_d_dir):
 		val_s_len - lengths of clean-speech waveforms.
 		val_d_len - lengths of noise waveforms.
 		val_snr - batch of SNR levels.
-	'''
+	"""
 	print("Loading validation waveforms...")
 	val_s_list = []
 	val_d_list = []

@@ -5,6 +5,7 @@
 ## License, v. 2.0. If a copy of the MPL was not distributed with this
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from deepxi.utils import save_mat
 from scipy.stats import skew
 from tqdm import tqdm
 import numpy as np
@@ -18,8 +19,14 @@ def map_selector(map_type, params):
 		return Linear(map_type)
 	elif map_type == "DB":
 		return DB(map_type)
+	elif "Clip" in map_type:
+		return Clip(map_type, params)
 	elif "Logistic" in map_type:
 		return Logistic(map_type, params)
+	elif "Standardise" in map_type:
+		return Standardise(map_type, params)
+	elif "MinMaxScaling" in map_type:
+		return MinMaxScaling(map_type, params)
 	elif "NormalCDF" in map_type:
 		return NormalCDF(map_type)
 	elif "TruncatedLaplaceCDF" in map_type:
@@ -28,6 +35,8 @@ def map_selector(map_type, params):
 		return LaplaceCDF(map_type, params)
 	elif "UniformCDF" in map_type:
 		return UniformCDF(map_type, params)
+	elif "Square" in map_type:
+		return Square(map_type)
 	# elif "TruncatedDoubleGammaCDF" in map_type:
 	# 	return TruncatedDoubleGammaCDF(map_type, params)
 	else: raise ValueError("Invalid map_type.")
@@ -44,7 +53,11 @@ class Map():
 		self.map_type = map_type
 		self.ten = tf.cast(10.0, tf.float32)
 		self.one = tf.cast(1.0, tf.float32)
-		self.params = tf.cast(params, tf.float32) if params is not None else params
+
+		if isinstance(params, list):
+			self.params = [tf.cast(param, tf.float32) if param is not None else param for param in params]
+		else:
+			self.params = tf.cast(params, tf.float32) if params is not None else params
 
 	def db(self, x):
 		"""
@@ -107,7 +120,74 @@ class Linear(Map):
 		Returns:
 			x.
 		"""
-		return x.numpy()
+		return x
+
+class Square(Map):
+	"""
+	Square map.
+	"""
+	def map(self, x):
+		"""
+		Returns input.
+
+		Argument/s:
+			x - value.
+
+		Returns:
+			x^2.
+		"""
+		x_bar = tf.math.square(x)
+		if 'DB' in self.map_type: x_bar = self.db(x_bar)
+		return x_bar
+
+	def inverse(self, x_bar):
+		"""
+		Returns input.
+
+		Argument/s:
+			x_bar - square value.
+
+		Returns:
+			x.
+		"""
+		if 'DB' in self.map_type: x_bar = self.db_inverse(x_bar)
+		x = tf.math.sqrt(x_bar).numpy()
+		return x
+
+class Clip(Map):
+	"""
+	Clip values exceeding threshold. It depends on two parameters: min, max.
+	Parameters are given using self.params=[min,max].
+	"""
+	def map(self, x):
+		"""
+		Returns clipped input.
+
+		Argument/s:
+			x - value.
+
+		Returns:
+			x_bar - clipped value.
+		"""
+		min, max = self.params
+		x_bar = tf.clip_by_value(x, min, max)
+		if 'Square' in self.map_type: x_bar = tf.math.square(x_bar)
+		if 'DB' in self.map_type: x_bar = self.db(x_bar)
+		return x_bar
+
+	def inverse(self, x):
+		"""
+		Returns input.
+
+		Argument/s:
+			x - value.
+
+		Returns:
+			x.
+		"""
+		if 'DB' in self.map_type: x = self.db_inverse(x)
+		if 'Square' in self.map_type: x = tf.math.sqrt(x).numpy()
+		return x
 
 class DB(Map):
 	"""
@@ -174,6 +254,101 @@ class Logistic(Map):
 		if 'DB' in self.map_type: x = self.db_inverse(x)
 		return x.numpy()
 
+class Standardise(Map):
+	"""
+	Convert distribution to a standard normal distribution.
+	"""
+	def map(self, x):
+		"""
+		Normalise to a standard normal distribution.
+
+		Argument/s:
+			x - random variable realisations.
+
+		Returns:
+			x_bar.
+		"""
+		if 'Square' in self.map_type: x =  tf.math.square(x)
+		if 'DB' in self.map_type: x = self.db(x)
+		x_bar = tf.math.truediv(tf.math.subtract(x, self.mu), self.sigma)
+		return x_bar
+
+	def inverse(self, x_bar):
+		"""
+		Inverse of normal (Gaussian) cumulative distribution function (CDF).
+
+		Argument/s:
+			x_bar - cumulative distribution function value.
+
+		Returns:
+			Inverse of CDF.
+		"""
+		x = tf.math.add(tf.math.multiply(x_bar, self.sigma), self.mu)
+		if 'DB' in self.map_type: x = self.db_inverse(x)
+		if 'Square' in self.map_type: x = tf.math.sqrt(x)
+		return x.numpy()
+
+	def stats(self, x):
+		"""
+		Compute stats for each frequency bin.
+
+		Argument/s:
+			x - sample.
+		"""
+		if 'Square' in self.map_type: x =  tf.math.square(x)
+		if 'DB' in self.map_type: x = self.db(x)
+		self.mu = tf.math.reduce_mean(x, axis=0)
+		self.sigma = tf.math.reduce_std(x, axis=0)
+
+class MinMaxScaling(Map):
+	"""
+	Normalise distribution between 0 and 1 using min-max scaling.
+	"""
+	def map(self, x):
+		"""
+		Normalise between 0 and 1.
+
+		Argument/s:
+			x - random variable realisations.
+
+		Returns:
+			x_bar.
+		"""
+		if 'Square' in self.map_type: x =  tf.math.square(x)
+		if 'DB' in self.map_type: x = self.db(x)
+		x_bar = tf.math.truediv(tf.math.subtract(x, self.min),
+			tf.math.subtract(self.max, self.min))
+		x_bar = tf.clip_by_value(x_bar, 0.0, 1.0)
+		return x_bar
+
+	def inverse(self, x_bar):
+		"""
+		Inverse of max-min scaling.
+
+		Argument/s:
+			x_bar - max-min scaled value.
+
+		Returns:
+			Inverse of x_bar.
+		"""
+		x = tf.math.add(tf.math.multiply(x_bar, tf.math.subtract(self.max,
+			self.min)), self.min)
+		if 'DB' in self.map_type: x = self.db_inverse(x)
+		if 'Square' in self.map_type: x = tf.math.sqrt(x)
+		return x.numpy()
+
+	def stats(self, x):
+		"""
+		Compute stats for each frequency bin.
+
+		Argument/s:
+			x - sample.
+		"""
+		if 'Square' in self.map_type: x =  tf.math.square(x)
+		if 'DB' in self.map_type: x = self.db(x)
+		self.min = tf.math.reduce_min(x, axis=0)
+		self.max = tf.math.reduce_max(x, axis=0)
+
 class NormalCDF(Map):
 	"""
 	Normal cumulative distribution function (CDF) map.
@@ -188,6 +363,7 @@ class NormalCDF(Map):
 		Returns:
 			CDF.
 		"""
+		if 'Square' in self.map_type: x =  tf.math.square(x)
 		if 'DB' in self.map_type: x = self.db(x)
 		v_1 = tf.math.subtract(x, self.mu)
 		v_2 = tf.math.multiply(self.sigma, tf.math.sqrt(2.0))
@@ -210,6 +386,7 @@ class NormalCDF(Map):
 		v_4 = tf.math.multiply(v_1, v_3)
 		x = tf.math.add(v_4, self.mu)
 		if 'DB' in self.map_type: x = self.db_inverse(x)
+		if 'Square' in self.map_type: x = tf.math.sqrt(x)
 		return x.numpy()
 
 	def stats(self, x):
@@ -219,6 +396,7 @@ class NormalCDF(Map):
 		Argument/s:
 			x - sample.
 		"""
+		if 'Square' in self.map_type: x =  tf.math.square(x)
 		if 'DB' in self.map_type: x = self.db(x)
 		self.mu = tf.math.reduce_mean(x, axis=0)
 		self.sigma = tf.math.reduce_std(x, axis=0)

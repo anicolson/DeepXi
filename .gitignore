@@ -26,7 +26,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-attention.py
+*.m~
 *demand_vb*
 run_*
 mmse_normal_gamma.py
@@ -38,8 +38,9 @@ test_code.py
 dev/
 *.asv
 log/results/objective_scores
-*rdlnet*
 *resnet-1.1.*
+soundfile.py
+.idea/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

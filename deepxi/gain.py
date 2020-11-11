@@ -10,11 +10,6 @@ import math
 import numpy as np
 import tensorflow as tf
 
-#
-## TO DO: Make a gain base class; include common values like pi and 1.0 in init;
-##	         reduce repeated operations.
-#
-
 def mmse_stsa(xi, gamma):
 	"""
 	Computes the MMSE-STSA gain function.
@@ -95,7 +90,7 @@ def srwf(xi):
 	Returns:
 		SRWF gain function.
 	"""
-	return np.sqrt(wf(xi)) # SRWF gain function.
+	return tf.math.sqrt(wf(xi)) # SRWF gain function.
 
 def cwf(xi):
 	"""
@@ -143,7 +138,6 @@ def irm(xi):
 	"""
 	return srwf(xi) # IRM.
 
-
 def ibm(xi):
 	"""
 	Computes the ideal binary mask (IBM) with a threshold of 0 dB.
@@ -154,7 +148,7 @@ def ibm(xi):
 	Returns:
 		IBM.
 	"""
-	return np.greater(xi, 1, dtype=np.float32) # IBM (1 corresponds to 0 dB).
+	return tf.cast(tf.math.greater(xi, 1.0), tf.float32) # IBM (1 corresponds to 0 dB).
 
 
 def deepmmse(xi, gamma):
@@ -171,7 +165,7 @@ def deepmmse(xi, gamma):
 	return np.add(np.divide(1, np.add(1, xi)),
 		np.divide(xi, np.multiply(gamma, np.add(1, xi)))) # MMSE noise periodogram estimate gain function.
 
-def gfunc(xi, gamma=None, gtype='mmse-lsa', cdm=None):
+def gfunc(xi, gamma=None, gtype=None, cdm=None):
 	"""
 	Computes the selected gain function.
 

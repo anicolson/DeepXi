@@ -17,6 +17,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 if __name__ == '__main__':
 
 	args = get_args()
+
 	print("Arguments:")
 	[print(key,val) for key,val in vars(args).items()]
 
@@ -44,7 +45,6 @@ if __name__ == '__main__':
 	if args.infer or args.test:
 		test_x, test_x_len, _, test_x_base_names = Batch(args.test_x_path)
 	if args.test: test_s, test_s_len, _, test_s_base_names = Batch(args.test_s_path)
-	# if args.spect_dist: test_d, test_d_len, _, test_d_base_names = Batch(args.test_d_path)
 
 	config = utils.gpu_config(args.gpu)
 
@@ -75,8 +75,8 @@ if __name__ == '__main__':
 		max_epochs=args.max_epochs,
 		resume_epoch=args.resume_epoch,
 		eval_example=args.eval_example,
-		log_iter=args.log_iter,
 		loss_fnc=args.loss_fnc,
+		log_path=args.log_path
 		)
 
 	if args.infer: deepxi.infer(
@@ -102,16 +102,5 @@ if __name__ == '__main__':
 		test_epoch=args.test_epoch,
 		model_path=args.model_path,
 		gain=args.gain,
-		)
-
-	if args.spect_dist: deepxi.spect_dist(
-		test_s=test_s,
-		test_s_len=test_s_len,
-		test_s_base_names=test_s_base_names,
-		test_d=test_d,
-		test_d_len=test_d_len,
-		test_d_base_names=test_d_base_names,
-		snr=args.sd_snr_levels,
-		test_epoch=args.test_epoch,
-		model_path=args.model_path,
+		log_path=args.log_path
 		)

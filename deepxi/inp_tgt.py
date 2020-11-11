@@ -8,10 +8,16 @@
 from deepxi.gain import gfunc
 from deepxi.map import map_selector
 from deepxi.sig import InputTarget
+from deepxi.utils import save_mat
 from tqdm import tqdm
 import math
 import numpy as np
 import tensorflow as tf
+"""
+[1] Wang, Y., Narayanan, A. and Wang, D., 2014. On training targets for
+	supervised speech separation. IEEE/ACM transactions on audio, speech, and
+	language processing, 22(12), pp.1849-1858.
+"""
 
 def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
 	"""
@@ -41,6 +47,12 @@ def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
 			gamma_map_params=kwargs['map_params'][1])
 	elif inp_tgt_type == "MagGain":
 		return MagGain(N_d, N_s, K, f_s, gain=kwargs['gain'])
+	elif inp_tgt_type == "MagMag":
+		return MagMag(N_d, N_s, K, f_s, mag_map_type=kwargs['map_type'],
+			mag_map_params=kwargs['map_params'])
+	elif inp_tgt_type == "MagSMM":
+		return MagSMM(N_d, N_s, K, f_s, smm_map_type=kwargs['map_type'],
+			smm_map_params=kwargs['map_params'])
 	elif inp_tgt_type == "MagPhaXiPha":
 		return MagPhaXiPha(N_d, N_s, K, f_s, xi_map_type=kwargs['map_type'][0],
 			xi_map_params=kwargs['map_params'][0],
@@ -51,8 +63,6 @@ def inp_tgt_selector(inp_tgt_type, N_d, N_s, K, f_s, **kwargs):
 			xi_map_params=kwargs['map_params'][0],
 			cd_map_type=kwargs['map_type'][1],
 			cd_map_params=kwargs['map_params'][1])
-	elif inp_tgt_type == "MagMag":
-		return MagMag(N_d, N_s, K, f_s, mag=kwargs['mag'])
 	else: raise ValueError("Invalid inp_tgt type.")
 
 class MagTgt(InputTarget):
@@ -213,7 +223,7 @@ class MagXi(MagTgt):
 
 	def gamma_hat(self, xi_bar_hat):
 		"""
-		A posteriori SNR estimate.
+		Maximum likelihood a posteriori SNR estimate.
 
 		Argument/s:
 			xi_bar_hat - mapped a priori SNR estimate.
@@ -498,14 +508,16 @@ class MagGain(MagTgt):
 		Returns:
 			enhanced speech.
 		"""
+		if self.gain == 'ibm':
+			G_hat = tf.cast(tf.math.greater(G_hat, 0.5), tf.float32)
 		y_STMS = tf.math.multiply(x_STMS, G_hat)
 		return self.polar_synthesis(y_STMS, x_STPS)
 
 class MagMag(MagTgt):
 	"""
-	Magnitude spectrum input and gain target.
+	Magnitude spectrum input and target.
 	"""
-	def __init__(self, N_d, N_s, K, f_s, mag):
+	def __init__(self, N_d, N_s, K, f_s, mag_map_type, mag_map_params):
 		super().__init__(N_d, N_s, K, f_s)
 		"""
 		Argument/s
@@ -513,15 +525,29 @@ class MagMag(MagTgt):
 			N_s - window shift (samples).
 			K - number of frequency bins.
 			f_s - sampling frequency.
+			mag_map_type - clean-speech STMS map type.
+			mag_map_params - parameters for the clean-speech STMS map.
 		"""
 		self.n_feat = math.ceil(K/2 + 1)
 		self.n_outp = self.n_feat
-		self.mag = mag
+		self.mag_map = map_selector(mag_map_type, mag_map_params)
+
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
+		"""
+		Compute statistics for map class.
+
+		Argument/s:
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
+		"""
+		s_STMS_sample, d_STMS_sample, x_STMS_sample = self.transfrom_stats(s_sample,
+			d_sample, x_sample, wav_len)
+		self.mag_map.stats(s_STMS_sample)
 
 	def example(self, s, d, s_len, d_len, snr):
 		"""
 		Compute example for Deep Xi, i.e. observation (noisy-speech STMS)
-		and target (gain).
+		and target (mapped clean-speech STMS).
 
 		Argument/s:
 			s - clean speech (dtype=tf.int32).
@@ -532,32 +558,118 @@ class MagMag(MagTgt):
 
 		Returns:
 			x_STMS - noisy-speech short-time magnitude spectrum.
-			gain - gain.
+			s_STMS_bar - mapped clean-speech short-time magnitude spectrum.
 			n_frames - number of time-domain frames.
 		"""
 		s, d, x, n_frames = self.mix(s, d, s_len, d_len, snr)
 		s_STMS, _ = self.polar_analysis(s)
-		d_STMS, _ = self.polar_analysis(d)
 		x_STMS, _ = self.polar_analysis(x)
-		Mag = s_STMS
-		# xi = self.xi(s_STMS, d_STMS) # instantaneous a priori SNR.
-		# gamma = self.gamma(x_STMS, d_STMS) # instantaneous a posteriori SNR.
-		# G = gfunc(xi=xi, gamma=gamma, gtype=self.gain)
-		# IRM = tf.math.sqrt(tf.math.truediv(xi, tf.math.add(xi, self.one)))
-		return x_STMS, Mag, n_frames
+		s_STMS_bar = self.mag_map.map(s_STMS)
+		return x_STMS, s_STMS_bar, n_frames
 
-	def enhanced_speech(self, x_STPS, Mag_hat):
+	def enhanced_speech(self, x_STMS, x_STPS, s_STMS_bar_hat, gtype):
 		"""
 		Compute enhanced speech.
 
 		Argument/s:
+			x_STMS - noisy-speech short-time magnitude spectrum.
 			x_STPS - noisy-speech short-time phase spectrum.
-			Mag_hat - Magnitude spectrum estimate.
+			s_STMS_bar - mapped clean-speech short-time magnitude spectrum estimate.
+			gtype - gain function type.
 
 		Returns:
 			enhanced speech.
 		"""
-		return self.polar_synthesis(Mag_hat, x_STPS)
+		s_STMS_hat = self.mag_map.inverse(s_STMS_bar_hat)
+		return self.polar_synthesis(s_STMS_hat, x_STPS)
+
+	def mag_hat(self, s_STMS_bar_hat):
+		"""
+		Clean-speech magnitude spectrum estimate.
+
+		Argument/s:
+			s_STMS_bar_hat - mapped clean-speech magnitude spectrum estimate.
+
+		Returns:
+			s_STMS_hat - clean-speech magnitude spectrum estimate.
+		"""
+		s_STMS_hat = self.mag_map.inverse(s_STMS_bar_hat)
+		return s_STMS_hat
+
+class MagSMM(MagTgt):
+	"""
+	Magnitude spectrum input and spectral magnitude mask (SMM) target.
+	"""
+	def __init__(self, N_d, N_s, K, f_s, smm_map_type, smm_map_params):
+		super().__init__(N_d, N_s, K, f_s)
+		"""
+		Argument/s
+			N_d - window duration (samples).
+			N_s - window shift (samples).
+			K - number of frequency bins.
+			f_s - sampling frequency.
+			smm_map_type - clean-speech STMS map type.
+			smm_map_params - parameters for the clean-speech STMS map.
+		"""
+		self.n_feat = math.ceil(K/2 + 1)
+		self.n_outp = self.n_feat
+		# self.smm_map = map_selector(smm_map_type, smm_map_params)
+
+	def stats(self, s_sample, d_sample, x_sample, wav_len):
+		"""
+		Compute statistics for map class.
+
+		Argument/s:
+			s_sample, d_sample, x_sample, wav_len - clean speech, noise, noisy speech
+				samples and their lengths.
+		"""
+		pass
+		# s_STMS_sample, d_STMS_sample, x_STMS_sample = self.transfrom_stats(s_sample,
+		# 	d_sample, x_sample, wav_len)
+		# smm_sample = tf.math.truediv(s_STMS_sample, x_STMS_sample)
+		# self.smm_map.stats(smm_sample)
+
+	def example(self, s, d, s_len, d_len, snr):
+		"""
+		Compute example for Deep Xi, i.e. observation (noisy-speech STMS)
+		and target (mapped SMM).
+
+		Argument/s:
+			s - clean speech (dtype=tf.int32).
+			d - noise (dtype=tf.int32).
+			s_len - clean-speech length without padding (samples).
+			d_len - noise length without padding (samples).
+			snr - SNR level.
+
+		Returns:
+			x_STMS - noisy-speech short-time magnitude spectrum.
+			smm_bar - mapped SMM.
+			n_frames - number of time-domain frames.
+		"""
+		s, d, x, n_frames = self.mix(s, d, s_len, d_len, snr)
+		s_STMS, _ = self.polar_analysis(s)
+		x_STMS, _ = self.polar_analysis(x)
+		smm = tf.math.truediv(s_STMS, x_STMS)
+		smm_bar = tf.clip_by_value(smm, 0.0, 5.0)
+		return x_STMS, smm_bar, n_frames
+
+	def enhanced_speech(self, x_STMS, x_STPS, smm_bar_hat, gtype):
+		"""
+		Compute enhanced speech.
+
+		Argument/s:
+			x_STMS - noisy-speech short-time magnitude spectrum.
+			x_STPS - noisy-speech short-time phase spectrum.
+			smm_bar_hat - mapped SMM estimate.
+			gtype - gain function type.
+
+		Returns:
+			enhanced speech.
+		"""
+		# smm_hat = self.smm_map.inverse(smm_bar_hat)
+		smm_hat = smm_bar_hat
+		s_STMS_hat = tf.math.multiply(smm_hat, x_STMS)
+		return self.polar_synthesis(s_STMS_hat, x_STPS)
 
 class MagPhaXiPha(MagTgt):
 	"""

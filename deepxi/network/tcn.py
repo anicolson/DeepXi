@@ -29,7 +29,7 @@ class ResNet:
 		k,
 		max_d_rate,
 		padding,
-		sigmoid_outp,
+		outp_act,
 		):
 		"""
 		Argument/s:
@@ -41,7 +41,7 @@ class ResNet:
 			k - kernel size.
 			max_d_rate - maximum dilation rate.
 			padding - padding type.
-			sigmoid_outp - use a sigmoid output activation.
+			outp_act - output activation function.
 		"""
 		self.d_model = d_model
 		self.d_f = d_f
@@ -54,7 +54,11 @@ class ResNet:
 			int(2**(i%(np.log2(max_d_rate)+1)))))
 		self.outp = Conv1D(self.n_outp, 1, dilation_rate=1,
 			use_bias=True)(self.layer_list[-1])
-		if sigmoid_outp: self.outp = Activation('sigmoid')(self.outp)
+
+		if outp_act == "Sigmoid": self.outp = Activation('sigmoid')(self.outp)
+		elif outp_act == "ReLU": self.outp = ReLU()(self.outp)
+		elif outp_act == "Linear": self.outp = self.outp
+		else: raise ValueError("Invalid outp_act")
 
 	def feedforward(self, inp):
 		"""
@@ -126,7 +130,7 @@ class ResNetV2:
 		max_d_rate,
 		padding,
 		unit_type,
-		sigmoid_outp,
+		outp_act,
 		):
 		"""
 		Argument/s:
@@ -139,7 +143,7 @@ class ResNetV2:
 			max_d_rate - maximum dilation rate.
 			padding - padding type.
 			unit_type - convolutional unit type.
-			sigmoid_outp - use a sigmoid output activation.
+			outp_act - output activation function.
 		"""
 		self.d_model = d_model
 		self.d_f = d_f
@@ -153,7 +157,11 @@ class ResNetV2:
 			int(2**(i%(np.log2(max_d_rate)+1)))))
 		self.outp = Conv1D(self.n_outp, 1, dilation_rate=1,
 			use_bias=True)(self.layer_list[-1])
-		if sigmoid_outp: self.outp = Activation('sigmoid')(self.outp)
+
+		if outp_act == "Sigmoid": self.outp = Activation('sigmoid')(self.outp)
+		elif outp_act == "ReLU": self.outp = ReLU()(self.outp)
+		elif outp_act == "Linear": self.outp = self.outp
+		else: raise ValueError("Invalid outp_act")
 
 	def feedforward(self, inp):
 		"""

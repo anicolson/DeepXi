@@ -17,10 +17,9 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import LearningRateSchedule
 from tensorflow.python.lib.io import file_io
-# from tensorflow.python.util.compat import collections_abc
 from tqdm import tqdm
+import csv, math, os, pickle, random
 import deepxi.se_batch as batch
-import csv, math, os, pickle, random # collections, io, six
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
@@ -44,15 +43,17 @@ class DeepXi():
 		min_snr,
 		max_snr,
 		snr_inter,
+		log_path,
 		sample_dir=None,
 		ver='VERSION_NAME',
 		train_s_list=None,
 		train_d_list=None,
 		sample_size=None,
+		reset_inp_tgt=False,
 		**kwargs
 		):
 		"""
-		Argument/s
+		Argument/s:
 			N_d - window duration (samples).
 			N_s - window shift (samples).
 			K - number of frequency bins.
@@ -78,7 +79,7 @@ class DeepXi():
 		self.train_d_list=train_d_list
 
 		inp_tgt_obj_path = sample_dir + '/' + self.ver + '_inp_tgt.p'
-		if os.path.exists(inp_tgt_obj_path):
+		if os.path.exists(inp_tgt_obj_path) and not reset_inp_tgt:
 			with open(inp_tgt_obj_path, 'rb') as f:
 				self.inp_tgt = pickle.load(f)
 		else:
@@ -94,9 +95,9 @@ class DeepXi():
 
 		self.model = Model(inputs=self.inp, outputs=self.network.outp)
 		self.model.summary()
-		if not os.path.exists("log/summary"):
-			os.makedirs("log/summary")
-		with open("log/summary/" + self.ver + ".txt", "w") as f:
+		if not os.path.exists(log_path + "/summary"):
+			os.makedirs(log_path + "/summary")
+		with open(log_path + "/summary/" + self.ver + ".txt", "w") as f:
 			self.model.summary(print_fn=lambda x: f.write(x + '\n'))
 
 	def train(
@@ -106,6 +107,7 @@ class DeepXi():
 		mbatch_size,
 		max_epochs,
 		loss_fnc,
+		log_path,
 		model_path='model',
 		val_s=None,
 		val_d=None,
@@ -117,7 +119,6 @@ class DeepXi():
 		resume_epoch=0,
 		eval_example=False,
 		save_model=True,
-		log_iter=False,
 		):
 		"""
 		Deep Xi training.
@@ -138,7 +139,6 @@ class DeepXi():
 			resume_epoch - epoch to resume training from.
 			eval_example - evaluate a mini-batch of training examples.
 			save_model - save architecture, weights, and training configuration.
-			log_iter - log training loss for each training iteration.
 			loss_fnc - loss function.
 		"""
 		self.train_s_list = train_s_list
@@ -155,13 +155,12 @@ class DeepXi():
 		else: val_set, val_steps = None, None
 
 		if not os.path.exists(model_path): os.makedirs(model_path)
-		if not os.path.exists("log/loss"): os.makedirs("log/loss")
+		if not os.path.exists(log_path + "/loss"): os.makedirs(log_path + "/loss")
 
 		callbacks = []
-		callbacks.append(CSVLogger("log/loss/" + self.ver + ".csv", separator=',', append=True))
+		callbacks.append(CSVLogger(log_path + "/loss/" + self.ver + ".csv",
+			separator=',', append=True))
 		if save_model: callbacks.append(SaveWeights(model_path))
-
-		# if log_iter: callbacks.append(CSVLoggerIter("log/iter/" + self.ver + ".csv", separator=',', append=True))
 
 		if resume_epoch > 0: self.model.load_weights(model_path + "/epoch-" +
 			str(resume_epoch-1) + "/variables/variables")
@@ -181,7 +180,8 @@ class DeepXi():
 				snr_act = self.inp_tgt.snr_db(s[i][0:s_len[i]], d[i][0:d_len[i]])
 				print('SNR target|actual: {:.2f}|{:.2f} (dB).'.format(snr_tgt[i], snr_act))
 
-		if self.network_type == "MHANet":
+		if "MHA" in self.network_type:
+			print("Using Transformer learning rate schedular.")
 			lr_schedular = TransformerSchedular(self.network.d_model,
 				self.network.warmup_steps)
 			opt = Adam(learning_rate=lr_schedular, clipvalue=1.0, beta_1=0.9,
@@ -252,9 +252,10 @@ class DeepXi():
 				out_path = out_path_base + '/' + self.ver + '/' + 'e' + str(e) # output path.
 				if out_type == 'xi_hat': out_path = out_path + '/xi_hat'
 				elif out_type == 'gamma_hat': out_path = out_path + '/gamma_hat'
-				elif out_type == 's_STPS_hat': out_path = out_path + '/s_STPS_hat'
+				elif out_type == 'mag_hat': out_path = out_path + '/mag_hat'
 				elif out_type == 'y':
-					if self.inp_tgt_type == 'MagIRM': out_path = out_path + '/y'
+					if (self.inp_tgt_type == 'MagGain') or (self.inp_tgt_type == 'MagMag'):
+						out_path = out_path + '/y'
 					else: out_path = out_path + '/y/' + g
 				elif out_type == 'deepmmse': out_path = out_path + '/deepmmse'
 				elif out_type == 'ibm_hat': out_path = out_path + '/ibm_hat'
@@ -262,7 +263,6 @@ class DeepXi():
 				elif out_type == 'cd_hat': out_path = out_path + '/cd_hat'
 				else: raise ValueError('Invalid output type.')
 				if not os.path.exists(out_path): os.makedirs(out_path)
-
 
 				self.model.load_weights(model_path + '/epoch-' + str(e-1) +
 					'/variables/variables' )
@@ -293,9 +293,9 @@ class DeepXi():
 					elif out_type == 'gamma_hat':
 						gamma_hat = self.inp_tgt.gamma_hat(tgt_hat)
 						save_mat(out_path + '/' + base_name + '.mat', gamma_hat, 'gamma_hat')
-					elif out_type == 's_STPS_hat':
-						s_STPS_hat = self.inp_tgt.s_stps_hat(tgt_hat)
-						save_mat(out_path + '/' + base_name + '.mat', s_STPS_hat, 's_STPS_hat')
+					elif out_type == 'mag_hat':
+						mag_hat = self.inp_tgt.mag_hat(tgt_hat)
+						save_mat(out_path + '/' + base_name + '.mat', mag_hat, 'mag_hat')
 					elif out_type == 'y':
 						y = self.inp_tgt.enhanced_speech(inp, supplementary, tgt_hat, g).numpy()
 						save_wav(out_path + '/' + base_name + '.wav', y, self.inp_tgt.f_s)
@@ -328,6 +328,7 @@ class DeepXi():
 		test_s_len,
 		test_s_base_names,
 		test_epoch,
+		log_path,
 		model_path='model',
 		gain='mmse-lsa',
 		):
@@ -350,7 +351,6 @@ class DeepXi():
 		"""
 		from pesq import pesq
 		from pystoi import stoi
-		
 		print("Processing observations...")
 		inp_batch, supplementary_batch, n_frames = self.observation_batch(test_x, test_x_len)
 		if not isinstance(test_epoch, list): test_epoch = [test_epoch]
@@ -404,9 +404,9 @@ class DeepXi():
 					snr_levels.add(key[1])
 					metrics.add(key[2])
 
-				if not os.path.exists("log/results"): os.makedirs("log/results")
+				if not os.path.exists(log_path + "/results"): os.makedirs(log_path + "/results")
 
-				with open("log/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
+				with open(log_path + "/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
 					f.write("noise,snr_db")
 					for k in sorted(metrics): f.write(',' + k)
 					f.write('\n')
@@ -426,13 +426,13 @@ class DeepXi():
 								if (i, j, k) in results.keys():
 									avg_results = self.add_score(avg_results, k, results[(i,j,k)])
 
-				if not os.path.exists("log/results/average.csv"):
-					with open("log/results/average.csv", "w") as f:
+				if not os.path.exists(log_path + "/results/average.csv"):
+					with open(log_path + "/results/average.csv", "w") as f:
 						f.write("ver")
 						for i in sorted(metrics): f.write("," + i)
 						f.write('\n')
 
-				with open("log/results/average.csv", "a") as f:
+				with open(log_path + "/results/average.csv", "a") as f:
 					f.write(self.ver + "_e" + str(e) + '_' + g)
 					for i in sorted(metrics):
 						if i in avg_results.keys():
@@ -488,171 +488,63 @@ class DeepXi():
 			print('Sample of the training set saved.')
 		return s_sample, d_sample, x_sample, wav_len
 
-	def sample_old(
-		self,
-		sample_size,
-		sample_dir='data',
-		):
-		"""
-		Gathers a sample of the training set. The sample can be used to compute
-		statistics for mapping functions.
-
-		Argument/s:
-			sample_size - number of training examples included in the sample.
-			sample_dir - path to the saved sample.
-		"""
-
-		sample_path = sample_dir + '/sample'
-		if os.path.exists(sample_path + '.npz'):
-			print('Loading sample...')
-			with np.load(sample_path + '.npz') as sample:
-				samples_s_STMS = sample['samples_s_STMS']
-				samples_d_STMS = sample['samples_d_STMS']
-				samples_x_STMS = sample['samples_x_STMS']
-		elif self.train_s_list == None:
-			raise ValueError('No sample.npz file exists. data/sample.npz is available here: https://github.com/anicolson/DeepXi/blob/master/data/sample.npz.')
-		else:
-			if sample_size == None: raise ValueError("sample_size is not set.")
-			print('Gathering a sample of the training set...')
-			s_sample_list = random.sample(self.train_s_list, sample_size)
-			d_sample_list = random.sample(self.train_d_list, sample_size)
-			s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
-			snr_sample = np.array(random.choices(self.snr_levels, k=sample_size))
-			samples_s_STMS = []
-			samples_d_STMS = []
-			samples_x_STMS = []
-			for i in tqdm(range(s_sample.shape[0])):
-				s, d, x, _ = self.inp_tgt.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
-					d_sample_len[i:i+1], snr_sample[i:i+1])
-				s_STMS, _ = self.inp_tgt.polar_analysis(s)
-				d_STMS, _ = self.inp_tgt.polar_analysis(d)
-				x_STMS, _ = self.inp_tgt.polar_analysis(x)
-				samples_s_STMS.append(np.squeeze(s_STMS.numpy()))
-				samples_d_STMS.append(np.squeeze(d_STMS.numpy()))
-				samples_x_STMS.append(np.squeeze(x_STMS.numpy()))
-			samples_s_STMS = np.vstack(samples_s_STMS)
-			samples_d_STMS = np.vstack(samples_d_STMS)
-			samples_x_STMS = np.vstack(samples_x_STMS)
-			if len(samples_s_STMS.shape) != 2: raise ValueError('Incorrect shape for s_STMS sample.')
-			if len(samples_d_STMS.shape) != 2: raise ValueError('Incorrect shape for d_STMS sample.')
-			if len(samples_x_STMS.shape) != 2: raise ValueError('Incorrect shape for x_STMS sample.')
-			if not os.path.exists(sample_dir): os.makedirs(sample_dir)
-			np.savez(sample_path + '.npz', samples_s_STMS=samples_s_STMS,
-				samples_d_STMS=samples_d_STMS, samples_x_STMS=samples_x_STMS)
-			sample = {'samples_s_STMS': samples_s_STMS,
-				'samples_d_STMS': samples_d_STMS,
-				'samples_x_STMS': samples_x_STMS}
-			save_mat(sample_path + '.mat', sample, 'stats')
-			print('Sample of the training set saved.')
-		return samples_s_STMS, samples_d_STMS, samples_x_STMS
-
-	# def spect_dist(
+	# def sample_old(
 	# 	self,
-	# 	test_s,
-	# 	test_s_len,
-	# 	test_s_base_names,
-	# 	test_d,
-	# 	test_d_len,
-	# 	test_d_base_names,
-	# 	snr,
-	# 	test_epoch,
-	# 	model_path='model',
+	# 	sample_size,
+	# 	sample_dir='data',
 	# 	):
 	# 	"""
-	# 	Note that the 'supplementary' variable can includes other
-	# 	variables necessary for synthesis, like the noisy-speech short-time
-	# 	phase spectrum.
+	# 	Gathers a sample of the training set. The sample can be used to compute
+	# 	statistics for mapping functions.
 	#
 	# 	Argument/s:
-	# 		test_s - clean-speech test batch.
-	# 		test_s_len - clean-speech test batch lengths.
-	# 		test_s_base_names - clean-speech base names.
-	# 		test_d - noise test batch.
-	# 		test_d_len - noise test batch lengths.
-	# 		test_d_base_names - noise base names.
-	# 		snr - SNR levels to be tested.
-	# 		test_epoch - epoch to test.
-	# 		model_path - path to model directory.
+	# 		sample_size - number of training examples included in the sample.
+	# 		sample_dir - path to the saved sample.
 	# 	"""
-	# 	if not isinstance(test_epoch, list): test_epoch = [test_epoch]
-	# 	for e in test_epoch:
 	#
-	# 		if e < 1: raise ValueError("test_epoch must be greater than 0.")
-	#
-	# 		self.model.load_weights(model_path + '/epoch-' + str(e-1) +
-	# 			'/variables/variables' )
-	#
-	# 		results = {}
-	# 		for i in snr:
-	# 			for s, d, s_len, d_len, base_name in tqdm(zip(test_s, test_d,
-	# 				test_s_len, test_d_len, test_s_base_names)):
-	# 				x_STMS, xi, n_frames = self.inp_tgt.tmp(s, d, s_len, d_len, i)
-	# 				xi_bar_hat = self.model.predict(tf.expand_dims(x_STMS, 0),
-	# 					batch_size=1, verbose=0)
-	# 				xi_hat = self.inp_tgt.xi_bar_inv(xi_bar_hat, self.inp_tgt.mu_xi_db, self.inp_tgt.sigma_xi_db)
-	# 				xi = xi[:n_frames,:]
-	# 				xi_hat = xi_hat[0,:n_frames,:]
-	# 				noise_src = base_name.split("_")[-1]
-	# 				snr_level = str(i) + "dB"
-	#
-	# 				results = self.add_score(results, (noise_src, snr_level, 'SD'),
-	# 					self.inp_tgt.spectral_distortion(xi, xi_hat).numpy())
-	#
-	#
-	# 				print(results)
-	#
-	#
-	#
-	# 						for (j, basename) in enumerate(test_s_base_names):
-	# 							if basename in test_x_base_names[i]: ref_idx = j
-	#
-	# 						s = self.inp_tgt.normalise(test_s[ref_idx,
-	# 							0:test_s_len[ref_idx]]).numpy() # from int16 to float.
-	# 						y = y[0:len(s)]
-	#
-	# 						noise_src = test_x_base_names[i].split("_")[-2]
-	# 						snr_level = int(test_x_base_names[i].split("_")[-1][:-2])
-	#
-	# 					noise_srcs, snr_levels, metrics = set(), set(), set()
-	# 					for key, value in results.items():
-	# 						noise_srcs.add(key[0])
-	# 						snr_levels.add(key[1])
-	# 						metrics.add(key[2])
-	#
-	# 					if not os.path.exists("log/results"): os.makedirs("log/results")
-	#
-	# 					with open("log/results/" + self.ver + "_e" + str(e) + '_' + g + ".csv", "w") as f:
-	# 						f.write("noise,snr_db")
-	# 						for k in sorted(metrics): f.write(',' + k)
-	# 						f.write('\n')
-	# 						for i in sorted(noise_srcs):
-	# 							for j in sorted(snr_levels):
-	# 								f.write("{},{}".format(i, j))
-	# 								for k in sorted(metrics):
-	# 									if (i, j, k) in results.keys():
-	# 										f.write(",{:.2f}".format(np.mean(results[(i,j,k)])))
-	# 								f.write('\n')
-	#
-	# 					avg_results = {}
-	# 					for i in sorted(noise_srcs):
-	# 						for j in sorted(snr_levels):
-	# 							if (j >= self.min_snr) and (j <= self.max_snr):
-	# 								for k in sorted(metrics):
-	# 									if (i, j, k) in results.keys():
-	# 										avg_results = self.add_score(avg_results, k, results[(i,j,k)])
-	#
-	# 					if not os.path.exists("log/results/average.csv"):
-	# 						with open("log/results/average.csv", "w") as f:
-	# 							f.write("ver")
-	# 							for i in sorted(metrics): f.write("," + i)
-	# 							f.write('\n')
-	#
-	# 					with open("log/results/average.csv", "a") as f:
-	# 						f.write(self.ver + "_e" + str(e) + '_' + g)
-	# 						for i in sorted(metrics):
-	# 							if i in avg_results.keys():
-	# 								f.write(",{:.2f}".format(np.mean(avg_results[i])))
-	# 						f.write('\n')
+	# 	sample_path = sample_dir + '/sample'
+	# 	if os.path.exists(sample_path + '.npz'):
+	# 		print('Loading sample...')
+	# 		with np.load(sample_path + '.npz') as sample:
+	# 			samples_s_STMS = sample['samples_s_STMS']
+	# 			samples_d_STMS = sample['samples_d_STMS']
+	# 			samples_x_STMS = sample['samples_x_STMS']
+	# 	elif self.train_s_list == None:
+	# 		raise ValueError('No sample.npz file exists. data/sample.npz is available here: https://github.com/anicolson/DeepXi/blob/master/data/sample.npz.')
+	# 	else:
+	# 		if sample_size == None: raise ValueError("sample_size is not set.")
+	# 		print('Gathering a sample of the training set...')
+	# 		s_sample_list = random.sample(self.train_s_list, sample_size)
+	# 		d_sample_list = random.sample(self.train_d_list, sample_size)
+	# 		s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
+	# 		snr_sample = np.array(random.choices(self.snr_levels, k=sample_size))
+	# 		samples_s_STMS = []
+	# 		samples_d_STMS = []
+	# 		samples_x_STMS = []
+	# 		for i in tqdm(range(s_sample.shape[0])):
+	# 			s, d, x, _ = self.inp_tgt.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
+	# 				d_sample_len[i:i+1], snr_sample[i:i+1])
+	# 			s_STMS, _ = self.inp_tgt.polar_analysis(s)
+	# 			d_STMS, _ = self.inp_tgt.polar_analysis(d)
+	# 			x_STMS, _ = self.inp_tgt.polar_analysis(x)
+	# 			samples_s_STMS.append(np.squeeze(s_STMS.numpy()))
+	# 			samples_d_STMS.append(np.squeeze(d_STMS.numpy()))
+	# 			samples_x_STMS.append(np.squeeze(x_STMS.numpy()))
+	# 		samples_s_STMS = np.vstack(samples_s_STMS)
+	# 		samples_d_STMS = np.vstack(samples_d_STMS)
+	# 		samples_x_STMS = np.vstack(samples_x_STMS)
+	# 		if len(samples_s_STMS.shape) != 2: raise ValueError('Incorrect shape for s_STMS sample.')
+	# 		if len(samples_d_STMS.shape) != 2: raise ValueError('Incorrect shape for d_STMS sample.')
+	# 		if len(samples_x_STMS.shape) != 2: raise ValueError('Incorrect shape for x_STMS sample.')
+	# 		if not os.path.exists(sample_dir): os.makedirs(sample_dir)
+	# 		np.savez(sample_path + '.npz', samples_s_STMS=samples_s_STMS,
+	# 			samples_d_STMS=samples_d_STMS, samples_x_STMS=samples_x_STMS)
+	# 		sample = {'samples_s_STMS': samples_s_STMS,
+	# 			'samples_d_STMS': samples_d_STMS,
+	# 			'samples_x_STMS': samples_x_STMS}
+	# 		save_mat(sample_path + '.mat', sample, 'stats')
+	# 		print('Sample of the training set saved.')
+	# 	return samples_s_STMS, samples_d_STMS, samples_x_STMS
 
 	def dataset(self, n_epochs, buffer_size=16):
 		"""
@@ -714,8 +606,6 @@ class DeepXi():
 		val_snr
 		):
 		"""
-		MAY CHANGE THIS TO NO SAVING.
-
 		Creates and saves the examples for the validation set. If
 		already saved, the function will load the batch of examples.
 
@@ -732,15 +622,6 @@ class DeepXi():
 			tgt_batch - batch of targets (mapped a priori SNR).
 			seq_mask_batch - batch of sequence masks.
 		"""
-		# if not os.path.exists(save_path): os.makedirs(save_path)
-		# val_batch_path = save_path + '/val_batch_' + self.inp_tgt_type + '.npz'
-		# if os.path.exists(val_batch_path):
-		# 	print('Loading validation batch...')
-		# 	with np.load(val_batch_path) as data:
-		# 		inp_batch = data['val_inp']
-		# 		tgt_batch = data['val_tgt']
-		# 		seq_mask_batch =  data['val_seq_mask']
-		# else:
 		print('Processing validation batch...')
 		batch_size = len(val_s)
 		max_n_frames = self.inp_tgt.n_frames(max(val_s_len))
@@ -755,8 +636,6 @@ class DeepXi():
 			if tf.is_tensor(tgt): tgt_batch[i,:n_frames,:] = tgt.numpy()
 			else: tgt_batch[i,:n_frames,:] = tgt
 			seq_mask_batch[i,:n_frames] = tf.cast(tf.sequence_mask(n_frames), tf.float32)
-			# np.savez(val_batch_path, val_inp=inp_batch,
-			# 	val_tgt=tgt_batch, val_seq_mask=seq_mask_batch)
 		return inp_batch, tgt_batch, seq_mask_batch
 
 	def observation_batch(self, x_batch, x_batch_len):
@@ -840,39 +719,25 @@ class DeepXi():
 			else: dict[key] = [score]
 		return dict
 
-class SaveWeights(Callback):  ### RENAME TO SaveModel
-	"""
-	"""
+class SaveWeights(Callback):
 	def __init__(self, model_path):
-		"""
-		"""
 		super(SaveWeights, self).__init__()
 		self.model_path = model_path
 
 	def on_epoch_end(self, epoch, logs=None):
-		"""
-		"""
 		self.model.save(self.model_path + "/epoch-" + str(epoch))
 
 class TransformerSchedular(LearningRateSchedule):
-	"""
-	"""
 	def __init__(self, d_model, warmup_steps):
-		"""
-		"""
 		super(TransformerSchedular, self).__init__()
 		self.d_model = float(d_model)
 		self.warmup_steps = warmup_steps
 
 	def __call__(self, step):
-		"""
-		"""
 		arg1 = tf.math.rsqrt(step)
 		arg2 = step * (self.warmup_steps ** -1.5)
 		return tf.math.rsqrt(self.d_model) * tf.math.minimum(arg1, arg2)
 
 	def get_config(self):
-		"""
-		"""
 		config = {'d_model': self.d_model, 'warmup_steps': self.warmup_steps}
 		return config
