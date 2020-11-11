@@ -1,3 +1,19 @@
+*.m~
+*demand_vb*
+run_*
+mmse_normal_gamma.py
+monitor_iter.m
+test_code.py
+*mha*
+*0.*
+*1a*
+dev/
+*.asv
+log/results/objective_scores
+*resnet-1.1.*
+soundfile.py
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -25,22 +41,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-*.m~
-*demand_vb*
-run_*
-mmse_normal_gamma.py
-monitor_iter.m
-test_code.py
-*mha*
-*0.*
-*1a*
-dev/
-*.asv
-log/results/objective_scores
-*resnet-1.1.*
-soundfile.py
-.idea/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
