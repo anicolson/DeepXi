@@ -13,9 +13,10 @@ then
                     --warmup_steps      40000                       \
                     --causal            1                           \
                     --loss_fnc          "BinaryCrossentropy"        \
+                    --outp_act          "Sigmoid"                   \
                     --max_epochs        200                         \
                     --resume_epoch      0                           \
-                    --test_epoch        150                         \
+                    --test_epoch        200                         \
                     --mbatch_size       8                           \
                     --inp_tgt_type      'MagXi'                     \
                     --map_type          'DBNormalCDF'               \
