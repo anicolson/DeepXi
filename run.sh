@@ -18,7 +18,7 @@ then
                     --test_epoch        150                         \
                     --mbatch_size       8                           \
                     --inp_tgt_type      'MagXi'                     \
-                    --xi_map_type       'DBNormalCDF'               \
+                    --map_type          'DBNormalCDF'               \
                     --sample_size       1000                        \
                     --f_s               16000                       \
                     --T_d               32                          \

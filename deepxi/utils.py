@@ -158,8 +158,8 @@ def val_wav_batch(val_s_dir, val_d_dir):
 	val_snr_list = []
 	extension = ['*.wav', '*.flac', '*.mp3']
 	for i in extension:
-		s_paths = glob.glob(os.path.join(val_s_dir, i))
-		d_paths = glob.glob(os.path.join(val_d_dir, i))
+		s_paths = sorted(glob.glob(os.path.join(val_s_dir, i)))
+		d_paths = sorted(glob.glob(os.path.join(val_d_dir, i)))
 		for (j,k) in zip(s_paths, d_paths):
 			s_basename = os.path.basename(os.path.splitext(j)[0])
 			d_basename = os.path.basename(os.path.splitext(k)[0])

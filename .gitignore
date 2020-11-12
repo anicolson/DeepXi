@@ -13,6 +13,9 @@ log/results/objective_scores
 *resnet-1.1.*
 soundfile.py
 .idea/
+notes.txt
+sync.sh
+jobs.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

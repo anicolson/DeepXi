@@ -2,6 +2,3 @@ tensorflow
 tqdm
 pysoundfile
 scipy
-# cython
-# pesq
-# pystoi

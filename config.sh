@@ -7,14 +7,16 @@ NEGATIVE="-"
 
 set -o noglob
 
+## Use hostname or whoami to set the paths on your workstation.
+
 case `hostname` in
 "fist")  echo "Running on `hostname`."
     LOG_PATH='log'
     SET_PATH='/mnt/ssd/deep_xi_training_set'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
-    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
-    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
-    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noise'
+    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noisy_speech'
+    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_clean_speech'
+    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noise'
     OUT_PATH='/home/aaron/mnt/aaron_root/mnt/hdd1/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/model/'$PROJ_DIR
     ;;
@@ -22,9 +24,9 @@ case `hostname` in
     LOG_PATH='log'
     SET_PATH='/home/aaron/set/deep_xi_training_set'
     DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
-    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
-    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
-    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noise'
+    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noisy_speech'
+    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_clean_speech'
+    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noise'
     OUT_PATH='/home/aaron/mnt/aaron_root/mnt/hdd1/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
     ;;
@@ -32,47 +34,36 @@ case `hostname` in
     LOG_PATH='log'
     SET_PATH='/mnt/ssd/deep_xi_training_set'
     DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
-    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noisy_speech'
-    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_clean_speech'
-    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_test_set/test_noise'
+    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noisy_speech'
+    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_clean_speech'
+    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noise'
     OUT_PATH='/home/aaron/mnt/aaron_root/mnt/hdd1/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
     ;;
-*) echo "`hostname` is not a known workstation. Using default paths."
-    LOG_PATH='log'
-    SET_PATH='set'
-    DATA_PATH='data'
-    TEST_X_PATH='set/test_noisy_speech'
-    TEST_S_PATH='set/test_clean_speech'
-    TEST_D_PATH='set/test_noise'
-    OUT_PATH='out'
-    MODEL_PATH='model'
-   ;;
+*) case `whoami` in
+    nic261)  echo Running on a cluster.
+      LOG_PATH='log'
+      SET_PATH='/scratch1/nic261/Datasets/deep_xi_dataset'
+      DATA_PATH='data'
+      TEST_X_PATH='/scratch1/nic261/Datasets/deep_xi_dataset/test_noisy_speech'
+      TEST_S_PATH='/scratch1/nic261/Datasets/deep_xi_dataset/test_clean_speech'
+      TEST_D_PATH='/scratch1/nic261/Datasets/deep_xi_dataset/test_noise'
+      OUT_PATH='out'
+      MODEL_PATH='model'
+    ;;
+  *) echo "This workstation is not known."
+      LOG_PATH='log'
+      SET_PATH='set'
+      DATA_PATH='data'
+      TEST_X_PATH='set/test_noisy_speech'
+      TEST_S_PATH='set/test_clean_speech'
+      TEST_D_PATH='set/test_noise'
+      OUT_PATH='out'
+      MODEL_PATH='model'
+    ;;
+  esac
+  ;;
 esac
-
-# get_free_gpu () {
-#     NUM_GPU=$( nvidia-smi --query-gpu=pci.bus_id --format=csv,noheader | wc -l )
-#     echo "$NUM_GPU total GPU/s."
-#     if [ $1 -eq 1  ]
-#     then
-#         echo 'Sleeping'
-#         sleep 1m
-#     fi
-#     while true
-#     do
-#         for (( gpu=0; gpu<$NUM_GPU; gpu++ ))
-#         do
-#             VAR1=$( nvidia-smi -i $gpu --query-gpu=pci.bus_id --format=csv,noheader )
-#             VAR2=$( nvidia-smi -i $gpu --query-compute-apps=gpu_bus_id --format=csv,noheader | head -n 1)
-#             if [ "$VAR1" != "$VAR2" ]
-#             then
-#                 return $gpu
-#             fi
-#         done
-#         echo 'Waiting for free GPU.'
-#         sleep 1m
-#     done
-# }
 
 get_free_gpu () {
   echo "Finding GPU/s..."

@@ -169,7 +169,7 @@ To install:
 How to use Deep Xi
 -----
 
-Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure and run Deep Xi.
+Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to configure and run Deep Xi. Look at [`config.sh`](https://github.com/anicolson/DeepXi/blob/master/config.sh) to set the paths to the dataset, models, and outputs.
 
 **Inference:**
 To perform inference and save the outputs, use the following:
@@ -225,7 +225,6 @@ The filenames of the waveforms in the `train_clean_speech` and `train_noise` dir
 **Validation set**
 
 As the validation set must not change from epoch to epoch, a set of restrictions apply to the waveforms in `val_clean_speech` and `val_noise`. There must be the same amount of waveforms in `val_clean_speech` and `val_noise`. One waveform in `val_clean_speech` corresponds to only one waveform in `val_noise`, i.e. a clean speech and noise validation waveform pair. Each clean speech and noise validation waveform pair must have identical filenames and and an identical number of samples. Each clean speech and noise validation waveform pair must have the SNR level (dB) that they are to be mixed at placed at the end of their filenames. The convention used is `_XdB`, where `X` is replaced with the desired SNR level. E.g. `val_clean_speech/NAME_-5dB.wav` and `val_noise/NAME_-5dB.wav`. An example of the filenames for a clean speech and noise validation waveform pair is as follows: `val_clean_speech/198_19-198-0003_Machinery17_15dB.wav` and `val_noise/198_19-198-0003_Machinery17_15dB.wav`.
-
 
 **Test set**
 

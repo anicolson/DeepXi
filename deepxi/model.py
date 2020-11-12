@@ -488,64 +488,6 @@ class DeepXi():
 			print('Sample of the training set saved.')
 		return s_sample, d_sample, x_sample, wav_len
 
-	# def sample_old(
-	# 	self,
-	# 	sample_size,
-	# 	sample_dir='data',
-	# 	):
-	# 	"""
-	# 	Gathers a sample of the training set. The sample can be used to compute
-	# 	statistics for mapping functions.
-	#
-	# 	Argument/s:
-	# 		sample_size - number of training examples included in the sample.
-	# 		sample_dir - path to the saved sample.
-	# 	"""
-	#
-	# 	sample_path = sample_dir + '/sample'
-	# 	if os.path.exists(sample_path + '.npz'):
-	# 		print('Loading sample...')
-	# 		with np.load(sample_path + '.npz') as sample:
-	# 			samples_s_STMS = sample['samples_s_STMS']
-	# 			samples_d_STMS = sample['samples_d_STMS']
-	# 			samples_x_STMS = sample['samples_x_STMS']
-	# 	elif self.train_s_list == None:
-	# 		raise ValueError('No sample.npz file exists. data/sample.npz is available here: https://github.com/anicolson/DeepXi/blob/master/data/sample.npz.')
-	# 	else:
-	# 		if sample_size == None: raise ValueError("sample_size is not set.")
-	# 		print('Gathering a sample of the training set...')
-	# 		s_sample_list = random.sample(self.train_s_list, sample_size)
-	# 		d_sample_list = random.sample(self.train_d_list, sample_size)
-	# 		s_sample, d_sample, s_sample_len, d_sample_len, snr_sample = self.wav_batch(s_sample_list, d_sample_list)
-	# 		snr_sample = np.array(random.choices(self.snr_levels, k=sample_size))
-	# 		samples_s_STMS = []
-	# 		samples_d_STMS = []
-	# 		samples_x_STMS = []
-	# 		for i in tqdm(range(s_sample.shape[0])):
-	# 			s, d, x, _ = self.inp_tgt.mix(s_sample[i:i+1], d_sample[i:i+1], s_sample_len[i:i+1],
-	# 				d_sample_len[i:i+1], snr_sample[i:i+1])
-	# 			s_STMS, _ = self.inp_tgt.polar_analysis(s)
-	# 			d_STMS, _ = self.inp_tgt.polar_analysis(d)
-	# 			x_STMS, _ = self.inp_tgt.polar_analysis(x)
-	# 			samples_s_STMS.append(np.squeeze(s_STMS.numpy()))
-	# 			samples_d_STMS.append(np.squeeze(d_STMS.numpy()))
-	# 			samples_x_STMS.append(np.squeeze(x_STMS.numpy()))
-	# 		samples_s_STMS = np.vstack(samples_s_STMS)
-	# 		samples_d_STMS = np.vstack(samples_d_STMS)
-	# 		samples_x_STMS = np.vstack(samples_x_STMS)
-	# 		if len(samples_s_STMS.shape) != 2: raise ValueError('Incorrect shape for s_STMS sample.')
-	# 		if len(samples_d_STMS.shape) != 2: raise ValueError('Incorrect shape for d_STMS sample.')
-	# 		if len(samples_x_STMS.shape) != 2: raise ValueError('Incorrect shape for x_STMS sample.')
-	# 		if not os.path.exists(sample_dir): os.makedirs(sample_dir)
-	# 		np.savez(sample_path + '.npz', samples_s_STMS=samples_s_STMS,
-	# 			samples_d_STMS=samples_d_STMS, samples_x_STMS=samples_x_STMS)
-	# 		sample = {'samples_s_STMS': samples_s_STMS,
-	# 			'samples_d_STMS': samples_d_STMS,
-	# 			'samples_x_STMS': samples_x_STMS}
-	# 		save_mat(sample_path + '.mat', sample, 'stats')
-	# 		print('Sample of the training set saved.')
-	# 	return samples_s_STMS, samples_d_STMS, samples_x_STMS
-
 	def dataset(self, n_epochs, buffer_size=16):
 		"""
 		Used to create a tf.data.Dataset for training.
