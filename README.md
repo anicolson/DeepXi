@@ -136,8 +136,8 @@ Average objective scores obtained over the conditions in the test set of the [De
 | Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
 | Deep Xi-ResNet (1.1c) | MMSE-LSA  | Yes    |   1.92|2.36|81.88|66.44|
 | Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
-| Deep Xi-MHANet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.36|81.88|66.44|
-| Deep Xi-MHANet (1.1c) | MMSE-LSA  | Yes    |   2.02|2.48|83.90|69.50|
+| Deep Xi-MHANet (1.0c) | MMSE-LSA  | Yes    |   ||||
+| Deep Xi-MHANet (1.1c) | MMSE-LSA  | Yes    |   ||||
 
 DeepMMSE
 ----
