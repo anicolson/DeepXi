@@ -1,9 +1,0 @@
-ver,MOS-LQO,PESQ,STOI,eSTOI
-resnet-1.0c_e180_mmse-lsa,1.92,2.37,80.79,65.77
-resnet-1.0c_e180_mmse-stsa,1.90,2.34,80.92,65.90
-resnet-1.0c_e180_srwf,1.87,2.31,80.98,65.94
-resnet-1.0c_e180_cwf,1.92,2.34,81.11,65.79
-resnet-1.0c_e180_wf,1.75,2.21,78.30,63.96
-resnet-1.0c_e180_ibm,1.38,1.73,70.85,55.95
-resnet-1.1n_e180_mmse-lsa,2.02,2.48,83.90,69.50
-resnet-1.1c_e200_mmse-lsa,1.92,2.36,81.88,66.44

@@ -6,7 +6,20 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 def network_selector(network_type, inp, n_outp, **kwargs):
-	if network_type == 'MHANetV2':
+	if network_type == 'MHANetV3':
+		from deepxi.network.attention import MHANetV3
+		network = MHANetV3(
+			inp=inp,
+			n_outp=n_outp,
+			d_model=kwargs['d_model'],
+			n_blocks=kwargs['n_blocks'],
+			n_heads=kwargs['n_heads'],
+			warmup_steps=kwargs['warmup_steps'],
+			max_len=kwargs['max_len'],
+			causal=kwargs['causal'],
+			outp_act=kwargs['outp_act']
+			)
+	elif network_type == 'MHANetV2':
 		from deepxi.network.attention import MHANetV2
 		network = MHANetV2(
 			inp=inp,

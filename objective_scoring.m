@@ -16,11 +16,12 @@ snr = -5:5:15; % SNR levels to test.
 
 %% PROCESSED (ENHANCED) SPEECH DIRECTORIES
 y.dirs = {
-    '/mnt/hdd1/out/deepxi/resnet-1.0.12c/e100/y/mmse-lsa',...
+    'C:/Users/nic261/Outputs/DeepXi/deep_xi_dataset/mhanet-1.0c/e200/y/mmse-lsa',...
+    'C:/Users/nic261/Outputs/DeepXi/deep_xi_dataset/mhanet-1.1c/e200/y/mmse-lsa',...
     };
 
 %% REFERENCE (CLEAN) SPEECH DIRECTORY
-s.paths = dir('/home/aaron/set/deep_xi_test_set/test_clean_speech/*.wav');
+s.paths = dir('C:/Users/nic261/Datasets/deep_xi_dataset/test_clean_speech/*.wav');
 
 %% OBJECTIVE SCORES DIRECTORY
 res_dir = 'log/results/objective_scores';

@@ -1,21 +1,18 @@
 *.m~
-*demand_vb*
-run_*
 mmse_normal_gamma.py
 monitor_iter.m
 test_code.py
-*mha*
 *0.*
 *1a*
 dev/
 *.asv
-log/results/objective_scores
 *resnet-1.1.*
 soundfile.py
 .idea/
 notes.txt
 sync.sh
 jobs.sh
+get_outputs.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

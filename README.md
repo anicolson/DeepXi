@@ -37,7 +37,6 @@ Contents
   * [Which audio do I use with Deep Xi?](#which-audio-do-i-use-with-deep-xi)
   * [Citation guide](#citation-guide)
 
-
 Introduction
 ----
 
@@ -48,7 +47,6 @@ Introduction
 * A **front-end for robust ASR**
 
 <!--
-
 
 |![](./docs/fig_front-end.png "Deep Xi as a front-end for robust ASR.")|
 |----|
@@ -98,7 +96,6 @@ There are multiple Deep Xi versions, comprising of different networks and restri
 
 **Each available model is trained using the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset) (seperate models are trained on the DEMAND-Voice bank training set for the DEMAND-Voice bank test set results below). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
-
 <!--
 Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0).
 -->
@@ -106,9 +103,9 @@ Trained models for **c2.7a** and **c1.13a** can be found in the *./model* direct
 Results
 -----
 
-**DEMAND -- Voice Bank test set**
+**DEMAND Voice Bank test set**
 
-Objective scores obtained on the DEMAND--Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). **Each Deep Xi model is trained on the  DEMAND--Voicebank training set**. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
+Objective scores obtained on the DEMAND Voicebank test set described [here](http://ssw9.talp.cat/papers/ssw9_PS2-4_Valentini-Botinhao.pdf). **Each Deep Xi model is trained on the  DEMAND Voicebank training set**. As in previous works, the objective scores are averaged over all tested conditions. **CSIG**, **CBAK**, and **COVL** are mean opinion score (MOS) predictors of the signal distortion, background-noise intrusiveness, and overall signal quality, respectively. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). The highest scores attained for each measure are indicated in boldface.
 
 | Method                 |   Gain | Causal | CSIG | CBAK | COVL | PESQ | STOI      | SegSNR |
 |-------------------------|---|--------|------|------|------|------|-----------|----|
@@ -133,12 +130,14 @@ Average objective scores obtained over the conditions in the test set of the [De
 |------------------|-----------|--------|---------|------|------|-------|
 | Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
 | Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-ResNet (1.0c) | SRWF  | Yes    |   1.87|2.31|80.98|65.94|
+| Deep Xi-ResNet (1.0c) | SRWF      | Yes    |   1.87|2.31|80.98|65.94|
 | Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
 | Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
 | Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
 | Deep Xi-ResNet (1.1c) | MMSE-LSA  | Yes    |   1.92|2.36|81.88|66.44|
 | Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
+| Deep Xi-MHANet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.36|81.88|66.44|
+| Deep Xi-MHANet (1.1c) | MMSE-LSA  | Yes    |   2.02|2.48|83.90|69.50|
 
 DeepMMSE
 ----

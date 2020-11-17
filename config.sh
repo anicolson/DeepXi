@@ -1,7 +1,5 @@
 #!/bin/bash
 
-## UPDATE TO config.sh FROM TGT_20
-
 PROJ_DIR='deepxi'
 NEGATIVE="-"
 

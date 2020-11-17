@@ -6,8 +6,8 @@
 ## file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from tensorflow.keras.layers import Activation, Add, \
-	Conv1D, Layer, LayerNormalization, Masking, ReLU
-import math
+	Conv1D, Embedding, Layer, LayerNormalization, Masking, ReLU
+import math, sys
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -383,3 +383,60 @@ class AttentionMaskV2(AttentionMask):
 		att_mask = tf.cast(logical_mask, tf.float32)
 		att_mask = tf.reshape(att_mask, [batch_size, 1, max_seq_len, max_seq_len])
 		return att_mask
+
+class MHANetV3(MHANetV2):
+	"""
+	MHANetV2 with positional encoding from BERT (https://arxiv.org/abs/1810.04805).
+	"""
+	def __init__(
+		self,
+		inp,
+		n_outp,
+		d_model,
+		n_blocks,
+		n_heads,
+		warmup_steps,
+		max_len,
+		causal,
+		outp_act,
+		):
+		"""
+		Argument/s:
+			inp - input placeholder.
+			n_outp - number of outputs.
+			d_model - model size.
+			n_blocks - number of blocks.
+			n_heads - number of attention heads.
+			warmup_steps - number of warmup steps.
+			max_len - maximum length for positional encoding.
+			causal - causal flag.
+			outp_act - output activation function.
+		"""
+		self.n_outp = n_outp
+		self.d_model = d_model
+		self.n_blocks = n_blocks
+		self.n_heads = n_heads
+		self.d_ff = d_model*4
+		self.max_len = max_len
+		self.warmup_steps = warmup_steps
+		self.d_k = self.d_model // self.n_heads
+
+		att_mask = AttentionMaskV2(causal)(inp)
+
+		x = Conv1D(self.d_model, 1, use_bias=False)(inp)
+		x = LayerNormalization(axis=2, epsilon=1e-6, center=True, scale=True)(x)
+		x = ReLU()(x)
+
+		## Add postitional encoding.
+		position_idx = tf.tile([tf.range(tf.shape(x)[1])], [tf.shape(x)[0], 1])
+		positional_encoding = Embedding(self.max_len, self.d_model)(position_idx)
+		x = Add()([x, positional_encoding])
+
+		for _ in range(self.n_blocks): x = self.block(x, att_mask)
+
+		self.outp = Conv1D(self.n_outp, 1, use_bias=True)(x)
+
+		if outp_act == "Sigmoid": self.outp = Activation('sigmoid')(self.outp)
+		elif outp_act == "ReLU": self.outp = ReLU()(self.outp)
+		elif outp_act == "Linear": self.outp = self.outp
+		else: raise ValueError("Invalid outp_act")

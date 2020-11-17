@@ -113,6 +113,7 @@ def get_args():
 	parser.add_argument('--unit_type', type=str, help='Block unit type')
 	parser.add_argument('--loss_fnc', type=str, help='Loss function')
 	parser.add_argument('--outp_act', type=str, help='Output activation type')
+	parser.add_argument('--max_len', type=int, help='Maximum length for positional encoding')
 
 	## MAP
 	parser.add_argument('--map_type', type=str_to_list, help='Function used as the map')
