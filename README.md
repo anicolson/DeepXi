@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 
 -->
 
-Deep Xi: *A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.*
+**Deep Xi**: A Deep Learning Approach to *A Priori* SNR Estimation for speech enhancement.
 ====
 
 News
@@ -39,12 +39,12 @@ Contents
 
 Introduction
 ----
-
-**Deep Xi is implemented in TensorFlow 2 and can be used for speech enhancement, noise estimation, mask estimation, and as a front-end for robust ASR.** [Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/ and is the symbol used in the literature for the *a priori* SNR) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002) and is implemented in [TensorFlow 2](https://www.tensorflow.org/). Some of its use cases include:
-* It can be used by minimum mean-square error (MMSE) approaches to **speech enhancement** like the MMSE short-time spectral amplitude (MMSE-STSA) estimator.
-* It can be used by MMSE-based **noise PSD estimators**, as in *DeepMMSE* [[2]](https://ieeexplore.ieee.org/document/9066933).
-* Estimate the ideal binary mask **(IBM)** for missing feature approaches or the ideal ratio mask **(IRM)**.
-* A **front-end for robust ASR**
+**Deep Xi is implemented in TensorFlow 2/Keras and can be used for speech enhancement, noise estimation, mask estimation, and as a front-end for robust ASR.** [Deep Xi](https://doi.org/10.1016/j.specom.2019.06.002) (where the Greek letter 'xi' or ξ is pronounced  /zaɪ/ and is the symbol used in the literature for the *a priori* SNR) is a deep learning approach to *a priori* SNR estimation that was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Some of its use cases include:
+* Minimum mean-square error (MMSE) approaches to **speech enhancement**.
+* MMSE-based **noise PSD estimators**, as in *DeepMMSE* [[2]](https://ieeexplore.ieee.org/document/9066933).
+* Ideal binary mask (IBM) estimation for **missing feature approaches**.
+* Ideal ratio mask (IRM) estimation for **source separation**.
+* **Front-end for robust ASR**
 
 <!--
 
@@ -68,40 +68,41 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 
 Current networks
 -----
-Recurrent neural networks (RNNs) and temporal convolutional networks (TCNs), are available: <!-- and attention-based networks -->
-<!--- * **MHANet**: Multi-head attention network. --->
-* **ResLSTM & ResBiLSTM**: Residual long short-term memory (LSTM) network and residual bidirectional LSTM (ResBiLSTM) network [1].
-* **ResNet**: Residual network [2].
+* **MHANet**: Multi-head attention network [6].
 * **RDLNet**: Residual-dense lattice network [3].
+* **ResNet**: Residual network [2].
+* **ResLSTM & ResBiLSTM**: Residual long short-term memory (LSTM) network and residual bidirectional LSTM (ResBiLSTM) network [1].
 
-<!--- Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in . --->
+Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in [[6]](https://doi.org/10.1016/j.specom.2020.10.004). It utilises multi-head attention to efficiently model the long-range dependencies of noisy speech. Deep Xi-MHANet is shown in **Figure 4**. Deep Xi utilising a ResNet TCN (**Deep Xi-ResNet**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
 
-Deep Xi utilising a ResNet TCN (**Deep Xi-ResNet**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. An example of Deep Xi-ResNet is shown in **Figure 4**. Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
-
-|![](./docs/fig_Deep-Xi-ResNet.png "Deep Xi-ResNet a priori SNR estimator.")|
+|![](./docs/fig_mhanet.jpg "Deep Xi-MHANet a priori SNR estimator.")|
 |----|
-| <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-ResNet with <i>B</i> bottlekneck blocks. Each block has a bottlekneck size of <i>d_f</i>, and an output size of <i>d_model</i>. The middle convolutional unit has a kernel size of <i>k</i> and a dilation rate of <i>d</i>. The input to the ResNet is the noisy speech magnitude spectrum for frame <i>l</i>.  The output is the corresponding mapped <i>a priori</i> SNR estimate for each component of the noisy speech magnitude spectrum. <b>(right)</b> An example of Deep Xi-ResNet with <i>B=6</i>, a kernel size of <i>k=3</i>, and a maximum dilation rate of <i>4</i>. The dilation rate increases with the block index, <i>b</i>, by a power of 2 and is cycled if the maximum dilation rate is exceeded.</a></p> |
+| <p align="center"> <b>Figure 4:</b> <a> <b>(left)</b> Deep Xi-MHANet from [6].</a></p> |
 
 Available models
 -----
-There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. The network type is given at the start of `ver`. Versions with **c** are **causal**. Versions with **n** are **non-causal**.  The version iteration is also given, i.e. `1.0`. Here are the current versions:
+Here are the current versions:
+
+**[`mhanet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory coming soon)**
+
+**[`mhanet-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory coming soon)**
 
 **[`resnet-1.1n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **[`resnet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
-**[`resbilstm-1.0n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available soon)**
+**[`resbilstm-1.0n`](https://github.com/anicolson/DeepXi/blob/master/run.sh)**
 
-**[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available soon)**
+**[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh)**
 
 **Each available model is trained using the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset) (seperate models are trained on the DEMAND-Voice bank training set for the DEMAND-Voice bank test set results below). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
-<!--
-Trained models for **c2.7a** and **c1.13a** can be found in the *./model* directory. The trained model for **n1.9a** is to large to be stored on github. A model for **n1.9a** can be downloaded from [here](https://www.dropbox.com/s/wkhymfmx4qmqvg7/n1.5a.zip?dl=0).
--->
+There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. The network type is given at the start of `ver`. Versions with **c** are **causal**. Versions with **n** are **non-causal**.  The version iteration is also given, i.e. `1.0`.
 
 Results
 -----
+
+Note: Results for the Deep Xi framework in this repository are reported for Tensorflow 2/Keras. Results in the papers were found using Tensorflow 1. All future work will be completed in Tensorflow 2/Keras.
 
 **DEMAND Voice Bank test set**
 
@@ -111,16 +112,20 @@ Objective scores obtained on the DEMAND Voicebank test set described [here](http
 |-------------------------|---|--------|------|------|------|------|-----------|----|
 | Noisy speech              | -- | --     | 3.35 | 2.44 | 2.63 | 1.97 | 92 (91.5) | -- |
 | [Wiener](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=543199) |  | Yes    | 3.23 | 2.68 | 2.67 | 2.22 | --        | -- |
-| [SEGAN](https://arxiv.org/pdf/1703.09452.pdf)                |   --   | No     | 3.48 | 2.94 | 2.80 | 2.16 | 93  |
-| [WaveNet](https://arxiv.org/pdf/1706.07162.pdf)              | --     | No     | 3.62 | 3.23 | 2.98 | --   | --        |
+| [SEGAN](https://arxiv.org/pdf/1703.09452.pdf)                |   --   | No     | 3.48 | 2.94 | 2.80 | 2.16 | 93  | -- |
+| [WaveNet](https://arxiv.org/pdf/1706.07162.pdf)              | --     | No     | 3.62 | 3.23 | 2.98 | --   | --        | --|
 | [MMSE-GAN](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8462068)    |    --         | No     | 3.80 | 3.12 | 3.14 | 2.53 | 93      | -- |
 | [Deep Feature Loss](https://arxiv.org/pdf/1806.10522.pdf)  |  --      | Yes    | 3.86 | 3.33 | 3.22 | --   | --        | -- |
 | [Metric-GAN](https://arxiv.org/pdf/1905.04874.pdf) |      --          | No     | 3.99 | 3.18 | 3.42 | 2.86 | --        | -- |
+| [Koizumi2020](https://doi.org/10.1109/icassp40776.2020.9053214)  |  -- | No  | 4.15 | 3.42 | 3.57 | 2.99 | --  | --  |
+| [T-GSA](https://ieeexplore.ieee.org/document/9053591)   | --  | No | 4.18  | **3.59** | 3.62  | **3.06**  |  -- | --  |
 | **Deep Xi-ResLSTM (1.0c)** | MMSE-LSA | Yes    | 4.01 | 3.25 | 3.34 | 2.65 | 91 (91.0) | 8.2 |
 | **Deep Xi-ResNet (1.0c)** | MMSE-LSA | Yes    | 4.14 | 3.32 | 3.46 | 2.77 | 93 (93.2) | -- |
 | **Deep Xi-ResNet (1.0n)** | MMSE-LSA | No    | 4.28 | 3.46 | 3.64 | 2.95 | 94 (93.6) | -- |
 | **Deep Xi-ResNet (1.1c)** | MMSE-LSA | Yes    | 4.24 | 3.40 | 3.59 | 2.91 | 94 (93.5) | 8.4 |
-| **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.35** | **3.52** | **3.71** | **3.03** | **94 (94.1)** | **9.3** |
+| **Deep Xi-ResNet (1.1n)** | MMSE-LSA | No    | **4.35** | 3.52 | **3.71** | 3.03 | **94 (94.1)** | **9.3** |
+| **Deep Xi-MHANet (1.0c)** | MMSE-LSA | Yes    | 4.15 | 3.37 | 3.48 | 2.77 | 93 (93.2) | 8.9 |
+| **Deep Xi-MHANet (1.1c)** | MMSE-LSA | Yes    | 4.34 | 3.49 | 3.69 | 2.99 | 94 (94.0) | 9.1 |
 
 **Deep Xi Test Set**
 
@@ -234,6 +239,7 @@ Citation guide
 
 Please cite the following depending on what you are using:
 * The Deep Xi framework is proposed in [1].
+* If using Deep Xi-MHANet, please cite [1] and [6].
 * If using Deep Xi-ResLSTM, please cite [1].
 * If using Deep Xi-ResNet, please cite [1] and [2].
 * If using DeepMMSE, please cite [2].
@@ -250,3 +256,5 @@ Please cite the following depending on what you are using:
 [4] Aaron Nicolson, "Deep Xi dataset", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/3adt-pb04.
 
 [5] Aaron Nicolson, "Test Set From 10.1016/j.specom.2019.06.002", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/0ppr-yy46.
+
+[6] [A. Nicolson, K. K. Paliwal, Masked multi-head self-attention for causal speech enhancement, Speech Communication 125 (2020) 80 - 96, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)

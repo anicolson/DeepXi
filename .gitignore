@@ -6,13 +6,14 @@ test_code.py
 *1a*
 dev/
 *.asv
-*resnet-1.1.*
 soundfile.py
 .idea/
 notes.txt
 sync.sh
 jobs.sh
 get_outputs.sh
+get_outputs_dvb.sh
+copy_dvb.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
