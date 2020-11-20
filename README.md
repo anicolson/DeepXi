@@ -85,8 +85,6 @@ Here are the current versions:
 
 **[`mhanet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory coming soon)**
 
-**[`mhanet-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory coming soon)**
-
 **[`resnet-1.1n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **[`resnet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
