@@ -11,6 +11,9 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 News
 ----
 
+New trained model:
+ * A trained MHANet is available in the `model` directory.
+
 New journal paper:
  * [Masked Multi-Head Self-Attention for Causal Speech Enhancement](https://protect-au.mimecast.com/s/E9oJCMwvOEhqv5wBOuJmmiO?domain=authors.elsevier.com)
 
