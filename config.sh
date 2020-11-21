@@ -10,7 +10,7 @@ set -o noglob
 case `hostname` in
 "fist")  echo "Running on `hostname`."
     LOG_PATH='log'
-    SET_PATH='/mnt/ssd/deep_xi_training_set'
+    SET_PATH='/mnt/ssd/deep_xi_dataset'
     DATA_PATH='/home/aaron/data/'$PROJ_DIR
     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noisy_speech'
     TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_clean_speech'
@@ -20,7 +20,7 @@ case `hostname` in
     ;;
 "pinky-jnr")  echo "Running on `hostname`."
     LOG_PATH='log'
-    SET_PATH='/home/aaron/set/deep_xi_training_set'
+    SET_PATH='/home/aaron/set/deep_xi_dataset'
     DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
     TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noisy_speech'
     TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_clean_speech'
@@ -28,15 +28,15 @@ case `hostname` in
     OUT_PATH='/home/aaron/mnt/aaron_root/mnt/hdd1/out/'$PROJ_DIR
     MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
     ;;
-"stink")  echo "Running on `hostname`."
+"LANGTON-RBH")  echo "Running on `hostname`."
     LOG_PATH='log'
-    SET_PATH='/mnt/ssd/deep_xi_training_set'
-    DATA_PATH='/home/aaron/mnt/fist/data/'$PROJ_DIR
-    TEST_X_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noisy_speech'
-    TEST_S_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_clean_speech'
-    TEST_D_PATH='/home/aaron/mnt/aaron/set/deep_xi_dataset/test_noise'
-    OUT_PATH='/home/aaron/mnt/aaron_root/mnt/hdd1/out/'$PROJ_DIR
-    MODEL_PATH='/home/aaron/mnt/fist/model/'$PROJ_DIR
+    SET_PATH='/mnt/c/Users/nic261/Datasets/deep_xi_dataset'
+    DATA_PATH='data'
+    TEST_X_PATH='/mnt/c/Users/nic261/Datasets/deep_xi_dataset/test_noisy_speech'
+    TEST_S_PATH='/mnt/c/Users/nic261/Datasets/deep_xi_dataset/test_clean_speech'
+    TEST_D_PATH='/mnt/c/Users/nic261/Datasets/deep_xi_dataset/test_noise'
+    OUT_PATH='/mnt/c/Users/nic261/Outputs/'$PROJ_DIR
+    MODEL_PATH='model'
     ;;
 *) case `whoami` in
     nic261)  echo Running on a cluster.

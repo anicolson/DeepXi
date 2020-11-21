@@ -11,6 +11,7 @@ soundfile.py
 notes.txt
 sync.sh
 jobs.sh
+get_model.sh
 get_outputs.sh
 get_outputs_dvb.sh
 copy_dvb.sh

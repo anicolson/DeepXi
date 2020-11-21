@@ -68,10 +68,14 @@ A training example is shown in **Figure 2**. A deep neural network (DNN) within 
 
 Current networks
 -----
+
+Configurations for the following networks can be found in [`run.sh`.](https://github.com/anicolson/DeepXi/blob/master/run.sh)
+
 * **MHANet**: Multi-head attention network [6].
 * **RDLNet**: Residual-dense lattice network [3].
 * **ResNet**: Residual network [2].
 * **ResLSTM & ResBiLSTM**: Residual long short-term memory (LSTM) network and residual bidirectional LSTM (ResBiLSTM) network [1].
+
 
 Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in [[6]](https://doi.org/10.1016/j.specom.2020.10.004). It utilises multi-head attention to efficiently model the long-range dependencies of noisy speech. Deep Xi-MHANet is shown in **Figure 4**. Deep Xi utilising a ResNet TCN (**Deep Xi-ResNet**) was proposed in [[2]](https://ieeexplore.ieee.org/document/9066933). It uses bottleneck residual blocks and a cyclic dilation rate. The network comprises of approximately 2 million parameters and has a contextual field of approximately 8 seconds. Deep Xi utilising a ResLSTM network (**Deep Xi-ResLSTM**) was proposed in [[1]](https://doi.org/10.1016/j.specom.2019.06.002). Each of its residual blocks contain a single LSTM cell. The network comprises of approximately 10 million parameters.
 
@@ -81,19 +85,14 @@ Deep Xi utilising the MHANet (**Deep Xi-MHANet**) was proposed in [[6]](https://
 
 Available models
 -----
-Here are the current versions:
 
-**[`mhanet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory coming soon)**
+**[`mhanet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **[`resnet-1.1n`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
 **[`resnet-1.1c`](https://github.com/anicolson/DeepXi/blob/master/run.sh) (available in the [`model`](https://github.com/anicolson/DeepXi/tree/master/model) directory)**
 
-**[`resbilstm-1.0n`](https://github.com/anicolson/DeepXi/blob/master/run.sh)**
-
-**[`reslstm-1.0c`](https://github.com/anicolson/DeepXi/blob/master/run.sh)**
-
-**Each available model is trained using the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset) (seperate models are trained on the DEMAND-Voice bank training set for the DEMAND-Voice bank test set results below). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
+**Each available model is trained using the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset). Please see [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for more details about these networks.**
 
 There are multiple Deep Xi versions, comprising of different networks and restrictions. An example of the `ver` naming convention is `resnet-1.0c`. The network type is given at the start of `ver`. Versions with **c** are **causal**. Versions with **n** are **non-causal**.  The version iteration is also given, i.e. `1.0`.
 
@@ -127,20 +126,18 @@ Objective scores obtained on the DEMAND Voicebank test set described [here](http
 
 **Deep Xi Test Set**
 
-Average objective scores obtained over the conditions in the test set of the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset). **Each Deep Xi model is trained on the test set of the Deep Xi dataet**. SNR levels between -10 dB and 20 dB are considered only. **MOS-LQO** is the mean opinion score (MOS) objective listening quality score obtained using Wideband PESQ. **PESQ** is the perceptual evaluation of speech quality measure. **STOI** is the short-time objective intelligibility measure (in \%). **eSTOI** is extended STOI. **Results for each condition can be found in `log/results`**
+Average objective scores obtained over the conditions in the test set of the [Deep Xi dataset](https://ieee-dataport.org/open-access/deep-xi-dataset). **Each Deep Xi model is trained on the test set of the Deep Xi dataet**. SNR levels between -10 dB and 20 dB are considered only. **Results for each condition can be found in `log/results`**
 
-| Method           | Gain      | Causal | MOS-LQO | PESQ | STOI | eSTOI |
-|------------------|-----------|--------|---------|------|------|-------|
-| Deep Xi-ResNet (1.0c) | MMSE-STSA | Yes    |   1.90|2.34|80.92|65.90|
-| Deep Xi-ResNet (1.0c) | MMSE-LSA  | Yes    |   1.92|2.37|80.79|65.77|
-| Deep Xi-ResNet (1.0c) | SRWF      | Yes    |   1.87|2.31|80.98|65.94|
-| Deep Xi-ResNet (1.0c) | cWF       | Yes    |   1.92|2.34|81.11|65.79|
-| Deep Xi-ResNet (1.0c) | WF        | Yes    |   1.75|2.21|78.30|63.96|
-| Deep Xi-ResNet (1.0c) | IBM       | Yes    |   1.38|1.73|70.85|55.95|
-| Deep Xi-ResNet (1.1c) | MMSE-LSA  | Yes    |   1.92|2.36|81.88|66.44|
-| Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     |   2.02|2.48|83.90|69.50|
-| Deep Xi-MHANet (1.0c) | MMSE-LSA  | Yes    |   ||||
-| Deep Xi-MHANet (1.1c) | MMSE-LSA  | Yes    |   ||||
+| Method           | Gain      | Causal | CSIG | CBAK | COVL | PESQ | STOI      |
+|-------------------------|---|--------|------|------|------|------|-----------|
+| Deep Xi-ResNet (1.1c) | MMSE-STSA | Yes    |   3.14| 2.52| 2.43| 1.82| 84.85 |
+| Deep Xi-ResNet (1.1c) | MMSE-LSA  | Yes    |   3.15| 2.55| 2.46| 1.85| 84.72 |
+| Deep Xi-ResNet (1.1c) | SRWF/IRM  | Yes    |   3.12| 2.50| 2.41| 1.79| 84.95 |
+| Deep Xi-ResNet (1.1c) | cWF       | Yes    |   3.15| 2.51| 2.44| 1.83| 84.94 |
+| Deep Xi-ResNet (1.1c) | WF        | Yes    |  2.66| 2.46| 2.12| 1.69| 83.02 |
+| Deep Xi-ResNet (1.1c) | IBM       | Yes    |   1.36| 2.16| 1.26| 1.30| 77.57 |
+| Deep Xi-ResNet (1.1n) | MMSE-LSA  | No     | 3.30| 2.62| 2.59| 1.97| 86.70 |
+| Deep Xi-MHANet (1.1c) | MMSE-LSA  | Yes    | **3.45**| **2.75**| **2.73**| **2.08** | **87.11** |
 
 DeepMMSE
 ----
@@ -149,7 +146,7 @@ DeepMMSE: A Deep Learning Approach to MMSE-Based Noise Power Spectral Density Es
 
 To save noise PSD estimate `.mat` files from DeepMMSE, please use the following:
 ```
-./run.sh VER="resnet-1.1n" INFER=1 GAIN="deepmmse"
+./run.sh VER="mhanet-1.1c" INFER=1 GAIN="deepmmse"
 ```
 
 Installation
@@ -176,20 +173,20 @@ Use [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to config
 **Inference:**
 To perform inference and save the outputs, use the following:
 ```
-./run.sh VER="resnet-1.1n" INFER=1 GAIN="mmse-lsa"
+./run.sh VER="mhanet-1.1c" INFER=1 GAIN="mmse-lsa"
 ```
 Please look in [`thoth/args.py`](https://github.com/anicolson/DeepXi/blob/master/deepxi/args.py) for available gain functions and [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) for further options.
 
 **Testing:**
 To perform testing and get objective scores, use the following:
 ```
-./run.sh VER="resnet-1.1n" TEST=1 GAIN="mmse-lsa"
+./run.sh VER="mhanet-1.1c" TEST=1 GAIN="mmse-lsa"
 ```
 Please look in [`log/results`](https://github.com/anicolson/DeepXi/blob/master/log/results) for the results.
 
 **Training:**
 ```
-./run.sh VER="resnet-1.1n" TRAIN=1
+./run.sh VER="mhanet-1.1c" TRAIN=1
 ```
 Ensure to delete the data directory before training. This will allow training lists and statistics for your training set to be saved and used. **To retrain from a certain epoch, set `--resume_epoch` in [`run.sh`](https://github.com/anicolson/DeepXi/blob/master/run.sh) to the desired epoch**.
 
