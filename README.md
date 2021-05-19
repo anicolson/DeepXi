@@ -19,10 +19,10 @@ New trained model:
  * A trained MHANet is available in the `model` directory.
 
 New journal paper:
- * [Masked Multi-Head Self-Attention for Causal Speech Enhancement](https://www.sciencedirect.com/science/article/pii/S0167639320302806)
+ * Masked Multi-Head Self-Attention for Causal Speech Enhancement [[link]](https://www.sciencedirect.com/science/article/pii/S0167639320302806) [[.pdf]](https://github.com/anicolson/DeepXi/blob/master/docs/1-s2.0-S0167639320302806-main.pdf)
 
 New journal paper:
- * [Spectral distortion level resulting in a just-noticeable difference between an *a priori* signal-to-noise ratio estimate and its instantaneous case](https://doi.org/10.1121/10.0002113)
+ * Spectral distortion level resulting in a just-noticeable difference between an *a priori* signal-to-noise ratio estimate and its instantaneous case [[link]](https://doi.org/10.1121/10.0002113) [[.pdf]](https://github.com/anicolson/DeepXi/blob/master/docs/10.0002113.pdf)
 
 Contents
 ----
