@@ -11,6 +11,11 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 News
 ----
 
+New journal paper):
+
+ * [On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation](https://asa.scitation.org/doi/pdf/10.1121/10.0004823)
+ * [PDF]()
+
 New trained model:
  * A trained MHANet is available in the `model` directory.
 
@@ -19,11 +24,6 @@ New journal paper:
 
 New journal paper:
  * [Spectral distortion level resulting in a just-noticeable difference between an *a priori* signal-to-noise ratio estimate and its instantaneous case](https://doi.org/10.1121/10.0002113)
-
-New preprint (under review):
-
- * [On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation](https://www.techrxiv.org/articles/preprint/On_Training_Targets_for_Deep_Learning_Approaches_to_Clean_Speech_Magnitude_Spectrum_Estimation/13012760/2)
- * The code for this study can be found at: [https://github.com/anicolson/tgt_20](https://github.com/anicolson/tgt_20).
 
 Contents
 ----
