@@ -13,8 +13,7 @@ News
 
 New journal paper):
 
- * [On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation](https://asa.scitation.org/doi/pdf/10.1121/10.0004823)
- * [PDF]()
+ * On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation [[link]](https://asa.scitation.org/doi/10.1121/10.0002113) [[.pdf]](https://github.com/anicolson/DeepXi/blob/master/docs/3273_1.pdf)
 
 New trained model:
  * A trained MHANet is available in the `model` directory.
