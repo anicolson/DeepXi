@@ -11,7 +11,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 News
 ----
 
-New journal paper):
+New journal paper:
 
  * On Training Targets for Deep Learning Approaches to Clean Speech Magnitude Spectrum Estimation [[link]](https://asa.scitation.org/doi/10.1121/10.0002113) [[.pdf]](https://github.com/anicolson/DeepXi/blob/master/docs/3273_1.pdf)
 
