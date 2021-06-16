@@ -23,6 +23,9 @@ New journal paper:
 
 New journal paper:
  * Spectral distortion level resulting in a just-noticeable difference between an *a priori* signal-to-noise ratio estimate and its instantaneous case [[link]](https://doi.org/10.1121/10.0002113) [[.pdf]](https://github.com/anicolson/DeepXi/blob/master/docs/10.0002113.pdf)
+ 
+ New conference paper:
+ * Temporal Convolutional Network with Frequency Dimension AdaptiveAttention for Speech Enhancement (Accepted in INTERSPEECH 2021)
 
 Contents
 ----
