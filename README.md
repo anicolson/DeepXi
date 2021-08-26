@@ -170,6 +170,8 @@ To install:
 4. `cd DeepXi`
 5. `pip install -r requirements.txt`
 
+Otherwise, a **docker image** can be found on Docker Hub: https://hub.docker.com/r/fhoerst/deepxi
+
 How to use Deep Xi
 -----
 
