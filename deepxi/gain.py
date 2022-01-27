@@ -153,7 +153,8 @@ def ibm(xi):
 
 def deepmmse(xi, gamma):
 	"""
-	DeepMMSE utilises the MMSE noise periodogram estimate gain function.
+	DeepMMSE utilises the MMSE noise periodogram estimate gain function. Credit to Minseung-Kim for 
+	fixing the error np.divide(1, np.add(1, xi)) to np.divide(1, np.square(np.add(1, xi))).
 
 	Argument/s:
 		xi - a priori SNR.
@@ -162,7 +163,7 @@ def deepmmse(xi, gamma):
 	Returns:
 		MMSE-Noise_PSD gain function.
 	"""
-	return np.add(np.divide(1, np.add(1, xi)),
+	return np.add(np.divide(1, np.square(np.add(1, xi))),
 		np.divide(xi, np.multiply(gamma, np.add(1, xi)))) # MMSE noise periodogram estimate gain function.
 
 def gfunc(xi, gamma=None, gtype=None, cdm=None):
