@@ -259,4 +259,4 @@ Please cite the following depending on what you are using:
 
 [5] Aaron Nicolson, "Test Set From 10.1016/j.specom.2019.06.002", IEEE Dataport, 2020. [Online]. Available: http://dx.doi.org/10.21227/0ppr-yy46.
 
-[6] [A. Nicolson, K. K. Paliwal, Masked multi-head self-attention for causal speech enhancement, Speech Communication 125 (2020) 80 - 96, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2019.06.002)
+[6] [A. Nicolson, K. K. Paliwal, Masked multi-head self-attention for causal speech enhancement, Speech Communication 125 (2020) 80 - 96, https://doi.org/10.1016/j.specom.2019.06.002.](https://doi.org/10.1016/j.specom.2020.10.004)
