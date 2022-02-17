@@ -26,6 +26,7 @@ New journal paper:
  
  New conference paper:
  * Temporal Convolutional Network with Frequency Dimension Adaptive Attention for Speech Enhancement (INTERSPEECH 2021)[[link]](https://www.isca-speech.org/archive/pdfs/interspeech_2021/zhang21b_interspeech.pdf)
+ * Time-Frequency Attention for Monaural Speech Enhancement (Accepted in ICASSP 2022)
 
 Contents
 ----
